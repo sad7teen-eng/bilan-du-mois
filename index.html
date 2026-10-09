@@ -470,19 +470,16 @@ function renderDash(){
 $("days").addEventListener("click", e => { const c = e.target.closest("[data-day]"); if (c) openDay(+c.dataset.day); });
 $("prevM").onclick = () => shiftMonth(-1);
 $("nextM").onclick = () => shiftMonth(1);
+/* Each month keeps its own trades: switching month files the current one in the archive and loads the other. */
+const mkey = (y, m) => y + "-" + m;
 function shiftMonth(k){
-  if (state.trades.length && !confirmSwitch()) return;
+  if (!state.archive || typeof state.archive !== "object") state.archive = {};
+  state.archive[mkey(state.year, state.month)] = state.trades;
   let m = state.month + k, y = state.year;
   if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; }
-  state.month = m; state.year = y; state.trades = []; save(); renderDash();
-}
-let switchArmed = 0;
-function confirmSwitch(){
-  if (Date.now() - switchArmed < 3000) { switchArmed = 0; return true; }
-  switchArmed = Date.now();
-  const lab = $("monthLabel"), keep = lab.textContent;
-  lab.textContent = "Re-clique : vide le mois"; setTimeout(() => { if (lab.textContent !== keep) lab.textContent = monthName(); }, 3000);
-  return false;
+  state.month = m; state.year = y;
+  state.trades = Array.isArray(state.archive[mkey(y, m)]) ? state.archive[mkey(y, m)] : [];
+  save(); renderDash();
 }
 
 /* ---------- Day editor ---------- */
