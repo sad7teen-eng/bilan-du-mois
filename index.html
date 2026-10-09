@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bilan du mois">
 <meta name="theme-color" content="#000000">
+<meta http-equiv="Cache-Control" content="no-cache">
 <title>Bilan du mois</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -403,10 +404,10 @@ const cur = () => state.currency || "$";
 const monthName = () => `${MONTHS[state.month]} ${state.year}`;
 const mon3 = () => MONTHS[state.month].slice(0, 3);
 function money(v, c = cur(), signed = true){
-  const s = v < 0 ? "-" : (signed ? "+" : "");
+  const s = v < 0 ? "-" : "";
   return s + c + Math.abs(v).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
-const short = v => (v < 0 ? "-" : "+") + cur() + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(2).replace(/\.?0+$/, "") + "K" : Math.abs(v).toFixed(Math.abs(v) % 1 ? 2 : 0));
+const short = v => (v < 0 ? "-" : "") + cur() + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(2).replace(/\.?0+$/, "") + "K" : Math.abs(v).toFixed(Math.abs(v) % 1 ? 2 : 0));
 
 function stats(trades){
   const winsT = trades.filter(t => t.pnl > 0), lossT = trades.filter(t => t.pnl < 0);
