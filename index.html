@@ -335,12 +335,16 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .chip em{font-style:normal;font-size:11px;color:var(--muted)}
 .card{width:100%;max-width:340px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid rgba(98,226,156,.2);background:linear-gradient(180deg,rgba(98,226,156,.07),rgba(98,226,156,.02));display:flex;flex-direction:column;gap:6px}
 .card.red{border-color:rgba(255,143,107,.2);background:linear-gradient(180deg,rgba(255,143,107,.10),rgba(255,143,107,.03))}
-.card .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
-.card .sym{font-weight:700;font-size:15px}
-.card .sym small{font-weight:500;font-size:11px;color:var(--muted);margin-left:6px;letter-spacing:.08em}
-.card .setup{font-size:12px;color:var(--muted)}
-.card .setup b{color:var(--fg);font-weight:600}
-.card q{font-size:13px;line-height:1.45;color:#cfd8d4;font-style:italic}
+.card{font-family:var(--display)}
+.card .c-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card .c-sym{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.card .c-side{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.card .c-side.long{color:var(--gain);border-color:rgba(98,226,156,.3);background:rgba(98,226,156,.08)}
+.card .c-side.short{color:var(--loss);border-color:rgba(255,143,107,.3);background:rgba(255,143,107,.08)}
+.card .c-r{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.card .c-meta{display:flex;align-items:center;flex-wrap:wrap;gap:0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card .c-meta i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.6;margin:0 8px}
+.card q{font-size:14px;line-height:1.5;color:#cfd8d4;font-style:normal;quotes:none}
 .moral{font-size:12px;color:var(--muted)}
 .handle{font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.06em}
 .hint{position:absolute;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);opacity:.7;pointer-events:none}
@@ -1167,10 +1171,11 @@ function curveSVG(curve){
     <circle class="curve-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="5" fill="${col}"/></svg>`;
 }
 function tradeCard(t, red){
+  const rTxt = t.r != null && t.r !== "" && isFinite(+t.r) ? ((+t.r > 0 ? "+" : "") + String(t.r).replace(".", ",") + "R") : "";
+  const side = String(t.side || "").toLowerCase();
   return `<div class="card${red ? " red" : ""} rise" style="--d:2">
-    <div class="meta">${t.day} ${MONTHS[state.month].toLowerCase()}${t.time ? " · " + esc(t.time) : ""}${t.lots ? " · " + t.lots + " lots" : ""}${t.r != null && t.r !== "" ? " · " + (t.r > 0 ? "+" : "") + String(t.r).replace(".", ",") + "R" : ""}</div>
-    <div class="sym">${esc(t.sym)}<small>${esc(t.side.toUpperCase())}</small></div>
-    ${t.setup || t.grade ? `<div class="setup">${t.setup ? `Setup <b>${esc(t.setup)}</b>` : ""}${t.setup && t.grade ? " · " : ""}${t.grade ? `Note <b>${esc(t.grade)}</b>` : ""}</div>` : ""}
+    <div class="c-top"><div class="c-sym">${esc(t.sym)}<span class="c-side ${side}">${esc(t.side)}</span></div>${rTxt ? `<span class="c-r ${+t.r < 0 ? "r" : "g"}">${rTxt}</span>` : ""}</div>
+    <div class="c-meta">${t.day} ${MONTHS[state.month].toLowerCase()}${t.time ? `<i></i>${esc(t.time)}` : ""}${t.lots ? `<i></i>${t.lots} lots` : ""}${t.grade ? `<i></i>Note ${esc(t.grade)}` : ""}</div>
     ${t.note ? `<q>${esc(t.note)}</q>` : ""}</div>`;
 }
 function buildSlides(){
@@ -1305,7 +1310,7 @@ applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-16";
+const APP_VERSION = "2026-10-16-17";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
