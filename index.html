@@ -207,24 +207,32 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .app svg{width:30px;height:30px}
 .app small{font-size:10.5px;color:var(--muted)}
 /* Certificats */
-.certsheet{max-width:980px}
-.certgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.cert{border:1px solid var(--line);border-radius:12px;background:var(--panel-2);overflow:hidden;display:flex;flex-direction:column}
-.cert .im{aspect-ratio:4/3;background:#000;cursor:zoom-in}
+.cpage{--mono:var(--display);position:fixed;inset:0;z-index:25;background:var(--bg);color:var(--fg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(30px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+.cp-h{display:flex;align-items:center;gap:14px;position:sticky;top:calc(-14px - env(safe-area-inset-top,0px));background:var(--bg);padding:6px 0 10px;z-index:2}
+.cp-h h2{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em}
+.cp-h .sum{font-size:12.5px;color:var(--muted);margin-top:1px}
+.back{padding:8px 13px;font-size:14px;border-radius:10px;flex:none}
+#certEditModal{z-index:35}
+.certgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;max-width:1100px;width:100%;margin:0 auto}
+@media (min-width:700px){.certgrid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}}
+.slot{aspect-ratio:4/5;border:1.5px dashed var(--line);border-radius:11px;background:transparent;display:grid;place-items:center;color:#3b4a46;font-size:22px;padding:0}
+.slot:hover{border-color:var(--gain-edge);color:var(--gain)}
+.cert{border:1px solid var(--line);border-radius:11px;background:var(--panel-2);overflow:hidden;display:flex;flex-direction:column;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.cert .im{aspect-ratio:4/5;background:#000;width:100%}
 .cert .im img{width:100%;height:100%;object-fit:cover;display:block}
-.cert .im.none{display:grid;place-items:center;color:var(--muted);font-size:12px;cursor:default}
-.cert .ct{padding:10px 12px;display:flex;flex-direction:column;gap:3px}
-.cert .ct b{font-size:14px}
-.cert .ct span{font-size:12px;color:var(--muted)}
-.cert .ct .kind{align-self:flex-start;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--gain-edge);color:var(--gain);margin-bottom:3px}
-.cert .ce{display:flex;justify-content:flex-end;padding:0 10px 10px}
-.cert .ce button{padding:5px 11px;font-size:12px;background:transparent}
+.cert .im.none{display:grid;place-items:center;color:var(--muted);font-size:11px}
+.cert .ct{padding:7px 8px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.cert .ct b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cert .ct span{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cert .ct .kind{color:var(--gain);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
 .certedit{border:1px solid var(--line);border-radius:12px;background:var(--panel-2);padding:14px;display:flex;flex-direction:column;gap:10px}
 .certedit input{font:15px var(--display);border-radius:10px;padding:10px 12px;background:var(--bg)}
 .certprev{max-width:260px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
 .certprev img{width:100%;display:block}
-.lightbox{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.92);display:grid;place-items:center;padding:20px;cursor:zoom-out}
-.lightbox img{max-width:100%;max-height:100%;border-radius:10px}
+.lightbox{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px}
+.lb-acts{display:flex;gap:8px}
+.lb-acts button{padding:10px 18px;border-radius:10px;font-size:14px}
+.lightbox img{max-width:100%;max-height:calc(100% - 70px);border-radius:10px}
 .t-photo{position:relative;aspect-ratio:16/10;border-radius:11px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
 .t-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .mainph{position:relative;aspect-ratio:16/10;border-radius:11px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
@@ -392,18 +400,20 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
   </footer>
 </div>
 
-<!-- Certificats -->
-<div class="modal" id="certModal" hidden>
-  <div class="sheet certsheet" role="dialog" aria-labelledby="certTitle">
-    <div class="dh"><div><h2 id="certTitle">Mes certificats</h2><div class="sum" id="certSum"></div></div><button type="button" id="certClose">Fermer</button></div>
-    <div id="certEdit"></div>
-    <button type="button" class="addtrade" id="certAdd">+ Ajouter un certificat</button>
-    <div class="certgrid" id="certGrid"></div>
-    <input type="file" id="certPick" accept="image/*,application/pdf" hidden>
-    <datalist id="firms"><option>FTMO</option><option>Alpha Capital</option><option>The5ers</option><option>FundedNext</option><option>Topstep</option><option>Apex</option></datalist>
-  </div>
+<!-- Certificats : page plein écran -->
+<div class="cpage" id="certModal" hidden>
+  <header class="cp-h">
+    <button type="button" id="certClose" class="back">‹ Retour</button>
+    <div><h2 id="certTitle">Mes certificats</h2><div class="sum" id="certSum"></div></div>
+  </header>
+  <div class="certgrid" id="certGrid"></div>
+  <input type="file" id="certPick" accept="image/*,application/pdf" hidden>
+  <datalist id="firms"><option>FTMO</option><option>Alpha Capital</option><option>The5ers</option><option>FundedNext</option><option>Topstep</option><option>Apex</option></datalist>
 </div>
-<div class="lightbox" id="lightbox" hidden><img id="lightImg" alt="Certificat"></div>
+<div class="modal" id="certEditModal" hidden>
+  <div class="sheet daysheet" role="dialog" aria-label="Certificat"><div id="certEdit"></div></div>
+</div>
+<div class="lightbox" id="lightbox" hidden><img id="lightImg" alt="Certificat"><div class="lb-acts"><button type="button" id="lbEdit">Modifier</button><button type="button" id="lbClose">Fermer</button></div></div>
 
 <!-- Fiche du jour -->
 <div class="modal" id="dayModal" hidden>
@@ -765,16 +775,19 @@ $("importIn").onchange = async () => {
 /* ---------- Certificats ---------- */
 let certEdit = null;
 const CKIND = ["Évaluation réussie", "Compte financé", "Payout"];
-async function openCerts(){ await Promise.all((state.certs || []).map(c => idb.get("cert:" + c.id))); certEdit = null; drawCerts(); $("certModal").hidden = false; }
+let lbId = null;
+async function openCerts(){ await Promise.all((state.certs || []).map(c => idb.get("cert:" + c.id))); certEdit = null; drawCerts(); $("certModal").hidden = false; $("certModal").scrollTop = 0; document.body.style.overflow = "hidden"; }
+function closeCerts(){ $("certModal").hidden = true; $("certEditModal").hidden = true; document.body.style.overflow = ""; renderDash(); }
 function drawCerts(){
   const cs = (state.certs || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   const tot = cs.reduce((a, c) => a + (c.kind === "Payout" ? (num(c.amount) || 0) : 0), 0);
   $("certSum").textContent = cs.length ? `${cs.length} certificat${cs.length > 1 ? "s" : ""}${tot ? " · " + money(tot) + " de payouts" : ""}` : "Aucun certificat pour l'instant";
+  const slots = Math.max(9, Math.ceil((cs.length + 1) / 3) * 3) - cs.length;
   $("certGrid").innerHTML = cs.map(c => { const im = (imgCache["cert:" + c.id] || [])[0];
-    return `<article class="cert"><div class="im${im ? "" : " none"}"${im ? ` data-zoom="${c.id}"` : ""}>${im ? `<img src="${im}" alt="Certificat ${esc(c.firm)}">` : "Pas d'image"}</div>
-      <div class="ct"><span class="kind">${esc(c.kind)}</span><b>${esc(c.firm)}${c.amount ? " · " + esc(c.amount) : ""}</b><span>${c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : ""}</span></div>
-      <div class="ce"><button type="button" data-cedit="${c.id}">Modifier</button></div></article>`; }).join("");
-  $("certAdd").hidden = !!certEdit;
+    return `<button type="button" class="cert" data-open="${c.id}"><div class="im${im ? "" : " none"}">${im ? `<img src="${im}" alt="Certificat ${esc(c.firm)}">` : "Pas d'image"}</div>
+      <div class="ct"><span class="kind">${esc(c.kind)}</span><b>${esc(c.firm)}${c.amount ? " · " + esc(c.amount) : ""}</b><span>${c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "short", year: "numeric"}) : ""}</span></div></button>`; }).join("")
+    + Array.from({length: slots}, () => `<button type="button" class="slot" data-newcert="1" aria-label="Ajouter un certificat">+</button>`).join("");
+  $("certEditModal").hidden = !certEdit;
   if (!certEdit) { $("certEdit").innerHTML = ""; return; }
   const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0];
   $("certEdit").innerHTML = `<form class="certedit" id="certForm">
@@ -796,18 +809,26 @@ async function setCertFile(f){
   if (url) { await idb.set("cert:" + certEdit.id, [url]); drawCerts(); }
 }
 $("appCerts").onclick = openCerts;
-$("certClose").onclick = () => { $("certModal").hidden = true; renderDash(); };
-$("certAdd").onclick = () => { certEdit = {id: uid(), firm: "", amount: "", kind: CKIND[0], date: new Date().toISOString().slice(0, 10)}; drawCerts(); };
-$("certModal").addEventListener("click", e => {
-  const b = e.target.closest("button,[data-zoom],#certDrop"); if (!b) return;
-  if (b.dataset.zoom) { $("lightImg").src = imgCache["cert:" + b.dataset.zoom][0]; $("lightbox").hidden = false; return; }
+$("certClose").onclick = closeCerts;
+const newCert = () => { certEdit = {id: uid(), firm: "", amount: "", kind: CKIND[0], date: new Date().toISOString().slice(0, 10)}; drawCerts(); };
+$("certGrid").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.newcert) { newCert(); return; }
+  if (b.dataset.open) { const im = (imgCache["cert:" + b.dataset.open] || [])[0];
+    if (!im) { certEdit = {...state.certs.find(c => c.id === b.dataset.open)}; drawCerts(); return; }
+    lbId = b.dataset.open; $("lightImg").src = im; $("lightbox").hidden = false; }
+});
+$("lbClose").onclick = () => { $("lightbox").hidden = true; };
+$("lbEdit").onclick = () => { $("lightbox").hidden = true; certEdit = {...state.certs.find(c => c.id === lbId)}; drawCerts(); };
+$("certEditModal").addEventListener("click", e => {
+  if (e.target === $("certEditModal")) { certEdit = null; drawCerts(); return; }
+  const b = e.target.closest("button,#certDrop"); if (!b) return;
   if (b.id === "certDrop") { $("certPick").value = ""; $("certPick").click(); return; }
-  if (b.dataset.cedit) { certEdit = {...state.certs.find(c => c.id === b.dataset.cedit)}; drawCerts(); $("certEdit").scrollIntoView({block: "nearest"}); return; }
   if (b.dataset.ckind) { readCert(); certEdit.kind = b.dataset.ckind; drawCerts(); return; }
   if (b.id === "cfCancel") { certEdit = null; drawCerts(); return; }
   if (b.id === "cfDel") { state.certs = state.certs.filter(c => c.id !== certEdit.id); idb.set("cert:" + certEdit.id, []); certEdit = null; save(); drawCerts(); return; }
 });
-$("certModal").addEventListener("submit", e => {
+$("certEditModal").addEventListener("submit", e => {
   e.preventDefault(); readCert();
   if (!certEdit.firm.trim()) { document.getElementById("cf-firm").focus(); return; }
   const c = {id: certEdit.id, firm: certEdit.firm.trim(), amount: (certEdit.amount || "").trim(), kind: certEdit.kind, date: certEdit.date || ""};
@@ -816,9 +837,12 @@ $("certModal").addEventListener("submit", e => {
   certEdit = null; save(); drawCerts();
 });
 $("certPick").addEventListener("change", () => setCertFile($("certPick").files[0]));
-$("certModal").addEventListener("dragover", e => { if (certEdit) e.preventDefault(); });
-$("certModal").addEventListener("drop", e => { if (!certEdit) return; e.preventDefault(); setCertFile(e.dataTransfer.files[0]); });
-$("lightbox").onclick = () => { $("lightbox").hidden = true; };
+$("certEditModal").addEventListener("dragover", e => e.preventDefault());
+$("certEditModal").addEventListener("drop", e => { if (!certEdit) return; e.preventDefault(); setCertFile(e.dataTransfer.files[0]); });
+/* glisser une image sur la page : nouveau certificat avec cette image */
+$("certModal").addEventListener("dragover", e => e.preventDefault());
+$("certModal").addEventListener("drop", e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (!f) return; if (!certEdit) newCert(); setCertFile(f); });
+document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if (!$("lightbox").hidden) { $("lightbox").hidden = true; return; } if (!$("certEditModal").hidden) { certEdit = null; drawCerts(); return; } if (!$("certModal").hidden) closeCerts(); });
 
 /* ---------- Fiche du jour ---------- */
 let dayOpen = 0, editId = null, edit = null;
@@ -1193,7 +1217,7 @@ $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("ligh
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-10";
+const APP_VERSION = "2026-10-16-11";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
