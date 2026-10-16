@@ -89,32 +89,29 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .cal-h h2{margin:0;font-size:14px;font-weight:600}
 .cal-h .tot{font-family:var(--mono);font-size:14px;font-weight:600}
 .wk,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
-.wk div{font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;padding:5px 0;border-radius:6px;background:var(--panel-2)}
-.cell{position:relative;min-height:74px;border-radius:9px;border:1px solid var(--line);background:var(--panel-2);padding:7px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;text-align:left;font:inherit;color:inherit;min-width:0}
-.cell:hover{border-color:#3a4a46}
+.wk div{font-size:10.5px;color:var(--muted);text-align:center;padding:2px 0}
+.cell{position:relative;aspect-ratio:1;min-height:0;border-radius:12px;border:1px solid transparent;background:var(--panel-2);padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font:inherit;color:inherit;min-width:0;transition:transform .15s ease,border-color .15s ease}
+.cell:hover{border-color:#34433f;transform:translateY(-1px)}
 .cell.blank{visibility:hidden;cursor:default}
-.cell .dn{font-family:var(--mono);font-size:10px;color:var(--muted);align-self:flex-end}
-.cell .p{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cell .c{font-family:var(--mono);font-size:9.5px;color:var(--muted)}
-.cell.up{background:var(--gain-dim);border-color:var(--gain-edge)}
+.cell .dn{position:absolute;top:6px;left:8px;font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cell .p{font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;margin-top:8px}
+.cell .c{font-size:9.5px;color:var(--muted)}
+.cell.up{background:linear-gradient(160deg,rgba(98,226,156,.22),rgba(98,226,156,.07));border-color:rgba(98,226,156,.18)}
 .cell.up .p{color:var(--gain)}
-.cell.down{background:var(--loss-dim);border-color:var(--loss-edge)}
+.cell.down{background:linear-gradient(160deg,rgba(255,143,107,.22),rgba(255,143,107,.07));border-color:rgba(255,143,107,.18)}
 .cell.down .p{color:var(--loss)}
-.cell .add{font-family:var(--mono);font-size:16px;color:#3b4a46;align-self:center}
+.cell .add{font-size:15px;color:#33403d;margin-top:8px}
+.cell.today{border-color:var(--fg)}
+.cell.other{opacity:.4}
 .cal .help{font-size:11.5px;color:var(--muted);margin:0}
-.weekv .cell{min-height:92px;padding:9px}
-.weekv .cell .p{font-size:14px;text-overflow:clip}
-@media (max-width:560px){.weekv{gap:4px}.weekv .cell{min-height:76px;padding:6px 3px}.weekv .cell .dn{padding-right:3px}.weekv .cell .p{font-size:11px;letter-spacing:-.02em;text-align:center}}
 .cal-nav{display:flex;align-items:center;gap:6px}
 .cal-nav button{padding:4px 10px}
-.cell.other{opacity:.4}
-.cell.today{box-shadow:inset 0 0 0 1.5px var(--fg)}
 .monthtoggle{width:100%;padding:11px;font-size:13px}
 .savebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .savebar .st{flex:1;min-width:180px}
 .savebar .st.ok{color:var(--gain)}
 .savebar button{padding:5px 10px;font-size:11.5px}
-@media (max-width:560px){.cell{min-height:58px;padding:5px}.cell .p{font-size:10.5px}.cell .c{display:none}.wk div{font-size:9px}}
+@media (max-width:560px){.cell{border-radius:9px}.cell .dn{top:4px;left:5px;font-size:9px}.cell .p{font-size:10.5px;margin-top:9px}.cell .c{display:none}.cell .add{display:none}.wk div{font-size:9px}}
 
 /* ---------- Modals ---------- */
 .modal{position:fixed;inset:0;background:rgba(3,5,5,.78);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px;z-index:20}
@@ -465,6 +462,34 @@ function stats(trades){
   };
 }
 
+/* Courbe arrondie sans faux creux (cubique monotone), verte au-dessus de zéro, rouge en dessous */
+function smoothPath(pts){
+  const n = pts.length; if (n < 2) return "";
+  if (n === 2) return `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)} L${pts[1][0].toFixed(1)} ${pts[1][1].toFixed(1)}`;
+  const dx = [], sl = [], m = [];
+  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; sl[i] = (pts[i + 1][1] - pts[i][1]) / (dx[i] || 1); }
+  m[0] = sl[0]; m[n - 1] = sl[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = sl[i - 1] * sl[i] <= 0 ? 0 : (sl[i - 1] + sl[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (sl[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / sl[i], b = m[i + 1] / sl[i], h = a * a + b * b;
+    if (h > 9) { const t = 3 / Math.sqrt(h); m[i] = t * a * sl[i]; m[i + 1] = t * b * sl[i]; }
+  }
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dx[i] / 3;
+    d += ` C${(pts[i][0] + h).toFixed(1)} ${(pts[i][1] + m[i] * h).toFixed(1)} ${(pts[i + 1][0] - h).toFixed(1)} ${(pts[i + 1][1] - m[i + 1] * h).toFixed(1)} ${pts[i + 1][0].toFixed(1)} ${pts[i + 1][1].toFixed(1)}`;
+  }
+  return d;
+}
+let gradSeq = 0;
+function zeroGrad(id, y0, H, up, down, opUp, opDown){
+  const z = Math.max(0, Math.min(1, y0 / H)).toFixed(4);
+  return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="${H}">
+    <stop offset="0" stop-color="${up}" stop-opacity="${opUp}"/><stop offset="${z}" stop-color="${up}" stop-opacity="${opUp}"/>
+    <stop offset="${z}" stop-color="${down}" stop-opacity="${opDown}"/><stop offset="1" stop-color="${down}" stop-opacity="${opDown}"/></linearGradient>`;
+}
+
 /* ---------- Dashboard ---------- */
 function renderDash(){
   const s = stats(state.trades);
@@ -477,11 +502,13 @@ function renderDash(){
 
   const spark = (() => {
     if (s.curve.length < 2) return "";
-    const W = 300, H = 46, min = Math.min(...s.curve), max = Math.max(...s.curve), span = (max - min) || 1;
-    const pts = s.curve.map((v, i) => [i * W / (s.curve.length - 1), 4 + (max - v) / span * (H - 8)]);
-    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-    const col = s.net < 0 ? "var(--loss)" : "var(--gain)";
-    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L${W} ${H} L0 ${H} Z" style="fill:${col};fill-opacity:.12"/><path d="${d}" style="fill:none;stroke:${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+    const W = 300, H = 56, min = Math.min(0, ...s.curve), max = Math.max(0, ...s.curve), span = (max - min) || 1;
+    const yv = v => 4 + (max - v) / span * (H - 8), y0 = yv(0);
+    const pts = s.curve.map((v, i) => [i * W / (s.curve.length - 1), yv(v)]);
+    const d = smoothPath(pts), id = "sg" + (++gradSeq), ia = "sa" + gradSeq;
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>${zeroGrad(id, y0, H, "#62e29c", "#ff8f6b", 1, 1)}${zeroGrad(ia, y0, H, "#62e29c", "#ff8f6b", .13, .16)}</defs>
+      ${min < 0 ? `<line x1="0" x2="${W}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>` : ""}
+      <path d="${d} L${W} ${y0.toFixed(1)} L0 ${y0.toFixed(1)} Z" fill="url(#${ia})"/><path d="${d}" fill="none" stroke="url(#${id})" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
   })();
   const ring = (pct, col) => { const r = 19, C = 2 * Math.PI * r; return `<svg class="ring" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="${r}" style="fill:none;stroke:var(--line)" stroke-width="5"/><circle cx="23" cy="23" r="${r}" style="fill:none;stroke:${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(C * Math.min(1, pct)).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 23 23)"/></svg>`; };
   const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2);
@@ -498,7 +525,7 @@ function renderDash(){
     const ts = tradesOf(y, m).filter(t => t.day === d), pnl = ts.reduce((a, t) => a + t.pnl, 0);
     const cls = (other ? " other" : "") + (isToday(y, m, d) ? " today" : "");
     const da = `data-y="${y}" data-m="${m}" data-day="${d}"`;
-    if (ts.length) return `<button type="button" class="cell ${pnl < 0 ? "down" : "up"}${cls}" ${da} aria-label="${d} ${MONTHS[m]} : ${money(pnl)}"><span class="dn">${d}</span><span class="p">${monthOpen ? short(pnl) : compact(pnl)}</span><span class="c">${ts.length} trade${ts.length > 1 ? "s" : ""}</span></button>`;
+    if (ts.length) return `<button type="button" class="cell ${pnl < 0 ? "down" : "up"}${cls}" ${da} aria-label="${d} ${MONTHS[m]} : ${money(pnl)}"><span class="dn">${d}</span><span class="p">${compact(pnl)}</span><span class="c">${ts.length} trade${ts.length > 1 ? "s" : ""}</span></button>`;
     return `<button type="button" class="cell${cls}" ${da} aria-label="Ajouter des trades le ${d}"><span class="dn">${d}</span><span class="add">+</span><span class="c">&nbsp;</span></button>`;
   };
   const compact = v => (v < 0 ? "−" : "+") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1).replace(/\.0$/, "") + "k" : Math.round(Math.abs(v)));
@@ -524,14 +551,14 @@ function renderDash(){
   }
   $("days").innerHTML = html;
   $("days").classList.toggle("weekv", !monthOpen);
-  $("btnMonth").textContent = monthOpen ? "Revenir à la semaine" : "Voir tout le mois";
+  $("btnMonth").hidden = true;
   showSaved(true);
 }
 
 const mkey = (y, m) => y + "-" + m;
 const tradesOf = (y, m) => (y === state.year && m === state.month) ? state.trades : ((state.archive || {})[mkey(y, m)] || []);
 const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; };
-let weekStart = null, monthOpen = false;
+let weekStart = null, monthOpen = true;
 function defaultWeek(){
   const now = new Date();
   weekStart = (now.getFullYear() === state.year && now.getMonth() === state.month) ? mondayOf(now) : mondayOf(new Date(state.year, state.month, 1));
@@ -689,14 +716,14 @@ function curveSVG(curve){
   const W = 640, H = 220, P = 14;
   const min = Math.min(0, ...curve), max = Math.max(0, ...curve), span = (max - min) || 1;
   const x = i => P + i * (W - 2 * P) / Math.max(1, curve.length - 1), y = v => P + (max - v) / span * (H - 2 * P);
-  const pts = curve.map((v, i) => [x(i), y(v)]);
-  const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const pts = curve.map((v, i) => [x(i), y(v)]), y0 = y(0);
+  const d = smoothPath(pts);
   const last = pts[pts.length - 1], up = curve[curve.length - 1] >= 0, col = up ? "#62e29c" : "#ff8f6b";
-  const area = d + ` L${last[0].toFixed(1)} ${y(min).toFixed(1)} L${pts[0][0].toFixed(1)} ${y(min).toFixed(1)} Z`;
+  const area = d + ` L${last[0].toFixed(1)} ${y0.toFixed(1)} L${pts[0][0].toFixed(1)} ${y0.toFixed(1)} Z`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Courbe des gains">
-    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
-    <line x1="${P}" x2="${W - P}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="#2a3532" stroke-dasharray="3 5" stroke-width="1"/>
-    <path class="curve-area" d="${area}" fill="url(#ag)"/><path class="curve-line" d="${d}"/>
+    <defs>${zeroGrad("cl", y0, H, "#eaf3ee", "#ff8f6b", 1, 1)}${zeroGrad("ag", y0, H, "#62e29c", "#ff8f6b", .2, .22)}</defs>
+    <line x1="${P}" x2="${W - P}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#2a3532" stroke-dasharray="3 5" stroke-width="1"/>
+    <path class="curve-area" d="${area}" fill="url(#ag)"/><path class="curve-line" d="${d}" style="stroke:url(#cl)"/>
     <circle class="curve-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="5" fill="${col}"/></svg>`;
 }
 function tradeCard(t, red){
@@ -832,7 +859,7 @@ $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("ligh
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-5";
+const APP_VERSION = "2026-10-16-6";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
