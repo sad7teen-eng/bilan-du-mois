@@ -140,7 +140,9 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .modal{--mono:var(--display)}
 .sheet{box-sizing:border-box}
 .daysheet{max-width:440px;gap:12px;padding:16px}
-@media (max-width:640px){#dayModal{padding:14px 18px}.daysheet{max-height:calc(100% - 40px)}}
+@media (max-width:640px){#dayModal,#certEditModal{padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(14px + env(safe-area-inset-bottom,0px))}.daysheet{max-height:100%}}
+.modal{padding-top:max(16px,calc(10px + env(safe-area-inset-top,0px)));padding-bottom:max(16px,calc(10px + env(safe-area-inset-bottom,0px)))}
+.daysheet .dh{position:sticky;top:-16px;z-index:3;background:var(--panel);margin:-16px -16px 0;padding:16px 16px 10px;border-bottom:1px solid var(--line)}
 .dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .dh h2{font-size:20px}
 .dh .sum{font-size:13px;margin-top:2px}
@@ -169,6 +171,8 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .fld{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted)}
 .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .tedit input,.tedit textarea{font:15px var(--display);border-radius:10px;padding:11px 12px;background:var(--bg)}
+.tedit .fld.tiny{flex-direction:row;align-items:center;gap:10px;font-size:12px}
+.tedit .fld.tiny input{width:auto;max-width:120px;font-size:13px;padding:6px 9px;border-radius:8px}
 .tedit .pnl{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
 .tedit textarea{min-height:96px;white-space:normal;line-height:1.5;resize:vertical}
 .seg2{display:flex;gap:6px}
@@ -953,10 +957,8 @@ function editHTML(){
       <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou touchez pour les ajouter</div>
       ${thumbsHTML(imgs, true)}
     </div>
-    <div class="row2">
-      <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
-      <label class="fld" for="e-time">Heure du trade<input class="pnl" id="e-time" type="time" value="${esc(t.time || "")}"></label>
-    </div>
+    <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
+    <label class="fld tiny" for="e-time">Heure (facultatif)<input id="e-time" type="time" value="${esc(t.time || "")}"></label>
     <div class="row2">
       <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
       <div class="fld">Sens<div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></div>
@@ -1110,7 +1112,6 @@ $("dayList").addEventListener("submit", e => {
   const er = $("dayErr");
   if (!(imgCache[edit.id + "#main"] || []).length) { er.textContent = "Ajoute la photo du trade pour pouvoir le valider."; er.hidden = false; document.querySelector(".tedit").scrollIntoView({block: "start", behavior: "smooth"}); return; }
   if (!isFinite(v)) { er.textContent = "Résultat illisible. Écris un nombre, par exemple 250 ou -120."; er.hidden = false; return; }
-  if (!edit.time) { er.textContent = "Indique l'heure du trade."; er.hidden = false; document.getElementById("e-time").focus(); return; }
   const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
@@ -1292,7 +1293,7 @@ applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-14";
+const APP_VERSION = "2026-10-16-15";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
