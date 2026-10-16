@@ -156,6 +156,8 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .grade{font-size:11px;font-weight:600;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line)}
 .t-res{font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .t-curve svg{width:100%;height:64px;display:block}
+.t-meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.t-meta .rr{font-weight:600;margin-left:4px}
 .t-ana{font-size:13.5px;line-height:1.5;color:#cfd8d4;margin:0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap}
 .thumb{position:relative;width:64px;height:64px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
@@ -510,7 +512,7 @@ function parseText(text){
 const num = v => parseFloat(String(v ?? "").replace(/\s/g, "").replace(/[−–—]/g, "-").replace(/[€$]/g, "").replace(",", "."));
 const toText = ts => [...ts].sort((a, b) => a.day - b.day).map(t => [t.day, (t.pnl >= 0 ? "+" : "") + t.pnl, t.sym, t.side, t.setup, t.grade, t.note].join(";")).join("\n");
 
-const DEFAULT = {greet: "Bonsoir,", name: "Kael", ready: "Ton bilan du mois est prêt", currency: "€", handle: "@kael.hq", year: 2026, month: 8, trades: parseText(SAMPLE_TEXT).trades};
+const DEFAULT = {greet: "Bonsoir,", name: "Kael", ready: "Ton bilan du mois est prêt", currency: "€", handle: "@kael.hq", year: new Date().getFullYear(), month: new Date().getMonth(), trades: []};
 const KEY = "month-review-v3";
 let state = JSON.parse(JSON.stringify(DEFAULT));
 try {
@@ -524,6 +526,42 @@ try {
 if (state.currency === "$") state.currency = "€";
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 state.trades.forEach(t => { if (!t.id) t.id = uid(); });
+
+/* ===== Mes vrais trades (MT5), gravés dans le code : ils reviennent toujours, même après une remise à zéro =====
+   Un trade supprimé à la main est mémorisé dans state.seedSkip et ne revient pas. Les modifications (analyse, note, photos) sont gardées. */
+const SEED_TRADES = [
+  {id: "mt5-20260831-1526", y: 2026, m: 7, day: 31, pnl: 7128.40, side: "Long",  lots: 2.5, entry: 4413.37, exit: 4446.48, r: 1.61, time: "15:26"},
+  {id: "mt5-20260902-1546", y: 2026, m: 8, day: 2,  pnl: 14496.99, side: "Long",  lots: 2.3, entry: 4302.85, exit: 4376.01, r: 3.37, time: "15:46"},
+  {id: "mt5-20260908-1415", y: 2026, m: 8, day: 8,  pnl: 11329.61, side: "Short", lots: 3.1, entry: 4428.80, exit: 4386.83, r: 3,    time: "14:15"},
+  {id: "mt5-20260909-1513", y: 2026, m: 8, day: 9,  pnl: 11379.51, side: "Long",  lots: 4.4, entry: 4396.24, exit: 4425.94, r: 3,    time: "15:13"},
+  {id: "mt5-20260916-0444", y: 2026, m: 8, day: 16, pnl: 11173.90, side: "Long",  lots: 4,   entry: 4286.49, exit: 4318.57, r: 3,    time: "04:44"},
+  {id: "mt5-20260917-0851", y: 2026, m: 8, day: 17, pnl: 9671.00,  side: "Long",  lots: 3.5, entry: 4286.49, exit: 4318.22, r: 2.36, time: "08:51"},
+  {id: "mt5-20260925-1046", y: 2026, m: 8, day: 25, pnl: 10320.70, side: "Long",  lots: 4,   entry: 4266.73, exit: 4296.12, r: 2.58, time: "10:46"},
+  {id: "mt5-20260925-1529", y: 2026, m: 8, day: 25, pnl: 10299.49, side: "Short", lots: 3.8, entry: 4304.87, exit: 4274.00, r: 2.51, time: "15:29"},
+  {id: "mt5-20260928-1645", y: 2026, m: 8, day: 28, pnl: 11569.15, side: "Short", lots: 3.5, entry: 4158.35, exit: 4121.06, r: 2.45, time: "16:45"},
+  {id: "mt5-20260930-1431", y: 2026, m: 8, day: 30, pnl: 13856.99, side: "Long",  lots: 5.5, entry: 4184.12, exit: 4212.55, r: 3,    time: "14:31"},
+  {id: "mt5-20261006-0345", y: 2026, m: 9, day: 6,  pnl: -3971.93, side: "Short", lots: 8,   entry: 4140.34, exit: 4145.90, r: -1,   time: "03:45"},
+  {id: "mt5-20261012-1145", y: 2026, m: 9, day: 12, pnl: 9462.00,  side: "Short", lots: 3.5, entry: 4200.02, exit: 4169.79, r: 2.18, time: "11:45"}
+];
+function applySeed(){
+  if (!state.archive || typeof state.archive !== "object") state.archive = {};
+  state.archive[state.year + "-" + state.month] = state.trades;
+  /* une seule fois : retirer les trades d'exemple de l'ancienne version */
+  if (!state.sampleCleaned) {
+    const sig = new Set(parseText(SAMPLE_TEXT).trades.map(t => t.day + "|" + t.pnl + "|" + t.setup + "|" + t.note));
+    Object.keys(state.archive).forEach(k => { const a = state.archive[k]; if (Array.isArray(a)) state.archive[k] = a.filter(t => !sig.has(t.day + "|" + t.pnl + "|" + (t.setup || "") + "|" + (t.note || ""))); });
+    state.sampleCleaned = true;
+  }
+  const skip = new Set(state.seedSkip || []);
+  SEED_TRADES.forEach(sd => {
+    if (skip.has(sd.id)) return;
+    const k = sd.y + "-" + sd.m, list = state.archive[k] = Array.isArray(state.archive[k]) ? state.archive[k] : [];
+    if (list.some(t => t.id === sd.id)) return;
+    list.push({id: sd.id, day: sd.day, pnl: sd.pnl, sym: "XAUUSD", side: sd.side, setup: "", grade: "", note: "", lots: sd.lots, entry: sd.entry, exit: sd.exit, r: sd.r, time: sd.time});
+    list.sort((a, b) => a.day - b.day || String(a.time || "").localeCompare(String(b.time || "")));
+  });
+  state.trades = state.archive[state.year + "-" + state.month] || [];
+}
 const imgCache = {};
 const idb = (() => {
   let dbp = null;
@@ -767,7 +805,7 @@ $("importIn").onchange = async () => {
     if (!st || !Array.isArray(st.trades)) throw new Error("format");
     state = {...JSON.parse(JSON.stringify(DEFAULT)), ...st};
     state.trades.forEach(t => { if (!t.id) t.id = uid(); });
-    weekStart = null; save(); renderDash();
+    weekStart = null; applySeed(); save(); renderDash();
     $("saveSt").textContent = "✓ Sauvegarde importée · " + f.name;
   } catch(e) { $("saveSt").textContent = "Ce fichier n'est pas une sauvegarde du Bilan du mois."; $("saveSt").className = "st"; }
 };
@@ -870,6 +908,7 @@ function cardHTML(t){
     <div class="t-top"><div class="t-sym">${esc(t.sym)}<span class="chip2 ${String(t.side).toLowerCase()}">${esc(t.side)}</span>${t.grade ? `<span class="grade">${esc(t.grade)}</span>` : ""}</div>
       <span class="t-res ${red ? "r" : "g"}">${money(t.pnl)}</span></div>
     ${imgCache[t.id + "#main"] && imgCache[t.id + "#main"][0] ? `<div class="t-photo"><img src="${imgCache[t.id + "#main"][0]}" alt="Photo du trade"></div>` : ""}
+    ${t.lots || t.entry ? `<div class="t-meta">${t.lots ? t.lots + " lots" : ""}${t.entry ? ` · ${Number(t.entry).toFixed(2)} → ${Number(t.exit).toFixed(2)}` : ""}${t.time ? ` · ${esc(t.time)}` : ""}${t.r != null && t.r !== "" ? ` <span class="rr ${t.r < 0 ? "r" : "g"}">${t.r > 0 ? "+" : ""}${String(t.r).replace(".", ",")}R</span>` : ""}</div>` : ""}
     ${t.note ? `<p class="t-ana">${esc(t.note)}</p>` : ""}
     ${thumbsHTML(imgs, false)}
     <div class="t-acts"><button type="button" class="go play" data-play="${t.id}">▶ Lancer l'animation</button></div>
@@ -1013,7 +1052,7 @@ $("dayList").addEventListener("click", e => {
     playTradeObj({...edit, day: dayOpen, pnl: v}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
-  if (b.id === "eDel") { state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
+  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
 });
 $("dayList").addEventListener("click", e => {
   if (e.target.closest("#drop")) { $("imgPick").value = ""; $("imgPick").click(); }
@@ -1039,7 +1078,7 @@ $("dayList").addEventListener("submit", e => {
   e.preventDefault(); readForm();
   const v = num(edit.pnl);
   if (!isFinite(v)) { const er = $("dayErr"); er.textContent = "Résultat illisible. Écris un nombre, par exemple 250 ou -120."; er.hidden = false; return; }
-  const row = {id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
+  const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
   state.trades.sort((a, b) => a.day - b.day);
@@ -1214,10 +1253,11 @@ let startLight = false; try { startLight = localStorage.getItem(THEME_KEY) === "
 applyTheme(startLight);
 $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("light"));
 
+applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-11";
+const APP_VERSION = "2026-10-16-12";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
