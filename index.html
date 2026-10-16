@@ -135,9 +135,9 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .stage{position:relative;flex:1;cursor:pointer;user-select:none}
 .stage::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 38% at 50% 48%,rgba(98,226,156,.10),transparent 70%);transition:opacity .8s;pointer-events:none}
 .stage.red::before{background:radial-gradient(40% 38% at 50% 48%,rgba(255,143,107,.10),transparent 70%)}
-.slide{position:absolute;inset:0;display:grid;place-items:center;padding:24px 16px;opacity:0;transform:translateY(10px) scale(.985);transition:opacity .55s ease,transform .8s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+.slide{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:24px 16px;opacity:0;transform:translateY(10px) scale(.985);transition:opacity .55s ease,transform .8s cubic-bezier(.2,.7,.2,1);pointer-events:none}
 .slide.on{opacity:1;transform:none}
-.inner{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;max-width:760px;width:100%}
+.inner{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;max-width:760px;width:100%;min-width:0}
 .slide.on .rise{animation:rise .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0) * 130ms)}
 @keyframes rise{from{opacity:0;transform:translateY(12px);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 .hello{font-size:clamp(38px,7.5vw,92px);font-weight:600;letter-spacing:-.035em;line-height:1.02;text-wrap:balance}
@@ -150,8 +150,8 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 @keyframes pulse{50%{opacity:.35}}
 .banner b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gain);font-weight:600}
 .banner span{font-family:var(--mono);font-size:12px}
-.pill{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:6px 13px;border-radius:999px;border:1px solid var(--gain-edge);background:var(--gain-dim);color:var(--gain)}
-.pill.red{border-color:var(--loss-edge);background:var(--loss-dim);color:var(--loss)}
+.pill{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:1px solid rgba(98,226,156,.22);background:var(--gain-dim);color:var(--gain)}
+.pill.red{border-color:rgba(255,143,107,.22);background:var(--loss-dim);color:var(--loss)}
 .title{font-size:clamp(44px,9vw,104px);font-weight:600;letter-spacing:-.035em;line-height:.95;text-wrap:balance;text-shadow:0 0 40px rgba(232,238,235,.12)}
 .sub{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
 .big{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.03em;line-height:1;white-space:nowrap;text-align:center;display:inline-block}
@@ -172,8 +172,8 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .chip span{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
 .chip b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px}
 .chip em{font-style:normal;font-size:11px;color:var(--muted)}
-.card{width:100%;max-width:400px;text-align:left;padding:14px 16px;border-radius:12px;border:1px solid var(--gain-edge);background:linear-gradient(180deg,rgba(98,226,156,.10),rgba(98,226,156,.03));display:flex;flex-direction:column;gap:6px}
-.card.red{border-color:var(--loss-edge);background:linear-gradient(180deg,rgba(255,143,107,.10),rgba(255,143,107,.03))}
+.card{width:100%;max-width:340px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid rgba(98,226,156,.2);background:linear-gradient(180deg,rgba(98,226,156,.07),rgba(98,226,156,.02));display:flex;flex-direction:column;gap:6px}
+.card.red{border-color:rgba(255,143,107,.2);background:linear-gradient(180deg,rgba(255,143,107,.10),rgba(255,143,107,.03))}
 .card .meta{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
 .card .sym{font-weight:700;font-size:15px}
 .card .sym small{font-weight:500;font-size:11px;color:var(--muted);margin-left:6px;letter-spacing:.08em}
@@ -217,11 +217,11 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
   .actions button{flex:1}
   .hello{font-size:13vw}
   .title{font-size:14vw}
-  .big{font-size:clamp(34px,12.5vw,72px)}
+  .big{font-size:clamp(30px,10.5vw,72px)}
   .pill{font-size:10px}
   .banner{max-width:100%}
   .stats{gap:18px}
-  .card{max-width:100%}
+  .card{max-width:min(320px,100%)}
   .chips .chip{min-width:0;flex:1}
   .shot{max-width:94vw;max-height:62vh;border-radius:12px}
   .sdock{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));justify-content:stretch}
