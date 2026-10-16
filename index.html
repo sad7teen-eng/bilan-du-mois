@@ -128,7 +128,7 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 
 /* ---------- Story ---------- */
 .story{position:fixed;inset:0;height:100dvh;background:var(--bg);z-index:30;display:flex;flex-direction:column;overflow:hidden}
-.progress{display:flex;gap:6px;padding:calc(16px + env(safe-area-inset-top,0px)) 20px 0}
+.progress{position:absolute;top:0;left:0;right:0;z-index:2;pointer-events:none;display:flex;gap:6px;padding:calc(16px + env(safe-area-inset-top,0px)) 20px 0}
 .seg{flex:1;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
 .seg i{display:block;height:100%;width:0;background:var(--fg);opacity:.85;transition:width .5s ease}
 .seg.done i{width:100%}
