@@ -182,6 +182,21 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .e-acts .mini{padding:9px 12px;border-radius:10px}
 .e-acts .del{color:var(--loss);background:transparent}
 .addtrade{padding:12px;border-style:dashed;border-radius:12px;font-size:14px;background:transparent}
+.t-photo{position:relative;aspect-ratio:16/10;border-radius:11px;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+.t-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.mainph{position:relative;aspect-ratio:16/10;border-radius:11px;overflow:hidden;border:1px solid var(--line);background:var(--panel)}
+.mainph img{width:100%;height:100%;object-fit:cover;display:block}
+.mainph .ph-acts{position:absolute;right:8px;bottom:8px;display:flex;gap:6px}
+.mainph .ph-acts button{padding:6px 11px;font-size:12.5px;border-radius:8px;background:rgba(0,0,0,.7);border-color:rgba(255,255,255,.15);color:#fff}
+.drop.dropmain{padding:26px 16px}
+.crop{position:fixed;inset:0;z-index:40;background:rgba(3,5,5,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px}
+.crop h3{margin:0;font-size:16px;font-weight:600;color:var(--fg)}
+.crop .vp{position:relative;width:min(92vw,560px);aspect-ratio:16/10;overflow:hidden;border-radius:12px;outline:2px solid rgba(255,255,255,.85);touch-action:none;cursor:grab;background:#000}
+.crop .vp img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;max-width:none}
+.crop .zoom{width:min(92vw,560px);display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
+.crop .zoom input{flex:1;padding:0;accent-color:var(--gain)}
+.crop .acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.crop .acts button{padding:11px 16px;border-radius:10px;font-size:14px}
 
 /* ---------- Story ---------- */
 .story{position:fixed;inset:0;height:100dvh;background:var(--bg);color:var(--fg);z-index:30;display:flex;flex-direction:column;overflow:hidden}
@@ -336,7 +351,15 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
     <div class="tlist" id="dayList"></div>
     <button type="button" class="addtrade" id="addRow">+ Ajouter un trade</button>
     <input type="file" id="imgPick" accept="image/*" multiple hidden>
+    <input type="file" id="mainPick" accept="image/*" hidden>
   </div>
+</div>
+<div class="crop" id="crop" hidden>
+  <h3>Rogner la photo du trade</h3>
+  <div class="vp" id="cropVp"><img id="cropImg" alt="Photo à rogner"></div>
+  <label class="zoom" for="cropZoom">Zoom<input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1"></label>
+  <div class="hint2" style="font-size:12px;color:var(--muted)">Glissez l'image pour la placer dans le cadre.</div>
+  <div class="acts"><button type="button" id="cropKeep">Garder entière</button><button type="button" class="go" id="cropOk">Valider le cadrage</button></div>
 </div>
 
 <!-- Settings -->
@@ -679,7 +702,7 @@ function cardHTML(t){
     <div class="t-acts"><button type="button" class="edit" data-edit="${t.id}">Modifier</button></div>
     <div class="t-top"><div class="t-sym">${esc(t.sym)}<span class="chip2 ${String(t.side).toLowerCase()}">${esc(t.side)}</span>${t.grade ? `<span class="grade">${esc(t.grade)}</span>` : ""}</div>
       <span class="t-res ${red ? "r" : "g"}">${money(t.pnl)}</span></div>
-    <div class="t-curve">${tradeCurve(t)}</div>
+    ${imgCache[t.id + "#main"] && imgCache[t.id + "#main"][0] ? `<div class="t-photo"><img src="${imgCache[t.id + "#main"][0]}" alt="Photo du trade"></div>` : ""}
     ${t.note ? `<p class="t-ana">${esc(t.note)}</p>` : ""}
     ${thumbsHTML(imgs, false)}
     <div class="t-acts"><button type="button" class="go play" data-play="${t.id}">▶ Lancer l'animation</button></div>
@@ -687,15 +710,20 @@ function cardHTML(t){
 }
 function editHTML(){
   const t = edit, imgs = imgCache[t.id] || [];
+  const main = (imgCache[t.id + "#main"] || [])[0];
   return `<form class="tedit" id="editForm">
+    <div class="fld">Photo du trade
+      ${main ? `<div class="mainph"><img src="${main}" alt="Photo du trade"><div class="ph-acts"><button type="button" id="mainCrop">Rogner</button><button type="button" id="mainRm">Retirer</button></div></div>`
+             : `<div class="drop dropmain" id="dropMain" tabindex="0" role="button">Glissez la photo du trade ici, ou touchez pour l'ajouter</div>`}
+    </div>
+    <div class="fld">Autres captures (H4, H1, analyse…)
+      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou touchez pour les ajouter</div>
+      ${thumbsHTML(imgs, true)}
+    </div>
     <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
     <div class="row2">
       <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
       <div class="fld">Sens<div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></div>
-    </div>
-    <div class="fld">Captures
-      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou touchez pour les ajouter</div>
-      ${thumbsHTML(imgs, true)}
     </div>
     <label class="fld" for="e-note">Explique ton analyse<textarea id="e-note" placeholder="Pourquoi ce trade, ce que tu as vu, ce que tu en retiens">${esc(t.note)}</textarea></label>
     <div class="fld">Note<div class="seg2">${["A", "B", "C"].map(o => `<button type="button" class="${t.grade === o ? "on" : ""}" data-grade="${o}">${o}</button>`).join("")}</div></div>
@@ -722,7 +750,7 @@ function drawDay(){
 async function openDay(d){
   dayOpen = d;
   $("dayTitle").textContent = `${d} ${MONTHS[state.month].toLowerCase()} ${state.year}`;
-  await Promise.all(dayTrades().map(t => idb.get(t.id)));
+  await Promise.all(dayTrades().flatMap(t => [idb.get(t.id), idb.get(t.id + "#main"), idb.get(t.id + "#orig")]));
   if (!dayTrades().length) startNew(); else { editId = null; edit = null; }
   drawDay(); $("dayModal").hidden = false;
 }
@@ -741,8 +769,65 @@ async function addImages(files){
   await idb.set(edit.id, [...(imgCache[edit.id] || []), ...urls].slice(0, 8));
   drawDay();
 }
+/* ---- Photo du trade + rognage ---- */
+function readDataURL(file){ return new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => res(null); fr.readAsDataURL(file); }); }
+async function setMainFile(file){
+  if (!file || !file.type.startsWith("image/") || !edit) return;
+  readForm();
+  const url = await shrink(file); if (!url) return;
+  await idb.set(edit.id + "#orig", [url]);
+  openCrop(url);
+}
+let crop = null;
+function openCrop(src){
+  const img = $("cropImg");
+  img.onload = () => {
+    const vp = $("cropVp").getBoundingClientRect();
+    const base = Math.max(vp.width / img.naturalWidth, vp.height / img.naturalHeight);
+    crop = {src, w: img.naturalWidth, h: img.naturalHeight, base, z: 1, x: 0, y: 0, vw: vp.width, vh: vp.height};
+    $("cropZoom").value = 1;
+    crop.x = (vp.width - crop.w * base) / 2; crop.y = (vp.height - crop.h * base) / 2;
+    drawCrop();
+  };
+  $("crop").hidden = false; img.src = src;
+}
+function clampCrop(){
+  const sc = crop.base * crop.z, iw = crop.w * sc, ih = crop.h * sc;
+  crop.x = Math.min(0, Math.max(crop.vw - iw, crop.x)); crop.y = Math.min(0, Math.max(crop.vh - ih, crop.y));
+}
+function drawCrop(){ clampCrop(); const sc = crop.base * crop.z; $("cropImg").style.transform = `translate(${crop.x}px,${crop.y}px) scale(${sc})`; }
+$("cropZoom").addEventListener("input", e => {
+  if (!crop) return;
+  const old = crop.base * crop.z; crop.z = +e.target.value; const nw = crop.base * crop.z;
+  const cx = crop.vw / 2, cy = crop.vh / 2;
+  crop.x = cx - (cx - crop.x) * nw / old; crop.y = cy - (cy - crop.y) * nw / old; drawCrop();
+});
+(() => {
+  let drag = null; const vp = $("cropVp");
+  vp.addEventListener("pointerdown", e => { if (!crop) return; drag = {x: e.clientX, y: e.clientY, cx: crop.x, cy: crop.y}; vp.setPointerCapture(e.pointerId); vp.style.cursor = "grabbing"; });
+  vp.addEventListener("pointermove", e => { if (!drag) return; crop.x = drag.cx + e.clientX - drag.x; crop.y = drag.cy + e.clientY - drag.y; drawCrop(); });
+  const end = () => { drag = null; vp.style.cursor = ""; };
+  vp.addEventListener("pointerup", end); vp.addEventListener("pointercancel", end);
+  vp.addEventListener("wheel", e => { if (!crop) return; e.preventDefault(); const z = Math.min(4, Math.max(1, crop.z * (e.deltaY < 0 ? 1.08 : 0.92))); $("cropZoom").value = z; $("cropZoom").dispatchEvent(new Event("input")); }, {passive: false});
+})();
+async function finishCrop(keep){
+  if (!crop || !edit) { $("crop").hidden = true; return; }
+  let out = crop.src;
+  if (!keep) {
+    const sc = crop.base * crop.z, c = document.createElement("canvas");
+    c.width = 1600; c.height = 1000;
+    c.getContext("2d").drawImage($("cropImg"), -crop.x / sc, -crop.y / sc, crop.vw / sc, crop.vh / sc, 0, 0, 1600, 1000);
+    out = c.toDataURL("image/jpeg", .88);
+  }
+  await idb.set(edit.id + "#main", [out]);
+  crop = null; $("crop").hidden = true; drawDay();
+}
+$("cropOk").onclick = () => finishCrop(false);
+$("cropKeep").onclick = () => finishCrop(true);
+$("mainPick").addEventListener("change", () => setMainFile($("mainPick").files[0]));
+
 function playTradeObj(t){
-  const imgs = imgCache[t.id] || [];
+  const imgs = [...(imgCache[t.id + "#main"] || []), ...(imgCache[t.id] || [])];
   const others = state.trades.filter(x => x.id !== t.id).reduce((a, x) => a + x.pnl, 0);
   openStory(false, buildTradeSlides(t, imgs, others + t.pnl), [2400, ...imgs.map(() => 2300), 2600, 2600]);
 }
@@ -761,16 +846,27 @@ $("dayList").addEventListener("click", e => {
     playTradeObj({...edit, day: dayOpen, pnl: v}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
-  if (b.id === "eDel") { state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
+  if (b.id === "eDel") { state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
 });
-$("dayList").addEventListener("click", e => { if (e.target.closest("#drop")) { $("imgPick").value = ""; $("imgPick").click(); } });
+$("dayList").addEventListener("click", e => {
+  if (e.target.closest("#drop")) { $("imgPick").value = ""; $("imgPick").click(); }
+  if (e.target.closest("#dropMain")) { $("mainPick").value = ""; $("mainPick").click(); }
+  if (e.target.closest("#mainCrop")) { readForm(); const o = (imgCache[edit.id + "#orig"] || imgCache[edit.id + "#main"] || [])[0]; if (o) openCrop(o); }
+  if (e.target.closest("#mainRm")) { readForm(); Promise.all([idb.set(edit.id + "#main", []), idb.set(edit.id + "#orig", [])]).then(drawDay); }
+});
 $("dayList").addEventListener("keydown", e => { if (e.target.id === "drop" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); $("imgPick").click(); } });
-["dragenter", "dragover"].forEach(ev => $("dayList").addEventListener(ev, e => { const d = e.target.closest("#drop"); if (d) { e.preventDefault(); d.classList.add("over"); } }));
-$("dayList").addEventListener("dragleave", e => { const d = e.target.closest("#drop"); if (d) d.classList.remove("over"); });
-$("dayList").addEventListener("drop", e => { const d = e.target.closest("#drop"); if (!d) return; e.preventDefault(); d.classList.remove("over"); addImages(e.dataTransfer.files); });
-/* glisser une image n'importe où sur la fiche, en édition */
+["dragenter", "dragover"].forEach(ev => $("dayList").addEventListener(ev, e => { const d = e.target.closest("#drop,#dropMain"); if (d) { e.preventDefault(); d.classList.add("over"); } }));
+$("dayList").addEventListener("dragleave", e => { const d = e.target.closest("#drop,#dropMain"); if (d) d.classList.remove("over"); });
+/* glisser une image n'importe où sur la fiche : la photo du trade d'abord, puis les autres captures */
 $("dayModal").addEventListener("dragover", e => { if (editId) e.preventDefault(); });
-$("dayModal").addEventListener("drop", e => { if (editId && !e.target.closest("#drop")) { e.preventDefault(); addImages(e.dataTransfer.files); } });
+$("dayModal").addEventListener("drop", e => {
+  if (!editId) return; e.preventDefault();
+  document.querySelectorAll(".drop.over").forEach(d => d.classList.remove("over"));
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith("image/")); if (!files.length) return;
+  const onOthers = e.target.closest("#drop"), hasMain = (imgCache[edit.id + "#main"] || []).length;
+  if (onOthers || hasMain) { addImages(files); return; }
+  setMainFile(files[0]); if (files.length > 1) addImages(files.slice(1));
+});
 $("imgPick").addEventListener("change", () => addImages($("imgPick").files));
 $("dayList").addEventListener("submit", e => {
   e.preventDefault(); readForm();
@@ -953,7 +1049,7 @@ $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("ligh
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-8";
+const APP_VERSION = "2026-10-16-9";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
