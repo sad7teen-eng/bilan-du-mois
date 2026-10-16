@@ -215,9 +215,15 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .slide.on .bestday{animation:rise .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:1.4s}
 .wdval{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap}
 .slide.on .wdval{animation:rise .6s ease both;animation-delay:calc(var(--k,0) * 140ms + 900ms)}
-.hero{position:relative;width:min(560px,92vw);border-radius:18px;overflow:hidden;border:1px solid rgba(232,238,235,.14);box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(98,226,156,.12)}
+.hero{position:relative;width:min(440px,82vw);border-radius:18px;overflow:hidden;border:1px solid rgba(232,238,235,.14);box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(98,226,156,.12)}
 .hero.red{box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(255,143,107,.14)}
-.hero img{display:block;width:100%;max-height:62vh;object-fit:cover}
+.hero img{display:block;width:100%;max-height:56vh;object-fit:cover}
+.herowrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+.rpill{font-size:clamp(26px,7vw,40px);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;padding:6px 18px;border-radius:14px;background:rgba(98,226,156,.1);border:1px solid rgba(98,226,156,.25)}
+.rpill.r{background:rgba(255,143,107,.1);border-color:rgba(255,143,107,.28)}
+.slide .rpill{opacity:0}
+.slide.on .rpill{animation:rpop .7s cubic-bezier(.2,1.4,.4,1) both;animation-delay:1.3s}
+@keyframes rpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 .slide.on .hero{animation:heroIn 1.2s cubic-bezier(.16,.8,.2,1) both}
 .slide.on .hero img{animation:kb 7s ease-out both}
 @keyframes heroIn{from{opacity:0;transform:translateY(40px) scale(.92) rotate(-1.5deg);filter:blur(14px)}to{opacity:1;transform:none;filter:none}}
@@ -957,7 +963,10 @@ function editHTML(){
       <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou touchez pour les ajouter</div>
       ${thumbsHTML(imgs, true)}
     </div>
-    <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
+    <div class="row2">
+      <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
+      <label class="fld" for="e-r">Nombre de R<input class="pnl" id="e-r" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${t.r != null ? esc(String(t.r).replace(".", ",")) : ""}"></label>
+    </div>
     <label class="fld tiny" for="e-time">Heure (facultatif)<input id="e-time" type="time" value="${esc(t.time || "")}"></label>
     <div class="row2">
       <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
@@ -996,7 +1005,7 @@ function startNew(){ edit = {id: uid(), pnl: "", sym: "XAUUSD", side: "Long", se
 function readForm(){
   if (!edit) return;
   const g = id => document.getElementById(id);
-  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.time = g("e-time").value; edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
+  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
 }
 async function addImages(files){
   files = [...files].filter(f => f.type.startsWith("image/")).slice(0, 6);
@@ -1081,7 +1090,7 @@ $("dayList").addEventListener("click", e => {
   if (b.id === "ePlay") {
     readForm(); const v = num(edit.pnl);
     if (!isFinite(v)) { const er = $("dayErr"); er.textContent = "Écris d'abord le résultat, par exemple 250 ou -120."; er.hidden = false; return; }
-    playTradeObj({...edit, day: dayOpen, pnl: v}); return;
+    const rv = num(edit.rTxt); playTradeObj({...edit, day: dayOpen, pnl: v, r: isFinite(rv) ? rv : edit.r}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
   if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
@@ -1112,6 +1121,7 @@ $("dayList").addEventListener("submit", e => {
   const er = $("dayErr");
   if (!(imgCache[edit.id + "#main"] || []).length) { er.textContent = "Ajoute la photo du trade pour pouvoir le valider."; er.hidden = false; document.querySelector(".tedit").scrollIntoView({block: "start", behavior: "smooth"}); return; }
   if (!isFinite(v)) { er.textContent = "Résultat illisible. Écris un nombre, par exemple 250 ou -120."; er.hidden = false; return; }
+  if (edit.rTxt !== undefined) { const rv = num(edit.rTxt); edit.r = String(edit.rTxt).trim() && isFinite(rv) ? rv : null; delete edit.rTxt; }
   const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
@@ -1205,8 +1215,10 @@ function buildTradeSlides(t, imgs, monthNet, main){
   out.push(`<div class="inner"><div class="hello">${hello}</div>
     <div class="banner rise" style="--d:${Math.min(9, Math.ceil(li * 45 / 130) + 2)}"><i class="dot"></i>
     <div><b>Voici ton trade</b><span>${esc(t.sym)} · ${esc(String(t.side).toUpperCase())} · ${esc(when)}</span></div></div></div>`);
-  if (main) out.push(`<div class="inner"${t.pnl < 0 ? " data-red" : ""}><div class="hero${t.pnl < 0 ? " red" : ""}"><img src="${main}" alt="Photo du trade">
-    <div class="ht"><div><small>${esc(t.sym)} · ${esc(String(t.side).toUpperCase())}${t.time ? " · " + esc(t.time) : ""}</small><b>${t.day} ${MONTHS[state.month].toLowerCase()}</b></div><span class="hp ${t.pnl < 0 ? "r" : "g"}" data-count="${t.pnl}">${money(t.pnl)}</span></div></div></div>`);
+  const rTxt = t.r != null && t.r !== "" && isFinite(+t.r) ? ((+t.r > 0 ? "+" : "") + String(t.r).replace(".", ",") + "R") : "";
+  if (main) out.push(`<div class="inner"${t.pnl < 0 ? " data-red" : ""}><div class="herowrap"><div class="hero${t.pnl < 0 ? " red" : ""}"><img src="${main}" alt="Photo du trade">
+    <div class="ht"><div><small>${esc(t.sym)} · ${esc(String(t.side).toUpperCase())}${t.time ? " · " + esc(t.time) : ""}</small><b>${t.day} ${MONTHS[state.month].toLowerCase()}</b></div></div></div>
+    ${rTxt ? `<span class="rpill ${+t.r < 0 ? "r" : "g"}">${rTxt}</span>` : ""}</div></div>`);
   imgs.forEach((src, i) => out.push(`<div class="inner"><div class="shotwrap"><img class="shot" src="${src}" alt="Capture du trade ${i + 1}">${imgs.length > 1 ? `<span class="shotn">${i + 1} / ${imgs.length}</span>` : ""}</div></div>`));
   const red = t.pnl < 0;
   out.push(`<div class="inner"${red ? " data-red" : ""}><span class="pill rise${red ? " red" : ""}">Résultat du trade</span>
@@ -1293,7 +1305,7 @@ applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-15";
+const APP_VERSION = "2026-10-16-16";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
