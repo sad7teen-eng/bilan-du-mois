@@ -723,6 +723,23 @@ applyTheme(startLight);
 $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("light"));
 
 renderDash();
+
+/* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
+const APP_VERSION = "2026-10-16-3";
+async function checkUpdate(){
+  try{
+    const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) return;
+    const m = (await r.text()).match(/APP_VERSION = "([^"]+)"/);
+    if(m && m[1] !== APP_VERSION){
+      const story = document.getElementById("story");
+      if(story && !story.hidden) return; /* jamais pendant une animation */
+      location.replace(location.pathname + "?v=" + encodeURIComponent(m[1]));
+    }
+  }catch(e){}
+}
+checkUpdate();
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") checkUpdate(); });
 </script>
 
 </html>
