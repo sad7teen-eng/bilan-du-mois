@@ -1,0 +1,195 @@
+{
+ "updatedAt": "2026-10-16T19:20:00+02:00",
+ "cols": [
+  {
+   "id": "trading",
+   "name": "Trading",
+   "url": "",
+   "items": [
+    {
+     "id": "tr1",
+     "t": "Récap des trades du vendredi",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "tr2",
+     "t": "Tourner les récaps de trades",
+     "w": "2026-10-12",
+     "done": false
+    }
+   ]
+  },
+  {
+   "id": "formation",
+   "name": "Business formation",
+   "url": "https://sad7teen-eng.github.io/bilan-du-mois/",
+   "items": [
+    {
+     "id": "fo1",
+     "t": "Bilan du mois : régler tous les problèmes",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "fo2",
+     "t": "Bilan du mois : le rendre parfait visuellement",
+     "w": "2026-10-12",
+     "done": false
+    }
+   ]
+  },
+  {
+   "id": "contenu",
+   "name": "Contenu",
+   "url": "",
+   "content": true,
+   "items": [
+    {
+     "id": "co1",
+     "t": "reels programmés pour la semaine",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "ig",
+     "target": 7,
+     "count": 0
+    },
+    {
+     "id": "co2",
+     "t": "Tourner les reels de la semaine prochaine",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "ig"
+    },
+    {
+     "id": "co3",
+     "t": "Vidéo de nuit : partie émotionnelle",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "yt"
+    },
+    {
+     "id": "co4",
+     "t": "Vidéo de nuit : fin motivante (1 min max)",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "yt"
+    },
+    {
+     "id": "co5",
+     "t": "Stock de stories lifestyle",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "ig"
+    },
+    {
+     "id": "co6",
+     "t": "Plans voiture au nouveau spot de nuit (pour les reels)",
+     "w": "2026-10-12",
+     "done": false,
+     "p": "ig"
+    }
+   ]
+  },
+  {
+   "id": "montres",
+   "name": "Montres",
+   "url": "",
+   "items": [
+    {
+     "id": "mo1",
+     "t": "annonces Le Bon Coin postées (avant dimanche soir)",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 5,
+     "count": 0
+    },
+    {
+     "id": "mo2",
+     "t": "Finaliser le site de sourcing",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "mo3",
+     "t": "Trouver la montre de mon oncle et tout lui envoyer",
+     "w": "2026-10-12",
+     "done": false
+    }
+   ]
+  },
+  {
+   "id": "perso",
+   "name": "Perso",
+   "url": "",
+   "items": [
+    {
+     "id": "pe1",
+     "t": "Linge lavé",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "pe2",
+     "t": "France Travail : vérifier les messages et démarches",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "pe3",
+     "t": "Vider les poubelles",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "pe4",
+     "t": "Faire les courses",
+     "w": "2026-10-12",
+     "done": false
+    },
+    {
+     "id": "pe5",
+     "t": "pages lues",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 60,
+     "count": 0
+    },
+    {
+     "id": "pe6",
+     "t": "cours d'éloquence",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 3,
+     "count": 0
+    }
+   ]
+  }
+ ],
+ "life": [
+  {
+   "id": "vi1",
+   "t": "Formation et accompagnement autonomes en solo",
+   "due": "2026-11-15",
+   "done": false
+  },
+  {
+   "id": "vi2",
+   "t": "Vendre la première montre",
+   "due": "",
+   "done": false
+  },
+  {
+   "id": "vi3",
+   "t": "Masterclass payante en anglais",
+   "due": "",
+   "done": false
+  },
+  {
+   "id": "vi4",
+   "t": "Bilan du mois vendu en ligne, en revenu passif",
+   "due": "",
+   "done": false
+  }
+ ]
+}

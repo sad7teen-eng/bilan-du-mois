@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cap de Kael">
+<meta name="theme-color" content="#ffffff">
+<title>Cap de Kael</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Mise en page : en-tête semaine, compteurs, bandeau défilant, tableau en colonnes, objectifs de vie en bas */
+:root{
+  --bg:#ffffff; --side:#f4f4f2; --ink:#111110; --mute:#74746d; --faint:#a8a8a1;
+  --line:#e5e5e1; --hover:#f3f3f0; --good:#1d7a45; --goodbg:#e8f4ec; --warn:#b4630f; --bad:#b3261e;
+  --ig:#d6247a; --igbg:#fde8f2; --tt:#7b3fe4; --ttbg:#f0e9fd; --yt:#d11a1a; --ytbg:#fde9e9;
+  --sans:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--sans);padding:28px 16px 70px}
+.wrap{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+button,select{font:inherit;color:inherit;background:#fff;border:1px solid var(--line);border-radius:7px;padding:7px 12px;cursor:pointer}
+button:hover{background:var(--hover)}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dark:hover{background:#2a2a28}
+input[type=text],input[type=date]{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:7px;padding:7px 10px;width:100%;min-width:0}
+.num{font-variant-numeric:tabular-nums}
+.lbl{font-size:12px;color:var(--mute)}
+
+/* en-tête */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:18px;border-bottom:1px solid var(--line);padding-bottom:20px}
+.top h1{font-size:26px;font-weight:600;letter-spacing:-.02em;margin:0}
+.weeknav{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.weeknav button{padding:3px 10px}
+.stats{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-end}
+.stat .v{font-size:22px;font-weight:500}
+.stat .v.g{color:var(--good)}
+.stat svg{display:block}
+
+/* compteurs */
+.counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.ctr{border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.ctr .big{font-size:34px;font-weight:500;line-height:1}
+.ctr .meta{font-size:12px;color:var(--mute);margin-top:6px}
+.ctr .chart{min-width:0}
+.ctr .chart svg{width:100%;height:58px;display:block}
+.ctr .btns{display:flex;flex-direction:column;gap:6px}
+.ctr .plus{padding:10px 16px;font-weight:600}
+.ctr .minus{padding:3px 8px;font-size:12px;color:var(--mute)}
+.up{color:var(--bad)} .down{color:var(--good)}
+
+/* bandeau défilant */
+.ticker{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:13px;position:relative}
+.ticker .track{display:inline-flex;animation:defile 60s linear infinite;padding-block:9px}
+.ticker:hover .track{animation-play-state:paused}
+.ticker .seg{display:inline-flex;gap:0}
+.tk{padding:0 22px;border-right:1px solid var(--line);display:inline-flex;gap:8px;align-items:baseline}
+.tk b{font-weight:500;letter-spacing:.04em}
+.tk .g{color:var(--good)} .tk .r{color:var(--bad)} .tk .m{color:var(--mute)}
+.tk.q{color:var(--mute);font-family:var(--sans);font-style:italic}
+@keyframes defile{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* tableau */
+.boardhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.boardhead h2,.life h2{font-size:15px;font-weight:600;margin:0}
+.hint{font-size:12px;color:var(--mute)}
+.carry{font-size:13px;color:var(--warn);border-color:var(--warn)}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;align-items:start}
+.col{border:1px solid var(--line);border-radius:10px;background:#fff;display:flex;flex-direction:column;min-width:0}
+.ch{padding:14px 14px 10px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line)}
+.chrow{display:flex;align-items:center;gap:8px}
+.ch h3{font-size:15px;font-weight:600;margin:0;flex:1;min-width:0;overflow-wrap:anywhere}
+.go{padding:3px 9px;font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:7px;white-space:nowrap}
+.go:hover{background:var(--hover)}
+.more{padding:3px 8px;border-color:transparent;color:var(--mute)}
+.prog{display:flex;align-items:center;gap:10px}
+.bar{flex:1;height:5px;background:var(--hover);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);border-radius:3px;transition:width .3s}
+.prog b{font-weight:500;font-size:12px}
+.spark{display:flex;align-items:center;gap:8px}
+.spark svg{flex:1;height:24px;min-width:0}
+.items{list-style:none;margin:0;padding:6px 6px 0;display:flex;flex-direction:column}
+.it{display:flex;align-items:flex-start;gap:9px;padding:7px 8px;border-radius:7px}
+.it:hover{background:var(--hover)}
+.it .txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.it .txt span{overflow-wrap:anywhere}
+.it.done .txt>span{color:var(--faint);text-decoration:line-through}
+.box{appearance:none;-webkit-appearance:none;margin:2px 0 0;width:17px;height:17px;flex:none;cursor:pointer;background:#fff;border:1.5px solid var(--ink);border-radius:4px;display:grid;place-content:center}
+.box:checked{background:var(--ink)}
+.box:checked::after{content:"";width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.x{border:0;padding:0 4px;color:var(--faint);opacity:0;background:none}
+.it:hover .x,.x:focus-visible{opacity:1}
+.cnt{display:flex;align-items:center;gap:8px}
+.cnt button{padding:0 8px;line-height:20px;font-size:13px}
+.cnt .bar{height:4px}
+.cnt b{font-weight:500;font-size:12px;min-width:44px;text-align:center}
+.pf{display:inline-block;font-size:11px;font-weight:500;border-radius:999px;padding:1px 8px;margin-right:6px;text-decoration:none!important;vertical-align:1px}
+.pf.ig{color:var(--ig);background:var(--igbg)} .pf.tt{color:var(--tt);background:var(--ttbg)} .pf.yt{color:var(--yt);background:var(--ytbg)}
+.empty{color:var(--faint);font-size:13px;padding:8px}
+.add{padding:8px 12px 12px;display:flex;gap:6px}
+.add input{border-style:dashed}
+.add select{padding:6px 6px;font-size:12px;flex:none}
+.settings{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px;background:var(--side)}
+.settings label{font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:4px}
+.settings .chk{flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:13px}
+.settings .row{display:flex;gap:8px;flex-wrap:wrap}
+.del{color:var(--bad)}
+.newcol{border:1px dashed var(--line);border-radius:10px;padding:14px;display:flex;gap:8px}
+
+/* objectifs de vie */
+.life{background:var(--side);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.lifehead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lifegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.goal{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:128px}
+.goal .gt{font-size:16px;font-weight:500;line-height:1.3;flex:1;overflow-wrap:anywhere}
+.goal.done .gt{color:var(--faint);text-decoration:line-through}
+.goal .gf{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chip{font-size:12px;border-radius:999px;padding:2px 9px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.chip.soon{color:var(--warn);border-color:var(--warn)}
+.chip.ok{color:var(--good);border-color:var(--good)}
+.goal .gl{display:flex;align-items:center;gap:8px}
+.lifeadd{display:flex;gap:8px;flex-wrap:wrap}
+.lifeadd input[type=text]{flex:1;min-width:200px}
+.lifeadd input[type=date]{width:auto}
+
+/* sauvegarde */
+.savebar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:9px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;z-index:5}
+.savebar .st{flex:1;min-width:200px;color:var(--mute)}
+.savebar .st.ok{color:var(--good)}
+.savebar .st.warn{color:var(--warn)}
+.savebar button{padding:4px 10px;font-size:12px}
+@media (prefers-reduced-motion:reduce){.ticker{overflow-x:auto}.ticker .track{animation:none}.bar i{transition:none}}
+@media (max-width:520px){.ctr{grid-template-columns:auto 1fr}.ctr .btns{grid-column:1/-1;flex-direction:row}.ctr .plus{flex:1}}
+/* version synchronisée : les objectifs se dictent à Claude */
+.more,.add,.newcol,.it .x,.goal .x,#carry,#lifeadd,#autoBtn,#exportBtn,#importBtn{display:none!important}
+.savebar{justify-content:center}
+@media (max-width:520px){body{padding:calc(18px + env(safe-area-inset-top,0px)) 14px 70px}.top h1{font-size:22px}.stats{gap:20px}.stat .v{font-size:18px}.board{grid-template-columns:minmax(0,1fr)}.lifegrid{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 id="title">Semaine</h1>
+      <div class="weeknav">
+        <button id="prevW" aria-label="Semaine précédente">‹</button>
+        <button id="todayW">Cette semaine</button>
+        <button id="nextW" aria-label="Semaine suivante">›</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="lbl">Objectifs de la semaine</div><div class="v num" id="sDone">0 / 0</div></div>
+      <div class="stat"><div class="lbl">Avancée</div><div class="v g num" id="sPct">0 %</div></div>
+      <div class="stat"><div class="lbl">Mes 8 dernières semaines</div><div id="sTrend"></div></div>
+    </div>
+  </header>
+
+  <section class="counters" id="counters" aria-label="Compteurs TikTok et YouTube"></section>
+
+  <div class="ticker" aria-label="Bandeau"><div class="track" id="ticker"></div></div>
+
+  <div class="boardhead">
+    <div><h2>Objectifs de la semaine</h2><div class="hint">Dictez vos objectifs à Claude : ils se mettent à jour ici tout seuls.</div></div>
+    <button id="carry" class="carry" hidden></button>
+  </div>
+  <section class="board" id="board"></section>
+
+  <section class="life">
+    <div class="lifehead"><h2>Objectifs de vie</h2><span class="lbl" id="lifeCount"></span></div>
+    <div class="lifegrid" id="lifegrid"></div>
+    <form class="lifeadd" id="lifeadd">
+      <input type="text" id="lifeIn" placeholder="Nouvel objectif de vie">
+      <input type="date" id="lifeDate" aria-label="Échéance (facultatif)">
+      <button class="dark">Ajouter</button>
+    </form>
+  </section>
+</div>
+
+<div class="savebar">
+  <span class="st" id="saveSt">Chargement des objectifs…</span>
+  <button id="autoBtn" class="dark">Activer la sauvegarde auto</button>
+  <button id="exportBtn">Exporter une sauvegarde</button>
+  <button id="importBtn">Importer une sauvegarde</button>
+  <input type="file" id="importIn" accept=".json,application/json" hidden>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const pad=n=>String(n).padStart(2,"0");
+const dkey=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const monday=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-(x.getDay()+6)%7);return x;};
+const parse=k=>{const[a,b,c]=k.split("-").map(Number);return new Date(a,b-1,c);};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x;};
+const MOIS=["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const PF={ig:"Instagram",tt:"TikTok",yt:"YouTube"};
+const KEY="cap-kael-local-v2";
+/* Les objectifs viennent de data.json (mis à jour par Claude sur GitHub).
+   Ce que vous cochez ici est gardé sur l'appareil, et remplacé dès que data.json est plus récent. */
+let state={cols:[],life:[],counters:{tiktok:{},youtube:{}}};
+let week=dkey(monday(new Date()));
+const thisWeek=week;
+let openSettings=null,confirmDel=null,remoteAt=0;
+let local={counters:{tiktok:{},youtube:{}},overlay:{},data:null};
+try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r)local={counters:r.counters||{tiktok:{},youtube:{}},overlay:r.overlay||{},data:r.data||null};}catch(e){}
+function setSt(t,cls){const s=$("#saveSt");if(!s)return;s.textContent=t;s.className="st"+(cls?" "+cls:"");}
+function stamp(d=new Date()){return pad(d.getHours())+":"+pad(d.getMinutes());}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(local));}catch(e){}}
+function applyData(d){
+  if(!d||!Array.isArray(d.cols))return;
+  remoteAt=Date.parse(d.updatedAt)||0;
+  const cp=JSON.parse(JSON.stringify(d));
+  const ov=(x)=>{const o=local.overlay[x.id];if(o&&o.at>remoteAt){if("done" in o)x.done=o.done;if("count" in o)x.count=o.count;}};
+  cp.cols.forEach(c=>(c.items||[]).forEach(ov));(cp.life||[]).forEach(ov);
+  state.cols=cp.cols;state.life=cp.life||[];state.counters=local.counters;
+}
+function mark(x){local.overlay[x.id]={done:!!x.done,count:x.count,at:Date.now()};}
+function save(){local.counters=state.counters;persist();setSt("✓ Enregistré sur cet appareil · "+stamp(),"ok");}
+async function loadRemote(){
+  try{
+    const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;
+    const d=await r.json();local.data=d;persist();applyData(d);render();
+    setSt("✓ Objectifs à jour · "+stamp(),"ok");
+  }catch(e){setSt(local.data?"Hors ligne : dernière version enregistrée":"Impossible de charger les objectifs","warn");}
+}
+if(local.data)applyData(local.data);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadRemote();});
+/* ---------- calculs ---------- */
+const isDone=i=>i.target?(i.count||0)>=i.target:!!i.done;
+const wItems=(c,w)=>(c.items||[]).filter(i=>i.w===w);
+function score(w,c){let d=0,t=0;(c?[c]:state.cols).forEach(cc=>{const it=wItems(cc,w);t+=it.length;d+=it.filter(isDone).length;});return{d,t,p:t?Math.round(d/t*100):0};}
+function lastWeeks(n){const m=parse(week);return [...Array(n)].map((_,i)=>dkey(addDays(m,-7*(n-1-i))));}
+
+/* ---------- graphiques ---------- */
+function line(vals,{w=160,h=24,max=100}={}){
+  const n=vals.length,st=(w-6)/(n-1);
+  const pts=vals.map((v,i)=>[3+i*st,(h-3)-v/max*(h-6)]);
+  const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const l=pts[n-1];
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="Pourcentage fait, semaine par semaine">
+  <line x1="0" x2="${w}" y1="${h-3}" y2="${h-3}" stroke="var(--line)" vector-effect="non-scaling-stroke"/>
+  <path d="${d} L${l[0].toFixed(1)} ${h} L3 ${h} Z" fill="var(--goodbg)"/>
+  <path d="${d}" fill="none" stroke="var(--good)" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+  <circle cx="${l[0]}" cy="${l[1]}" r="2.6" fill="var(--good)"/></svg>`;
+}
+function bars(vals,labels){
+  const w=280,h=58,mx=Math.max(1,...vals),n=vals.length,bw=(w-(n-1)*3)/n;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="14 derniers jours">${vals.map((v,i)=>{
+    const bh=Math.max(v?3:1,v/mx*(h-14));
+    return `<rect x="${(i*(bw+3)).toFixed(1)}" y="${(h-12-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===n-1?"var(--ink)":"var(--line)"}"><title>${labels[i]} : ${v}</title></rect>`;}).join("")}
+  <text x="0" y="${h-1}" font-size="9" fill="var(--faint)" font-family="Geist Mono,monospace">${labels[0]}</text>
+  <text x="${w}" y="${h-1}" font-size="9" fill="var(--faint)" text-anchor="end" font-family="Geist Mono,monospace">aujourd'hui</text></svg>`;
+}
+const daysLeft=due=>Math.ceil((parse(due)-parse(dkey(new Date())))/864e5);
+
+/* ---------- rendu ---------- */
+function renderHead(){
+  const m=parse(week),e=addDays(m,6);
+  $("#title").textContent=`Semaine du ${m.getDate()} ${m.getMonth()===e.getMonth()?"":MOIS[m.getMonth()]+" "}au ${e.getDate()} ${MOIS[e.getMonth()]}`;
+  $("#todayW").hidden=week===thisWeek;
+  const s=score(week);
+  $("#sDone").textContent=`${s.d} / ${s.t}`;$("#sPct").textContent=s.p+" %";
+  $("#sTrend").innerHTML=line(lastWeeks(8).map(w=>score(w).p),{w:150,h:30});
+}
+function ctrStats(k){
+  const today=new Date(),days=[...Array(14)].map((_,i)=>addDays(today,i-13)),c=state.counters[k]||{};
+  const vals=days.map(d=>c[dkey(d)]||0);
+  return{vals,labels:days.map(d=>d.getDate()+" "+MOIS[d.getMonth()]),last7:vals.slice(7).reduce((a,b)=>a+b,0),prev7:vals.slice(0,7).reduce((a,b)=>a+b,0)};
+}
+function renderCounters(){
+  $("#counters").innerHTML=[["tiktok","TikTok"],["youtube","YouTube"]].map(([k,name])=>{
+    const s=ctrStats(k),diff=s.last7-s.prev7;
+    const tr=diff===0?"stable":`<span class="${diff>0?"up":"down"}">${diff>0?"▲ +":"▼ "}${diff}</span>`;
+    return `<div class="ctr"><div><div class="lbl">${name} aujourd'hui</div><div class="big num">${s.vals[13]}</div>
+      <div class="meta num">${s.last7} sur 7 jours · ${tr} vs les 7 jours d'avant</div></div>
+      <div class="chart">${bars(s.vals,s.labels)}</div>
+      <div class="btns"><button class="plus dark" data-inc="${k}">+1 ${name}</button><button class="minus" data-dec="${k}">Annuler 1</button></div></div>`;}).join("");
+}
+function renderTicker(){
+  const prev=dkey(addDays(parse(week),-7));const out=[];
+  const s=score(week),sp=score(prev);
+  const arrow=(a,b)=>a>b?`<span class="g">▲</span>`:a<b?`<span class="r">▼</span>`:`<span class="m">=</span>`;
+  out.push(`<span class="tk"><b>SEMAINE</b><span>${s.d}/${s.t}</span><span class="g">${s.p} %</span>${sp.t?arrow(s.p,sp.p):""}</span>`);
+  state.cols.forEach(c=>{const x=score(week,c),y=score(prev,c);
+    out.push(`<span class="tk"><b>${esc(c.name.toUpperCase())}</b><span>${x.d}/${x.t}</span>${y.t?arrow(x.p,y.p):`<span class="m">${x.p} %</span>`}</span>`);
+    (c.items||[]).filter(i=>i.w===week&&i.target).forEach(i=>out.push(`<span class="tk"><b>${esc(i.t.split(" ")[0].toUpperCase())}</b><span>${i.count||0}/${i.target}</span></span>`));});
+  [["tiktok","TIKTOK"],["youtube","YOUTUBE"]].forEach(([k,n])=>{const t=ctrStats(k);const d=t.last7-t.prev7;
+    out.push(`<span class="tk"><b>${n}</b><span>${t.vals[13]} auj.</span>${d>0?`<span class="r">▲ ${d}</span>`:d<0?`<span class="g">▼ ${-d}</span>`:`<span class="m">=</span>`}</span>`);});
+  state.life.filter(g=>g.due&&!g.done).forEach(g=>{const n=daysLeft(g.due);out.push(`<span class="tk"><b>J${n>=0?"-"+n:"+"+(-n)}</b><span>${esc(g.t)}</span></span>`);});
+  ["Finir avant de commencer.","Des blocs, pas des heures.","Un seul chiffre : les ventes du mois.","On montre les gains et les pertes.","La discipline fait le travail quand l'envie n'est pas là."]
+    .forEach(q=>out.push(`<span class="tk q">${q}</span>`));
+  const seg=`<span class="seg">${out.join("")}</span>`;
+  $("#ticker").innerHTML=seg+seg;
+}
+function itemHTML(c,i){
+  const done=isDone(i);
+  const pf=i.p?`<span class="pf ${i.p}">${PF[i.p]}</span>`:"";
+  if(i.target){const pct=Math.min(100,Math.round((i.count||0)/i.target*100));
+    return `<li class="it${done?" done":""}"><input type="checkbox" class="box" ${done?"checked":""} disabled aria-label="${esc(i.t)}">
+      <div class="txt"><span>${pf}<b class="num">${i.target}</b> ${esc(i.t)}</span>
+      <div class="cnt"><button data-cm="${c.id}:${i.id}" aria-label="Moins 1">−</button><div class="bar"><i style="width:${pct}%"></i></div>
+      <b class="num">${i.count||0}/${i.target}</b><button data-cp="${c.id}:${i.id}" aria-label="Plus 1">+</button></div></div>
+      <button class="x" data-rm="${c.id}:${i.id}" aria-label="Supprimer">×</button></li>`;}
+  return `<li class="it${done?" done":""}"><input type="checkbox" class="box" id="c-${i.id}" data-tog="${c.id}:${i.id}" ${done?"checked":""} aria-label="${esc(i.t)}">
+    <div class="txt"><span>${pf}${esc(i.t)}</span></div><button class="x" data-rm="${c.id}:${i.id}" aria-label="Supprimer">×</button></li>`;
+}
+function renderBoard(){
+  const weeks=lastWeeks(8);
+  $("#board").innerHTML=state.cols.map(c=>{
+    const it=wItems(c,week),x=score(week,c);
+    const set=openSettings===c.id?`<div class="settings">
+      <label>Nom<input type="text" value="${esc(c.name)}" data-name="${c.id}"></label>
+      <label>Lien du site (bouton Ouvrir ↗)<input type="text" value="${esc(c.url||"")}" placeholder="https://…" data-url="${c.id}"></label>
+      <label class="chk"><input type="checkbox" class="box" data-content="${c.id}" ${c.content?"checked":""}> Choix de la plateforme (Instagram, TikTok, YouTube)</label>
+      <div class="row"><button data-left="${c.id}">← Déplacer</button><button data-right="${c.id}">Déplacer →</button>
+      ${confirmDel===c.id?`<button class="del" data-delok="${c.id}">Confirmer la suppression</button><button data-delno="1">Annuler</button>`:`<button class="del" data-del="${c.id}">Supprimer la colonne</button>`}</div></div>`:"";
+    return `<article class="col"><div class="ch">
+      <div class="chrow"><h3>${esc(c.name)}</h3>${c.url?`<a class="go" href="${esc(c.url)}" target="_blank" rel="noopener">Ouvrir ↗</a>`:""}
+        <button class="more" data-set="${c.id}" aria-label="Réglages">⋯</button></div>
+      <div class="prog"><div class="bar"><i style="width:${x.p}%"></i></div><b class="num">${x.d}/${x.t}</b></div>
+      <div class="spark" title="Pourcentage d'objectifs faits, semaine par semaine"><span class="lbl">Historique</span>${line(weeks.map(w=>score(w,c).p))}</div>
+      </div>${set}
+      <ul class="items">${it.length?it.map(i=>itemHTML(c,i)).join(""):`<li class="empty">Rien de prévu cette semaine.</li>`}</ul>
+      <form class="add" data-add="${c.id}">${c.content?`<select aria-label="Plateforme" data-pfsel="${c.id}"><option value="">—</option><option value="ig">Instagram</option><option value="tt">TikTok</option><option value="yt">YouTube</option></select>`:""}
+        <input type="text" id="a-${c.id}" placeholder="+ Ajouter un objectif" aria-label="Ajouter un objectif"></form></article>`;
+  }).join("")+`<form class="newcol" id="newcol"><input type="text" id="newcolIn" placeholder="Nouvelle colonne (ex. Sport)"><button class="dark">Créer</button></form>`;
+  const prev=dkey(addDays(parse(week),-7));let n=0;
+  state.cols.forEach(c=>n+=(c.items||[]).filter(i=>i.w===prev&&!isDone(i)&&!i.carried).length);
+  const cb=$("#carry");cb.hidden=!n;cb.textContent=`Reporter ${n} objectif${n>1?"s":""} non fini${n>1?"s":""} de la semaine dernière`;
+}
+function renderLife(){
+  const L=state.life;
+  $("#lifeCount").textContent=`${L.filter(g=>g.done).length} atteint${L.filter(g=>g.done).length>1?"s":""} sur ${L.length}`;
+  $("#lifegrid").innerHTML=L.map(g=>{
+    let chip=`<span class="chip">Pas de date</span>`;
+    if(g.done)chip=`<span class="chip ok">Atteint</span>`;
+    else if(g.due){const n=daysLeft(g.due),d=parse(g.due);chip=`<span class="chip${n<=30?" soon":""}">${n>=0?"J-"+n:"Dépassé de "+(-n)+" j"} · ${d.getDate()} ${MOIS[d.getMonth()]}</span>`;}
+    return `<div class="goal${g.done?" done":""}"><div class="gt">${esc(g.t)}</div>
+      <div class="gf">${chip}<div class="gl"><input type="checkbox" class="box" data-life="${g.id}" ${g.done?"checked":""} aria-label="Atteint">
+      <button class="x" style="opacity:1" data-lrm="${g.id}" aria-label="Supprimer">×</button></div></div></div>`;}).join("");
+}
+function render(){renderHead();renderCounters();renderTicker();renderBoard();renderLife();}
+
+/* ---------- actions ---------- */
+const col=id=>state.cols.find(c=>c.id===id);
+const item=s=>{const[a,b]=s.split(":");return[col(a),(col(a).items||[]).find(x=>x.id===b)];};
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,input[type=checkbox]");if(!t||t.closest(".savebar"))return;
+  const ds=t.dataset,today=dkey(new Date());
+  if(ds.inc){const c=state.counters[ds.inc];c[today]=(c[today]||0)+1;}
+  else if(ds.dec){const c=state.counters[ds.dec];if(!c[today])return;c[today]--;}
+  else if(ds.tog){const x=item(ds.tog)[1];x.done=t.checked;mark(x);}
+  else if(ds.cp){const i=item(ds.cp)[1];i.count=(i.count||0)+1;mark(i);}
+  else if(ds.cm){const i=item(ds.cm)[1];if(!i.count)return;i.count--;mark(i);}
+  else if(ds.rm){const[c,i]=item(ds.rm);c.items=c.items.filter(x=>x!==i);}
+  else if(ds.set){openSettings=openSettings===ds.set?null:ds.set;confirmDel=null;render();return;}
+  else if(ds.content){col(ds.content).content=t.checked;}
+  else if(ds.del){confirmDel=ds.del;render();return;}
+  else if(ds.delno){confirmDel=null;render();return;}
+  else if(ds.delok){state.cols=state.cols.filter(c=>c.id!==ds.delok);openSettings=confirmDel=null;}
+  else if(ds.left||ds.right){const id=ds.left||ds.right,i=state.cols.findIndex(c=>c.id===id),j=i+(ds.left?-1:1);
+    if(j<0||j>=state.cols.length)return;[state.cols[i],state.cols[j]]=[state.cols[j],state.cols[i]];}
+  else if(ds.life){const g=state.life.find(g=>g.id===ds.life);g.done=t.checked;mark(g);}
+  else if(ds.lrm){state.life=state.life.filter(g=>g.id!==ds.lrm);}
+  else return;
+  save();render();
+});
+document.addEventListener("change",e=>{
+  const t=e.target,ds=t.dataset;
+  if(ds.name){const v=t.value.trim();if(v){col(ds.name).name=v;save();render();}}
+  else if(ds.url){let v=t.value.trim();if(v&&!/^https?:\/\//i.test(v))v="https://"+v;col(ds.url).url=v;save();render();}
+});
+document.addEventListener("submit",e=>{
+  e.preventDefault();const f=e.target;
+  if(f.dataset.add){const inp=f.querySelector("input");let v=inp.value.trim();if(!v)return;const c=col(f.dataset.add);
+    const o={id:uid(),t:v,w:week,done:false};const m=v.match(/^(\d+)\s+(.+)$/);if(m){o.target=+m[1];o.count=0;o.t=m[2];}
+    const sel=f.querySelector("select");if(sel&&sel.value)o.p=sel.value;
+    (c.items=c.items||[]).push(o);save();render();const a=document.getElementById("a-"+c.id);if(a)a.focus();}
+  else if(f.id==="newcol"){const v=$("#newcolIn").value.trim();if(!v)return;state.cols.push({id:uid(),name:v,url:"",items:[]});save();render();}
+  else if(f.id==="lifeadd"){const v=$("#lifeIn").value.trim();if(!v)return;state.life.push({id:uid(),t:v,due:$("#lifeDate").value||"",done:false});
+    $("#lifeIn").value="";$("#lifeDate").value="";save();render();}
+});
+$("#prevW").onclick=()=>{week=dkey(addDays(parse(week),-7));render();};
+$("#nextW").onclick=()=>{week=dkey(addDays(parse(week),7));render();};
+$("#todayW").onclick=()=>{week=thisWeek;render();};
+$("#carry").onclick=()=>{const prev=dkey(addDays(parse(week),-7));
+  state.cols.forEach(c=>{const add=[];(c.items||[]).forEach(i=>{if(i.w===prev&&!isDone(i)&&!i.carried){
+    const n={id:uid(),t:i.t,w:week,done:false};if(i.p)n.p=i.p;if(i.target){n.target=i.target;n.count=i.count||0;}add.push(n);i.carried=true;}});
+    c.items=(c.items||[]).concat(add);});save();render();};
+
+render();
+loadRemote();
+/* mise à jour automatique de la page */
+const APP_VERSION="cap-2026-10-16-1";
+async function checkUpdate(){try{const r=await fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);if(m&&m[1]!==APP_VERSION)location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}catch(e){}}
+checkUpdate();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkUpdate();});
+})();
+</script>
+</body>
+</html>
