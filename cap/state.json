@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T06:51:29.816Z",
+ "updatedAt": "2026-10-17T06:53:02.255Z",
  "cols": [
   {
    "id": "trading",
@@ -10,7 +10,7 @@
      "id": "tr1",
      "t": "Récap des trades du vendredi",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     },
     {
      "id": "tr2",
