@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T06:53:04.045Z",
+ "updatedAt": "2026-10-17T06:53:08.527Z",
  "cols": [
   {
    "id": "trading",
@@ -29,7 +29,7 @@
      "id": "fo1",
      "t": "Bilan du mois : régler tous les problèmes",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     },
     {
      "id": "fo2",
