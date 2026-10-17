@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T07:43:09.542Z",
+ "updatedAt": "2026-10-17T07:53:00.777Z",
  "cols": [
   {
    "id": "trading",
@@ -139,7 +139,7 @@
      "id": "pe3",
      "t": "Vider les poubelles",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     },
     {
      "id": "pe4",
