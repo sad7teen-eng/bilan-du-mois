@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T07:42:59.563Z",
+ "updatedAt": "2026-10-17T07:43:09.542Z",
  "cols": [
   {
    "id": "trading",
@@ -108,7 +108,7 @@
      "id": "mo2",
      "t": "Finaliser le site de sourcing",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     },
     {
      "id": "mo3",
