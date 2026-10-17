@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T07:53:00.777Z",
+ "updatedAt": "2026-10-17T15:22:08.330Z",
  "cols": [
   {
    "id": "trading",
@@ -102,7 +102,7 @@
      "w": "2026-10-12",
      "done": false,
      "target": 5,
-     "count": 0
+     "count": 3
     },
     {
      "id": "mo2",
