@@ -111,6 +111,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .savebar .st{flex:1;min-width:180px}
 .savebar .st.ok{color:var(--gain)}
 .savebar button{padding:5px 10px;font-size:11.5px}
+.savebar .syncst{flex-basis:100%;min-width:0}
+.syncst.ok{color:var(--gain)}.syncst.wait{color:var(--muted)}.syncst.err{color:var(--loss,#e5484d)}
+.syncbox{display:flex;gap:6px;flex-basis:100%}.syncbox[hidden]{display:none!important}
+.syncbox input{flex:1;min-width:0;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);font-size:12px}
 @media (max-width:560px){.cell{border-radius:9px}.cell .dn{top:4px;left:5px;font-size:9px}.cell .p{font-size:10.5px;margin-top:9px}.cell .c{display:none}.cell .add{display:none}.wk div{font-size:9px}}
 
 /* ---------- Modals ---------- */
@@ -434,6 +438,7 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
     <button type="button" data-side="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Réglages</button>
     <button type="button" data-side="export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>Exporter une sauvegarde</button>
     <span class="s-saved" id="sSaved"></span>
+    <span class="s-saved syncst" id="sSync"></span>
   </div>
 </aside>
 <div class="dash" id="dash">
@@ -475,6 +480,9 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
   </nav>
   <footer class="savebar">
     <span class="st" id="saveSt"></span>
+    <span class="st syncst" id="syncSt"></span>
+    <button type="button" id="btnSync" hidden>Activer la synchro</button>
+    <div class="syncbox" id="syncBox" hidden><input type="password" id="syncIn" placeholder="Collez votre token GitHub (le même que pour le Cap)" autocomplete="off"><button type="button" id="syncSave">Enregistrer</button></div>
     <button type="button" id="btnExport">Exporter une sauvegarde</button>
     <button type="button" id="btnImport">Importer</button>
     <input type="file" id="importIn" accept=".json,application/json" hidden>
@@ -671,6 +679,7 @@ function save(){
   let ok = true;
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) { ok = false; }
   showSaved(ok);
+  if (window.BSync) window.BSync.soon();
 }
 function showSaved(ok){
   const el = document.getElementById("saveSt"); if (!el) return;
@@ -1361,11 +1370,178 @@ document.querySelector(".side").addEventListener("click", e => {
   if (["top", "cal", "days"].includes(k)) document.querySelectorAll(".s-nav button").forEach(x => x.classList.toggle("on", x === b));
 });
 
+
+/* ===== Synchro téléphone ↔ ordinateur via GitHub (branche bilan-sync) =====
+   Même token que le Cap (même site). Fusion à trois voies : ce qui a changé ici gagne,
+   ce qui a changé ailleurs arrive ici, rien n'est écrasé par une version plus ancienne.
+   Les photos voyagent une par une (bilan/img/…), seulement quand elles changent. */
+window.BSync = (() => {
+  const REPO = "sad7teen-eng/bilan-du-mois", BR = "bilan-sync", API = "https://api.github.com/repos/" + REPO + "/contents/";
+  const META = "month-review-sync";
+  const tok = () => { try { return localStorage.getItem("cap-gh-token") || ""; } catch(e) { return ""; } };
+  let meta = {base: null, localH: {}};
+  try { const m = JSON.parse(localStorage.getItem(META) || "null"); if (m) meta = {base: m.base || null, localH: m.localH || {}}; } catch(e) {}
+  const keep = () => { try { localStorage.setItem(META, JSON.stringify(meta)); } catch(e) {} };
+  const hash = v => { const x = JSON.stringify(v || []); if (x === "[]") return "0"; let h = 5381; for (let i = 0; i < x.length; i++) h = ((h * 33) ^ x.charCodeAt(i)) >>> 0; return x.length.toString(36) + "-" + h.toString(36); };
+  const J = x => x === undefined ? undefined : JSON.stringify(x);
+  const b64 = str => { const u = new TextEncoder().encode(str); let bin = ""; for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(bin); };
+  const unb64 = c => new TextDecoder().decode(Uint8Array.from(atob(c.replace(/\s/g, "")), ch => ch.charCodeAt(0)));
+  const safe = k => k.replace(/[^a-zA-Z0-9_-]/g, ch => "_" + ch.charCodeAt(0).toString(16));
+  const hdr = (raw) => ({Authorization: "Bearer " + tok(), Accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json"});
+
+  /* idb.set passe par ici : on retient l'empreinte de chaque photo modifiée */
+  const rawSet = idb.set;
+  idb.set = async (k, v) => { meta.localH[k] = hash(v); keep(); const r = await rawSet(k, v); soon(); return r; };
+
+  function snap(){
+    if (!state.archive || typeof state.archive !== "object") state.archive = {};
+    state.archive[state.year + "-" + state.month] = state.trades;
+    const trades = {};
+    Object.entries(state.archive).forEach(([k, list]) => { if (!Array.isArray(list)) return; const [y, m] = k.split("-").map(Number); list.forEach(t => { if (t && t.id) trades[t.id] = {...t, y, m}; }); });
+    const certs = {}; (state.certs || []).forEach(c => { if (c && c.id) certs[c.id] = {...c}; });
+    const settings = {}; ["greet", "name", "ready", "currency", "handle"].forEach(k => { if (state[k] !== undefined) settings[k] = state[k]; });
+    return {trades, certs, settings, seedSkip: [...new Set(state.seedSkip || [])].sort()};
+  }
+  const fill = (r, l) => {
+    if (!r || typeof r !== "object" || !l || typeof l !== "object") return r ?? l;
+    const o = {...l, ...r}; Object.keys(l).forEach(k => { const e = v => v === "" || v == null; if (e(r[k]) && !e(l[k])) o[k] = l[k]; }); return o;
+  };
+  function merge3(base, loc, rem){
+    const out = {}, ids = new Set([...Object.keys(base || {}), ...Object.keys(loc || {}), ...Object.keys(rem || {})]);
+    ids.forEach(id => {
+      const l = (loc || {})[id], r = (rem || {})[id];
+      if (!base) { const v = (r !== undefined && l !== undefined) ? fill(r, l) : (r !== undefined ? r : l); if (v !== undefined) out[id] = v; return; }
+      const b = base[id], lc = J(l) !== J(b);
+      const v = lc ? l : r;
+      if (v !== undefined) out[id] = v;
+    });
+    return out;
+  }
+  async function localH(k){ if (meta.localH[k] === undefined) meta.localH[k] = hash(await idb.get(k)); return meta.localH[k]; }
+
+  async function getFile(path, raw){
+    const r = await fetch(API + path + "?ref=" + BR + "&t=" + Date.now(), {headers: hdr(raw), cache: "no-store"});
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error("get " + r.status);
+    return raw ? r.text() : r.json();
+  }
+  async function putFile(path, text, sha, msg){
+    for (let i = 0; i < 2; i++) {
+      const body = {message: msg, content: b64(text), branch: BR}; if (sha) body.sha = sha;
+      const r = await fetch(API + path, {method: "PUT", headers: {...hdr(), "Content-Type": "application/json"}, body: JSON.stringify(body)});
+      if (r.ok) return (await r.json()).content.sha;
+      if (r.status === 409 || r.status === 422) { const cur = await getFile(path).catch(() => null); sha = cur && cur.sha; if (i === 0) continue; }
+      throw new Error("put " + r.status);
+    }
+  }
+  async function delFile(path, sha){
+    if (!sha) { const cur = await getFile(path).catch(() => null); sha = cur && cur.sha; if (!sha) return; }
+    await fetch(API + path, {method: "DELETE", headers: {...hdr(), "Content-Type": "application/json"}, body: JSON.stringify({message: "Bilan : photo retirée", sha, branch: BR})});
+  }
+
+  function apply(d){
+    const arch = {};
+    Object.values(d.trades).forEach(t => { const {y, m, ...rest} = t; const k = y + "-" + m; (arch[k] = arch[k] || []).push(rest); });
+    Object.values(arch).forEach(l => l.sort((a, b) => a.day - b.day || String(a.time || "").localeCompare(String(b.time || ""))));
+    const ck = state.year + "-" + state.month; if (!arch[ck]) arch[ck] = [];
+    state.archive = arch; state.trades = arch[ck];
+    state.certs = Object.values(d.certs); Object.assign(state, d.settings); state.seedSkip = d.seedSkip.slice();
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {}
+  }
+  const blocked = () => ["dayModal", "certModal", "certEditModal", "setModal", "story", "lightbox"].some(id => { const e = $(id); return e && !e.hidden; });
+
+  function st(txt, cls){ ["syncSt", "sSync"].forEach(id => { const e = $(id); if (e) { e.textContent = txt; e.className = (id === "sSync" ? "s-saved syncst " : "st syncst ") + (cls || ""); } }); }
+  function idle(){
+    const on = !!tok();
+    $("btnSync").hidden = on;
+    if (!on) st("Synchro désactivée : collez votre token dans le Cap (bouton Synchro) ou ici.", "wait");
+  }
+  const stamp = () => { const d = new Date(); return pad2(d.getHours()) + ":" + pad2(d.getMinutes()); };
+
+  let timer = null, busy = false, again = false;
+  function soon(ms){ if (!tok()) { idle(); return; } clearTimeout(timer); timer = setTimeout(run, ms ?? 1500); }
+  async function run(){
+    if (!tok()) { idle(); return; }
+    if (busy) { again = true; return; }
+    if (blocked()) { soon(4000); return; }
+    busy = true; st("Synchronisation…", "wait");
+    try {
+      let ok = false;
+      for (let i = 0; i < 3 && !ok; i++) ok = await once();
+      if (!ok) throw new Error("conflit");
+      st("✓ Synchronisé · téléphone + ordinateur · " + stamp(), "ok");
+    } catch(e) {
+      st(/401|403/.test(String(e.message)) ? "Synchro refusée : le token n'est plus valable." : "Synchro en attente (pas de connexion ?) · nouvel essai bientôt", "err");
+      clearTimeout(timer); timer = setTimeout(run, 30000);
+    }
+    busy = false;
+    if (again) { again = false; soon(800); }
+  }
+  async function once(){
+    const remote = await getFile("bilan/state.json");
+    const rd = remote ? JSON.parse(unb64(remote.content)) : {trades: {}, certs: {}, settings: {}, seedSkip: [], imgs: {}};
+    const base = meta.base, loc = snap();
+    const seedSkip = [...new Set([...(loc.seedSkip || []), ...(rd.seedSkip || [])])].sort();
+    const trades = merge3(base && base.trades, loc.trades, rd.trades || {});
+    seedSkip.forEach(id => { delete trades[id]; });
+    const certs = merge3(base && base.certs, loc.certs, rd.certs || {});
+    const settings = merge3(base && base.settings, loc.settings, rd.settings || {});
+
+    /* photos */
+    const keys = new Set();
+    Object.keys(trades).forEach(id => [id, id + "#main", id + "#orig"].forEach(k => keys.add(k)));
+    Object.keys(certs).forEach(id => keys.add("cert:" + id));
+    Object.keys(loc.trades).forEach(id => [id, id + "#main", id + "#orig"].forEach(k => keys.add(k)));
+    Object.keys(loc.certs).forEach(id => keys.add("cert:" + id));
+    Object.keys(rd.imgs || {}).forEach(k => keys.add(k));
+    if (base) Object.keys(base.imgs || {}).forEach(k => keys.add(k));
+    const imgs = {...(rd.imgs || {})}, down = [];
+    for (const k of keys) {
+      const l = await localH(k), r = (rd.imgs || {})[k] ? rd.imgs[k].h : "0";
+      const path = "bilan/img/" + safe(k) + ".json";
+      let up = false, dn = false;
+      if (!base) { if (l !== "0" && r === "0") up = true; else if (r !== "0" && l !== r) dn = true; }
+      else { const b = (base.imgs || {})[k] ? base.imgs[k].h : "0"; if (l !== b && l !== r) up = true; else if (r !== b && r !== l) dn = true; }
+      if (up) {
+        if (l === "0") { await delFile(path, (rd.imgs || {})[k] && rd.imgs[k].sha); delete imgs[k]; }
+        else { const v = await idb.get(k); const sha = await putFile(path, JSON.stringify(v), (rd.imgs || {})[k] && rd.imgs[k].sha, "Bilan : photo " + k); imgs[k] = {h: l, sha}; }
+      } else if (dn) down.push([k, r, path]);
+    }
+    const data = {v: 1, trades, certs, settings, seedSkip, imgs};
+    const same = J({trades: rd.trades || {}, certs: rd.certs || {}, settings: rd.settings || {}, seedSkip: rd.seedSkip || [], imgs: rd.imgs || {}}) === J({trades, certs, settings, seedSkip, imgs});
+    if (!same) {
+      const body = {message: "Bilan : synchro " + new Date().toISOString(), content: b64(JSON.stringify({...data, updatedAt: new Date().toISOString()})), branch: BR};
+      if (remote) body.sha = remote.sha;
+      const r = await fetch(API + "bilan/state.json", {method: "PUT", headers: {...hdr(), "Content-Type": "application/json"}, body: JSON.stringify(body)});
+      if (r.status === 409 || r.status === 422) return false;
+      if (!r.ok) throw new Error("put " + r.status);
+    }
+    for (const [k, h, path] of down) {
+      let v = [];
+      if (h !== "0") { const txt = await getFile(path, true); v = txt ? JSON.parse(txt) : []; }
+      await rawSet(k, v); meta.localH[k] = hash(v);
+    }
+    const before = J(snap());
+    if (blocked()) { soon(4000); return true; } /* une fenêtre s'est ouverte : on appliquera à la fermeture */
+    apply(data);
+    meta.base = data; keep();
+    if (J(snap()) !== before || down.length) { try { renderDash(); } catch(e) {} }
+    return true;
+  }
+
+  $("btnSync").onclick = () => { $("syncBox").hidden = false; $("syncIn").focus(); };
+  $("syncSave").onclick = () => { const v = $("syncIn").value.trim(); if (!v) return; try { localStorage.setItem("cap-gh-token", v); } catch(e) {} $("syncIn").value = ""; $("syncBox").hidden = true; idle(); soon(0); };
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") soon(300); });
+  setInterval(() => { if (document.visibilityState === "visible" && !busy) run(); }, 45000);
+  idle();
+  return {soon, run};
+})();
+
 applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-16-19";
+const APP_VERSION = "2026-10-17-1";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
