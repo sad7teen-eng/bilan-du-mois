@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T06:53:02.255Z",
+ "updatedAt": "2026-10-17T06:53:04.045Z",
  "cols": [
   {
    "id": "trading",
@@ -16,7 +16,7 @@
      "id": "tr2",
      "t": "Tourner les récaps de trades",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     }
    ]
   },
