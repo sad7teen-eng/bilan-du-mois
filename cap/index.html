@@ -138,6 +138,10 @@ input[type=text],input[type=date]{font:inherit;color:var(--ink);background:#fff;
 /* version synchronisée : les objectifs se dictent à Claude */
 .more,.add,.newcol,.it .x,.goal .x,#carry,#lifeadd,#autoBtn,#exportBtn,#importBtn{display:none!important}
 .savebar{justify-content:center}
+#syncBtn{display:inline-block!important;padding:4px 10px;font-size:12px}
+.syncbox{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);width:min(380px,calc(100vw - 32px));background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.12);z-index:9}
+.syncbox span{font-size:12px;color:var(--mute)}
+.syncbox div{display:flex;gap:8px;justify-content:flex-end}
 @media (max-width:520px){body{padding:calc(18px + env(safe-area-inset-top,0px)) 14px 70px}.top h1{font-size:22px}.stats{gap:20px}.stat .v{font-size:18px}.board{grid-template-columns:minmax(0,1fr)}.lifegrid{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
@@ -182,6 +186,13 @@ input[type=text],input[type=date]{font:inherit;color:var(--ink);background:#fff;
 
 <div class="savebar">
   <span class="st" id="saveSt">Chargement des objectifs…</span>
+  <button id="syncBtn">Synchro</button>
+  <div id="syncBox" class="syncbox" hidden>
+    <b>Synchro téléphone + ordinateur</b>
+    <span>Collez ici votre clé GitHub (une seule fois sur chaque appareil).</span>
+    <input type="password" id="syncIn" placeholder="github_pat_…" autocomplete="off">
+    <div><button id="syncOff">Retirer</button><button id="syncSave" class="dark">Enregistrer</button></div>
+  </div>
   <button id="autoBtn" class="dark">Activer la sauvegarde auto</button>
   <button id="exportBtn">Exporter une sauvegarde</button>
   <button id="importBtn">Importer une sauvegarde</button>
@@ -212,24 +223,82 @@ try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r)local={counters:r
 function setSt(t,cls){const s=$("#saveSt");if(!s)return;s.textContent=t;s.className="st"+(cls?" "+cls:"");}
 function stamp(d=new Date()){return pad(d.getHours())+":"+pad(d.getMinutes());}
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(local));}catch(e){}}
+/* ---------- Synchro téléphone + ordinateur via GitHub (branche cap-sync, fichier cap/state.json) ---------- */
+const REPO="sad7teen-eng/bilan-du-mois",BR="cap-sync",FP="cap/state.json";
+const API="https://api.github.com/repos/"+REPO+"/contents/"+FP;
+const RAW="https://raw.githubusercontent.com/"+REPO+"/"+BR+"/"+FP;
+let token="";try{token=localStorage.getItem("cap-gh-token")||"";}catch(e){}
+let ops=[],pushT=null,busy=false;
+const b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,""))));
+const b64e=t=>btoa(unescape(encodeURIComponent(t)));
 function applyData(d){
   if(!d||!Array.isArray(d.cols))return;
   remoteAt=Date.parse(d.updatedAt)||0;
   const cp=JSON.parse(JSON.stringify(d));
-  const ov=(x)=>{const o=local.overlay[x.id];if(o&&o.at>remoteAt){if("done" in o)x.done=o.done;if("count" in o)x.count=o.count;}};
-  cp.cols.forEach(c=>(c.items||[]).forEach(ov));(cp.life||[]).forEach(ov);
-  state.cols=cp.cols;state.life=cp.life||[];state.counters=local.counters;
+  if(!token){const ov=(x)=>{const o=local.overlay[x.id];if(o&&o.at>remoteAt){if("done" in o)x.done=o.done;if("count" in o)x.count=o.count;}};
+    cp.cols.forEach(c=>(c.items||[]).forEach(ov));(cp.life||[]).forEach(ov);}
+  /* les changements pas encore envoyés restent visibles */
+  applyOps(cp,ops);
+  state.cols=cp.cols;state.life=cp.life||[];
+  state.counters=token?(cp.counters||{tiktok:{},youtube:{}}):local.counters;
+  ["tiktok","youtube"].forEach(k=>{state.counters[k]=state.counters[k]||{};});
 }
-function mark(x){local.overlay[x.id]={done:!!x.done,count:x.count,at:Date.now()};}
-function save(){local.counters=state.counters;persist();setSt("✓ Enregistré sur cet appareil · "+stamp(),"ok");}
+function applyOps(d,list){
+  const all=[];(d.cols||[]).forEach(c=>(c.items||[]).forEach(x=>all.push(x)));(d.life||[]).forEach(x=>all.push(x));
+  d.counters=d.counters||{tiktok:{},youtube:{}};
+  list.forEach(o=>{
+    if(o.id){const x=all.find(y=>y.id===o.id);if(x){x.done=o.done;if(o.count!=null)x.count=o.count;}}
+    else if(o.c){const c=d.counters[o.c]=d.counters[o.c]||{};c[o.day]=Math.max(0,(c[o.day]||0)+o.d);}
+  });
+}
+function mark(x){
+  if(token){ops=ops.filter(o=>o.id!==x.id);ops.push({id:x.id,done:!!x.done,count:x.count});schedulePush();}
+  else local.overlay[x.id]={done:!!x.done,count:x.count,at:Date.now()};
+}
+function counterOp(k,day,d){if(token){ops.push({c:k,day,d});schedulePush();}}
+function save(){
+  if(token){setSt("Synchronisation…");return;}
+  local.counters=state.counters;persist();setSt("✓ Enregistré sur cet appareil seulement · activez la synchro","warn");
+}
+function schedulePush(){clearTimeout(pushT);pushT=setTimeout(push,700);}
+async function ghGet(){
+  const r=await fetch(API+"?ref="+BR+"&t="+Date.now(),{headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"},cache:"no-store"});
+  if(r.status===401||r.status===403)throw new Error("auth");
+  if(!r.ok)throw new Error("get");
+  const j=await r.json();return {data:JSON.parse(b64d(j.content)),sha:j.sha};
+}
+async function push(){
+  if(busy){schedulePush();return;}
+  if(!ops.length)return;
+  busy=true;const sending=ops.slice();
+  try{
+    for(let tryN=0;tryN<3;tryN++){
+      const {data,sha}=await ghGet();
+      applyOps(data,sending);data.updatedAt=new Date().toISOString();
+      const r=await fetch(API,{method:"PUT",headers:{Authorization:"Bearer "+token,Accept:"application/vnd.github+json"},
+        body:JSON.stringify({message:"Cap : mise à jour depuis "+(/Mobi|iPhone|Android/.test(navigator.userAgent)?"le téléphone":"l'ordinateur"),content:b64e(JSON.stringify(data,null,1)),sha,branch:BR})});
+      if(r.ok){ops=ops.slice(sending.length);local.data=data;persist();applyData(data);render();setSt("✓ Synchronisé · téléphone + ordinateur · "+stamp(),"ok");break;}
+      if(r.status===401||r.status===403)throw new Error("auth");
+      if(r.status!==409&&r.status!==422)throw new Error("put");
+    }
+  }catch(e){setSt(e.message==="auth"?"Clé de synchro refusée : ouvrez « Synchro » pour la remplacer":"Pas de réseau : ce sera envoyé au prochain essai","warn");setTimeout(schedulePush,15000);}
+  busy=false;
+}
 async function loadRemote(){
   try{
-    const r=await fetch("data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;
-    const d=await r.json();local.data=d;persist();applyData(d);render();
-    setSt("✓ Objectifs à jour · "+stamp(),"ok");
-  }catch(e){setSt(local.data?"Hors ligne : dernière version enregistrée":"Impossible de charger les objectifs","warn");}
+    let d;
+    if(token){d=(await ghGet()).data;}
+    else{const r=await fetch(RAW+"?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;d=await r.json();}
+    local.data=d;persist();applyData(d);render();
+    setSt(token?"✓ Synchronisé · téléphone + ordinateur · "+stamp():"✓ Objectifs à jour · cochez sans synchro : activez « Synchro »",token?"ok":"warn");
+  }catch(e){setSt(e&&e.message==="auth"?"Clé de synchro refusée : ouvrez « Synchro » pour la remplacer":(local.data?"Hors ligne : dernière version enregistrée":"Impossible de charger les objectifs"),"warn");}
 }
 if(local.data)applyData(local.data);
+setInterval(()=>{if(document.visibilityState==="visible"&&!ops.length&&!busy)loadRemote();},30000);
+/* fenêtre de réglage de la synchro */
+$("#syncBtn").onclick=()=>{$("#syncBox").hidden=!$("#syncBox").hidden;$("#syncIn").value=token?"••••••••":"";};
+$("#syncSave").onclick=()=>{const v=$("#syncIn").value.trim();if(!v||v.startsWith("•"))return;token=v;try{localStorage.setItem("cap-gh-token",v);}catch(e){}$("#syncBox").hidden=true;ops=[];loadRemote();};
+$("#syncOff").onclick=()=>{token="";try{localStorage.removeItem("cap-gh-token");}catch(e){}$("#syncBox").hidden=true;loadRemote();};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadRemote();});
 /* ---------- calculs ---------- */
 const isDone=i=>i.target?(i.count||0)>=i.target:!!i.done;
@@ -353,8 +422,8 @@ const item=s=>{const[a,b]=s.split(":");return[col(a),(col(a).items||[]).find(x=>
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,input[type=checkbox]");if(!t||t.closest(".savebar"))return;
   const ds=t.dataset,today=dkey(new Date());
-  if(ds.inc){const c=state.counters[ds.inc];c[today]=(c[today]||0)+1;}
-  else if(ds.dec){const c=state.counters[ds.dec];if(!c[today])return;c[today]--;}
+  if(ds.inc){const c=state.counters[ds.inc];c[today]=(c[today]||0)+1;counterOp(ds.inc,today,1);}
+  else if(ds.dec){const c=state.counters[ds.dec];if(!c[today])return;c[today]--;counterOp(ds.dec,today,-1);}
   else if(ds.tog){const x=item(ds.tog)[1];x.done=t.checked;mark(x);}
   else if(ds.cp){const i=item(ds.cp)[1];i.count=(i.count||0)+1;mark(i);}
   else if(ds.cm){const i=item(ds.cm)[1];if(!i.count)return;i.count--;mark(i);}
@@ -397,7 +466,7 @@ $("#carry").onclick=()=>{const prev=dkey(addDays(parse(week),-7));
 render();
 loadRemote();
 /* mise à jour automatique de la page */
-const APP_VERSION="cap-2026-10-16-1";
+const APP_VERSION="cap-2026-10-17-1";
 async function checkUpdate(){try{const r=await fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);if(m&&m[1]!==APP_VERSION)location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkUpdate();});
 })();
