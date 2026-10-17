@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-17T06:53:08.527Z",
+ "updatedAt": "2026-10-17T07:42:52.290Z",
  "cols": [
   {
    "id": "trading",
@@ -52,7 +52,7 @@
      "done": false,
      "p": "ig",
      "target": 7,
-     "count": 0
+     "count": 7
     },
     {
      "id": "co2",
