@@ -297,7 +297,12 @@ if(local.data)applyData(local.data);
 setInterval(()=>{if(document.visibilityState==="visible"&&!ops.length&&!busy)loadRemote();},30000);
 /* fenêtre de réglage de la synchro */
 $("#syncBtn").onclick=()=>{$("#syncBox").hidden=!$("#syncBox").hidden;$("#syncIn").value=token?"••••••••":"";};
-$("#syncSave").onclick=()=>{const v=$("#syncIn").value.trim();if(!v||v.startsWith("•"))return;token=v;try{localStorage.setItem("cap-gh-token",v);}catch(e){}$("#syncBox").hidden=true;ops=[];loadRemote();};
+$("#syncSave").onclick=async()=>{const v=$("#syncIn").value.trim();if(!v||v.startsWith("•"))return;token=v;try{localStorage.setItem("cap-gh-token",v);}catch(e){}$("#syncBox").hidden=true;
+  /* on envoie ce qui avait déjà été coché sur cet appareil avant la synchro */
+  ops=[];Object.entries(local.overlay||{}).forEach(([id,o])=>{if(o.at>remoteAt)ops.push({id,done:!!o.done,count:o.count});});
+  ["tiktok","youtube"].forEach(k=>Object.entries((local.counters||{})[k]||{}).forEach(([day,n])=>{if(n)ops.push({c:k,day,d:n});}));
+  local.overlay={};local.counters={tiktok:{},youtube:{}};persist();
+  await loadRemote();if(ops.length)schedulePush();};
 $("#syncOff").onclick=()=>{token="";try{localStorage.removeItem("cap-gh-token");}catch(e){}$("#syncBox").hidden=true;loadRemote();};
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadRemote();});
 /* ---------- calculs ---------- */
@@ -466,7 +471,7 @@ $("#carry").onclick=()=>{const prev=dkey(addDays(parse(week),-7));
 render();
 loadRemote();
 /* mise à jour automatique de la page */
-const APP_VERSION="cap-2026-10-17-1";
+const APP_VERSION="cap-2026-10-17-2";
 async function checkUpdate(){try{const r=await fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);if(m&&m[1]!==APP_VERSION)location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkUpdate();});
 })();
