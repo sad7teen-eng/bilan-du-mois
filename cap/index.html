@@ -140,6 +140,7 @@ input[type=text],input[type=date]{font:inherit;color:var(--ink);background:#fff;
 .savebar{justify-content:center}
 #syncBtn{display:inline-block!important;padding:4px 10px;font-size:12px}
 .syncbox{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);width:min(380px,calc(100vw - 32px));background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.12);z-index:9}
+.syncbox[hidden]{display:none!important}
 .syncbox span{font-size:12px;color:var(--mute)}
 .syncbox div{display:flex;gap:8px;justify-content:flex-end}
 @media (max-width:520px){body{padding:calc(18px + env(safe-area-inset-top,0px)) 14px 70px}.top h1{font-size:22px}.stats{gap:20px}.stat .v{font-size:18px}.board{grid-template-columns:minmax(0,1fr)}.lifegrid{grid-template-columns:minmax(0,1fr)}}
@@ -471,7 +472,7 @@ $("#carry").onclick=()=>{const prev=dkey(addDays(parse(week),-7));
 render();
 loadRemote();
 /* mise à jour automatique de la page */
-const APP_VERSION="cap-2026-10-17-2";
+const APP_VERSION="cap-2026-10-17-3";
 async function checkUpdate(){try{const r=await fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);if(m&&m[1]!==APP_VERSION)location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkUpdate();});
 })();
