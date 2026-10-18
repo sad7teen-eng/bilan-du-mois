@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-18T18:53:21.239Z",
+ "updatedAt": "2026-10-18T18:54:55.798Z",
  "cols": [
   {
    "id": "trading",
@@ -114,7 +114,7 @@
      "id": "mo3",
      "t": "Trouver la montre de mon oncle et tout lui envoyer",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     }
    ]
   },
