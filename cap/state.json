@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-18T18:52:55.716Z",
+ "updatedAt": "2026-10-18T18:53:21.239Z",
  "cols": [
   {
    "id": "trading",
@@ -86,7 +86,7 @@
      "id": "co6",
      "t": "Plans voiture au nouveau spot de nuit (pour les reels)",
      "w": "2026-10-12",
-     "done": false,
+     "done": true,
      "p": "ig"
     }
    ]
