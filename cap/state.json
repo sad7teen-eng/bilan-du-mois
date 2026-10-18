@@ -1,40 +1,6 @@
 {
- "updatedAt": "2026-10-18T18:57:00.000Z",
+ "updatedAt": "2026-10-18T18:58:51.000Z",
  "cols": [
-  {
-   "id": "trading",
-   "name": "Trading",
-   "url": "",
-   "items": [
-    {
-     "id": "tr1",
-     "t": "Récap des trades du vendredi",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "tr2",
-     "t": "Tourner les récaps de trades",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "tr3",
-     "t": "Récap des trades du vendredi",
-     "w": "2026-10-19",
-     "done": false
-    },
-    {
-     "id": "tr4",
-     "t": "reels récaps de trades (au fil de la semaine)",
-     "w": "2026-10-19",
-     "done": false,
-     "p": "ig",
-     "target": 2,
-     "count": 0
-    }
-   ]
-  },
   {
    "id": "perso",
    "name": "Perso",
@@ -117,6 +83,60 @@
      "done": false,
      "target": 3,
      "count": 0
+    }
+   ]
+  },
+  {
+   "id": "montres",
+   "name": "Montres",
+   "url": "",
+   "items": [
+    {
+     "id": "mo1",
+     "t": "annonces Le Bon Coin postées (avant dimanche soir)",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 5,
+     "count": 3,
+     "carried": true
+    },
+    {
+     "id": "mo2",
+     "t": "Finaliser le site de sourcing",
+     "w": "2026-10-12",
+     "done": true
+    },
+    {
+     "id": "mo3",
+     "t": "Trouver la montre de mon oncle et tout lui envoyer",
+     "w": "2026-10-12",
+     "done": true
+    },
+    {
+     "id": "mo4",
+     "t": "annonces Le Bon Coin postées",
+     "w": "2026-10-19",
+     "done": false,
+     "target": 5,
+     "count": 0
+    },
+    {
+     "id": "mo5",
+     "t": "Catalogue de sourcing : toutes les montres Facebook + leurs contacts",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "mo6",
+     "t": "Site de sourcing : récupérer le lien de chaque annonce",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "mo7",
+     "t": "Marché français : trouver où s'implanter (France uniquement)",
+     "w": "2026-10-19",
+     "done": false
     }
    ]
   },
@@ -233,62 +253,109 @@
      "w": "2026-10-19",
      "done": false,
      "p": "ig"
+    },
+    {
+     "id": "tr4",
+     "t": "reels récaps de trades (au fil de la semaine)",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "ig",
+     "target": 2,
+     "count": 0
     }
    ]
   },
   {
-   "id": "montres",
-   "name": "Montres",
+   "id": "trading",
+   "name": "Trading",
    "url": "",
    "items": [
     {
-     "id": "mo1",
-     "t": "annonces Le Bon Coin postées (avant dimanche soir)",
-     "w": "2026-10-12",
-     "done": false,
-     "target": 5,
-     "count": 3,
-     "carried": true
-    },
-    {
-     "id": "mo2",
-     "t": "Finaliser le site de sourcing",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "mo3",
-     "t": "Trouver la montre de mon oncle et tout lui envoyer",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "mo4",
-     "t": "annonces Le Bon Coin postées",
+     "id": "trw-2026-10-19",
+     "t": "Trading",
      "w": "2026-10-19",
      "done": false,
-     "target": 5,
-     "count": 0
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
     },
     {
-     "id": "mo5",
-     "t": "Catalogue de sourcing : toutes les montres Facebook + leurs contacts",
-     "w": "2026-10-19",
-     "done": false
+     "id": "trw-2026-10-26",
+     "t": "Trading",
+     "w": "2026-10-26",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
     },
     {
-     "id": "mo6",
-     "t": "Site de sourcing : récupérer le lien de chaque annonce",
-     "w": "2026-10-19",
-     "done": false
+     "id": "trw-2026-11-02",
+     "t": "Trading",
+     "w": "2026-11-02",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
     },
     {
-     "id": "mo7",
-     "t": "Marché français : trouver où s'implanter (France uniquement)",
-     "w": "2026-10-19",
-     "done": false
+     "id": "trw-2026-11-09",
+     "t": "Trading",
+     "w": "2026-11-09",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-11-16",
+     "t": "Trading",
+     "w": "2026-11-16",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-11-23",
+     "t": "Trading",
+     "w": "2026-11-23",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-11-30",
+     "t": "Trading",
+     "w": "2026-11-30",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-12-07",
+     "t": "Trading",
+     "w": "2026-12-07",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-12-14",
+     "t": "Trading",
+     "w": "2026-12-14",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-12-21",
+     "t": "Trading",
+     "w": "2026-12-21",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-12-28",
+     "t": "Trading",
+     "w": "2026-12-28",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
+    },
+    {
+     "id": "trw-2026-10-12",
+     "t": "Trading",
+     "w": "2026-10-12",
+     "done": false,
+     "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
     }
-   ]
+   ],
+   "mini": true
   }
  ],
  "life": [
