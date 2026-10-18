@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-18T18:48:14.675Z",
+ "updatedAt": "2026-10-18T18:52:55.716Z",
  "cols": [
   {
    "id": "trading",
@@ -58,7 +58,7 @@
      "id": "co2",
      "t": "Tourner les reels de la semaine prochaine",
      "w": "2026-10-12",
-     "done": false,
+     "done": true,
      "p": "ig"
     },
     {
