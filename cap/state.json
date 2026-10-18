@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-18T18:55:28.871Z",
+ "updatedAt": "2026-10-18T18:57:00.000Z",
  "cols": [
   {
    "id": "trading",
@@ -17,6 +17,106 @@
      "t": "Tourner les récaps de trades",
      "w": "2026-10-12",
      "done": true
+    },
+    {
+     "id": "tr3",
+     "t": "Récap des trades du vendredi",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "tr4",
+     "t": "reels récaps de trades (au fil de la semaine)",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "ig",
+     "target": 2,
+     "count": 0
+    }
+   ]
+  },
+  {
+   "id": "perso",
+   "name": "Perso",
+   "url": "",
+   "items": [
+    {
+     "id": "pe1",
+     "t": "Linge lavé",
+     "w": "2026-10-12",
+     "done": false,
+     "carried": true
+    },
+    {
+     "id": "pe2",
+     "t": "France Travail : vérifier les messages et démarches",
+     "w": "2026-10-12",
+     "done": false,
+     "carried": true
+    },
+    {
+     "id": "pe3",
+     "t": "Vider les poubelles",
+     "w": "2026-10-12",
+     "done": true
+    },
+    {
+     "id": "pe4",
+     "t": "Faire les courses",
+     "w": "2026-10-12",
+     "done": true
+    },
+    {
+     "id": "pe5",
+     "t": "pages lues",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 60,
+     "count": 0,
+     "carried": true
+    },
+    {
+     "id": "pe6",
+     "t": "cours d'éloquence",
+     "w": "2026-10-12",
+     "done": false,
+     "target": 3,
+     "count": 1,
+     "carried": true
+    },
+    {
+     "id": "pe7",
+     "t": "Linge lavé",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "pe8",
+     "t": "France Travail : vérifier les messages et démarches",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "pe9",
+     "t": "Faire les courses",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "pe10",
+     "t": "pages lues",
+     "w": "2026-10-19",
+     "done": false,
+     "target": 60,
+     "count": 0
+    },
+    {
+     "id": "pe11",
+     "t": "cours d'éloquence",
+     "w": "2026-10-19",
+     "done": false,
+     "target": 3,
+     "count": 0
     }
    ]
   },
@@ -35,6 +135,13 @@
      "id": "fo2",
      "t": "Bilan du mois : le rendre parfait visuellement",
      "w": "2026-10-12",
+     "done": false,
+     "carried": true
+    },
+    {
+     "id": "fo3",
+     "t": "Bilan du mois : le rendre parfait visuellement (fin de semaine)",
+     "w": "2026-10-19",
      "done": false
     }
    ]
@@ -80,13 +187,51 @@
      "t": "Stock de stories lifestyle",
      "w": "2026-10-12",
      "done": false,
-     "p": "ig"
+     "p": "ig",
+     "carried": true
     },
     {
      "id": "co6",
      "t": "Plans voiture au nouveau spot de nuit (pour les reels)",
      "w": "2026-10-12",
      "done": true,
+     "p": "ig"
+    },
+    {
+     "id": "co7",
+     "t": "reels montés et programmés pour la semaine",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "ig",
+     "target": 7,
+     "count": 0
+    },
+    {
+     "id": "co8",
+     "t": "Poster la vidéo YouTube",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "yt"
+    },
+    {
+     "id": "co9",
+     "t": "Préparer la prochaine vidéo YouTube",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "yt"
+    },
+    {
+     "id": "co10",
+     "t": "Stock de stories lifestyle",
+     "w": "2026-10-19",
+     "done": false,
+     "p": "ig"
+    },
+    {
+     "id": "co11",
+     "t": "Passer mes courbes en noir (direction artistique sombre)",
+     "w": "2026-10-19",
+     "done": false,
      "p": "ig"
     }
    ]
@@ -102,7 +247,8 @@
      "w": "2026-10-12",
      "done": false,
      "target": 5,
-     "count": 3
+     "count": 3,
+     "carried": true
     },
     {
      "id": "mo2",
@@ -115,53 +261,32 @@
      "t": "Trouver la montre de mon oncle et tout lui envoyer",
      "w": "2026-10-12",
      "done": true
-    }
-   ]
-  },
-  {
-   "id": "perso",
-   "name": "Perso",
-   "url": "",
-   "items": [
-    {
-     "id": "pe1",
-     "t": "Linge lavé",
-     "w": "2026-10-12",
-     "done": false
     },
     {
-     "id": "pe2",
-     "t": "France Travail : vérifier les messages et démarches",
-     "w": "2026-10-12",
-     "done": false
-    },
-    {
-     "id": "pe3",
-     "t": "Vider les poubelles",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "pe4",
-     "t": "Faire les courses",
-     "w": "2026-10-12",
-     "done": true
-    },
-    {
-     "id": "pe5",
-     "t": "pages lues",
-     "w": "2026-10-12",
+     "id": "mo4",
+     "t": "annonces Le Bon Coin postées",
+     "w": "2026-10-19",
      "done": false,
-     "target": 60,
+     "target": 5,
      "count": 0
     },
     {
-     "id": "pe6",
-     "t": "cours d'éloquence",
-     "w": "2026-10-12",
-     "done": false,
-     "target": 3,
-     "count": 1
+     "id": "mo5",
+     "t": "Catalogue de sourcing : toutes les montres Facebook + leurs contacts",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "mo6",
+     "t": "Site de sourcing : récupérer le lien de chaque annonce",
+     "w": "2026-10-19",
+     "done": false
+    },
+    {
+     "id": "mo7",
+     "t": "Marché français : trouver où s'implanter (France uniquement)",
+     "w": "2026-10-19",
+     "done": false
     }
    ]
   }
