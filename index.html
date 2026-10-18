@@ -631,6 +631,18 @@ const SEED_TRADES = [
   {id: "mt5-20261012-1145", y: 2026, m: 9, day: 12, pnl: 9462.00,  side: "Short", lots: 3.5, entry: 4200.02, exit: 4169.79, r: 2.18, time: "11:45"},
   {id: "mt5-20261013-1900", y: 2026, m: 9, day: 13, pnl: 19355.64, side: "Short", lots: 6.8, entry: 4182.53, exit: 4150.53, time: "19:00"}
 ];
+/* ===== Mes certificats de payout Alpha Capital, gravés dans le code (images dans data/certs) ===== */
+const SEED_CERTS = [
+  {id: "seed-cert-alpha-2025-01-25", firm: "Alpha Capital", amount: "1 292 $", kind: "Payout", date: "2025-01-25", src: "data/certs/alpha-2025-01-25.jpg"},
+  {id: "seed-cert-alpha-2025-02-23", firm: "Alpha Capital", amount: "9 720 $", kind: "Payout", date: "2025-02-23", src: "data/certs/alpha-2025-02-23.jpg"},
+  {id: "seed-cert-alpha-2025-06-14", firm: "Alpha Capital", amount: "4 040 $", kind: "Payout", date: "2025-06-14", src: "data/certs/alpha-2025-06-14.jpg"},
+  {id: "seed-cert-alpha-2025-07-17", firm: "Alpha Capital", amount: "3 714 $", kind: "Payout", date: "2025-07-17", src: "data/certs/alpha-2025-07-17.jpg"},
+  {id: "seed-cert-alpha-2025-08-24", firm: "Alpha Capital", amount: "3 769,96 $", kind: "Payout", date: "2025-08-24", src: "data/certs/alpha-2025-08-24.jpg"},
+  {id: "seed-cert-alpha-2025-09-28", firm: "Alpha Capital", amount: "9 050 $", kind: "Payout", date: "2025-09-28", src: "data/certs/alpha-2025-09-28.jpg"},
+  {id: "seed-cert-alpha-2025-10-08", firm: "Alpha Capital", amount: "2 511 $", kind: "Payout", date: "2025-10-08", src: "data/certs/alpha-2025-10-08.jpg"},
+  {id: "seed-cert-alpha-2025-10-16", firm: "Alpha Capital", amount: "4 655 $", kind: "Payout", date: "2025-10-16", src: "data/certs/alpha-2025-10-16.jpg"},
+  {id: "seed-cert-alpha-2025-10-18", firm: "Alpha Capital", amount: "3 561,30 $", kind: "Payout", date: "2025-10-18", src: "data/certs/alpha-2025-10-18.jpg"}
+];
 function applySeed(){
   if (!state.archive || typeof state.archive !== "object") state.archive = {};
   state.archive[state.year + "-" + state.month] = state.trades;
@@ -649,6 +661,12 @@ function applySeed(){
     list.sort((a, b) => a.day - b.day || String(a.time || "").localeCompare(String(b.time || "")));
   });
   state.trades = state.archive[state.year + "-" + state.month] || [];
+  state.certs = Array.isArray(state.certs) ? state.certs : [];
+  SEED_CERTS.forEach(sc => {
+    if (skip.has(sc.id)) return;
+    const c = state.certs.find(x => x.id === sc.id);
+    if (!c) state.certs.push({...sc}); else if (!c.src) c.src = sc.src;
+  });
 }
 const imgCache = {};
 const idb = (() => {
@@ -910,15 +928,15 @@ function closeCerts(){ $("certModal").hidden = true; $("certEditModal").hidden =
 function drawCerts(){
   const cs = (state.certs || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   const tot = cs.reduce((a, c) => a + (c.kind === "Payout" ? (num(c.amount) || 0) : 0), 0);
-  $("certSum").textContent = cs.length ? `${cs.length} certificat${cs.length > 1 ? "s" : ""}${tot ? " · " + money(tot) + " de payouts" : ""}` : "Aucun certificat pour l'instant";
+  $("certSum").textContent = cs.length ? `${cs.length} certificat${cs.length > 1 ? "s" : ""}${tot ? " · " + money(tot, cs.filter(c => c.kind === "Payout" && c.amount).every(c => /\$/.test(c.amount)) ? "$" : cur()) + " de payouts" : ""}` : "Aucun certificat pour l'instant";
   const slots = Math.max(9, Math.ceil((cs.length + 1) / 3) * 3) - cs.length;
-  $("certGrid").innerHTML = cs.map(c => { const im = (imgCache["cert:" + c.id] || [])[0];
+  $("certGrid").innerHTML = cs.map(c => { const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
     return `<button type="button" class="cert" data-open="${c.id}"><div class="im${im ? "" : " none"}">${im ? `<img src="${im}" alt="Certificat ${esc(c.firm)}">` : "Pas d'image"}</div>
       <div class="ct"><span class="kind">${esc(c.kind)}</span><b>${esc(c.firm)}${c.amount ? " · " + esc(c.amount) : ""}</b><span>${c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "short", year: "numeric"}) : ""}</span></div></button>`; }).join("")
     + Array.from({length: slots}, () => `<button type="button" class="slot" data-newcert="1" aria-label="Ajouter un certificat">+</button>`).join("");
   $("certEditModal").hidden = !certEdit;
   if (!certEdit) { $("certEdit").innerHTML = ""; return; }
-  const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0];
+  const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   $("certEdit").innerHTML = `<form class="certedit" id="certForm">
     ${im ? `<div class="certprev"><img src="${im}" alt="Aperçu"></div>` : ""}
     <div class="drop" id="certDrop" tabindex="0" role="button">${im ? "Changer l'image" : "Glissez le certificat ici, ou touchez pour l'ajouter"}</div>
@@ -943,7 +961,7 @@ const newCert = () => { certEdit = {id: uid(), firm: "", amount: "", kind: CKIND
 $("certGrid").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   if (b.dataset.newcert) { newCert(); return; }
-  if (b.dataset.open) { const im = (imgCache["cert:" + b.dataset.open] || [])[0];
+  if (b.dataset.open) { const im = (imgCache["cert:" + b.dataset.open] || [])[0] || (state.certs.find(c => c.id === b.dataset.open) || {}).src;
     if (!im) { certEdit = {...state.certs.find(c => c.id === b.dataset.open)}; drawCerts(); return; }
     lbId = b.dataset.open; $("lightImg").src = im; $("lightbox").hidden = false; }
 });
@@ -955,7 +973,7 @@ $("certEditModal").addEventListener("click", e => {
   if (b.id === "certDrop") { $("certPick").value = ""; $("certPick").click(); return; }
   if (b.dataset.ckind) { readCert(); certEdit.kind = b.dataset.ckind; drawCerts(); return; }
   if (b.id === "cfCancel") { certEdit = null; drawCerts(); return; }
-  if (b.id === "cfDel") { state.certs = state.certs.filter(c => c.id !== certEdit.id); idb.set("cert:" + certEdit.id, []); certEdit = null; save(); drawCerts(); return; }
+  if (b.id === "cfDel") { if (String(certEdit.id).startsWith("seed-cert")) state.seedSkip = [...(state.seedSkip || []), certEdit.id]; state.certs = state.certs.filter(c => c.id !== certEdit.id); idb.set("cert:" + certEdit.id, []); certEdit = null; save(); drawCerts(); return; }
 });
 $("certEditModal").addEventListener("submit", e => {
   e.preventDefault(); readCert();
@@ -1541,7 +1559,7 @@ applySeed(); save();
 renderDash();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-17-1";
+const APP_VERSION = "2026-10-18-1";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
