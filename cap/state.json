@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-18T18:54:55.798Z",
+ "updatedAt": "2026-10-18T18:55:17.650Z",
  "cols": [
   {
    "id": "trading",
@@ -145,7 +145,7 @@
      "id": "pe4",
      "t": "Faire les courses",
      "w": "2026-10-12",
-     "done": false
+     "done": true
     },
     {
      "id": "pe5",
