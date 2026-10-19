@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T14:12:00.609Z",
+ "updatedAt": "2026-10-19T14:25:57.827Z",
  "cols": [
   {
    "id": "perso",
@@ -136,7 +136,7 @@
      "id": "mo7",
      "t": "Marché français : trouver où s'implanter (France uniquement)",
      "w": "2026-10-19",
-     "done": false
+     "done": true
     }
    ]
   },
