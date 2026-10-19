@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T20:51:33.042Z",
+ "updatedAt": "2026-10-19T20:53:18.000Z",
  "cols": [
   {
    "id": "perso",
@@ -219,11 +219,11 @@
     },
     {
      "id": "co7",
-     "t": "reels montés et programmés pour la semaine",
+     "t": "reels programmés pour la semaine",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "p": "ig",
-     "target": 7,
+     "target": 5,
      "count": 5
     },
     {
