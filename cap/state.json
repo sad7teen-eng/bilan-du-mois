@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T20:51:05.115Z",
+ "updatedAt": "2026-10-19T20:51:33.042Z",
  "cols": [
   {
    "id": "perso",
@@ -130,7 +130,7 @@
      "id": "mo6",
      "t": "Site de sourcing : récupérer le lien de chaque annonce",
      "w": "2026-10-19",
-     "done": false
+     "done": true
     },
     {
      "id": "mo7",
