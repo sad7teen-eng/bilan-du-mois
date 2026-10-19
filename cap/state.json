@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T14:08:01.324Z",
+ "updatedAt": "2026-10-19T14:12:00.609Z",
  "cols": [
   {
    "id": "perso",
@@ -60,7 +60,7 @@
      "id": "pe8",
      "t": "France Travail : vérifier les messages et démarches",
      "w": "2026-10-19",
-     "done": false
+     "done": true
     },
     {
      "id": "pe9",
