@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T19:43:09.276Z",
+ "updatedAt": "2026-10-19T20:51:05.115Z",
  "cols": [
   {
    "id": "perso",
@@ -124,7 +124,7 @@
      "id": "mo5",
      "t": "Catalogue de sourcing : toutes les montres Facebook + leurs contacts",
      "w": "2026-10-19",
-     "done": false
+     "done": true
     },
     {
      "id": "mo6",
