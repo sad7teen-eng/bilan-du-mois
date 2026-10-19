@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T10:11:53.023Z",
+ "updatedAt": "2026-10-19T12:23:23.000Z",
  "cols": [
   {
    "id": "perso",
@@ -224,13 +224,13 @@
      "done": false,
      "p": "ig",
      "target": 7,
-     "count": 0
+     "count": 5
     },
     {
      "id": "co8",
      "t": "Poster la vidéo YouTube",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "p": "yt"
     },
     {
