@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T20:53:18.000Z",
+ "updatedAt": "2026-10-19T20:53:51.000Z",
  "cols": [
   {
    "id": "perso",
@@ -83,6 +83,12 @@
      "done": false,
      "target": 3,
      "count": 0
+    },
+    {
+     "id": "pe12",
+     "t": "Refaire la playlist de musique",
+     "w": "2026-10-19",
+     "done": false
     }
    ]
   },
