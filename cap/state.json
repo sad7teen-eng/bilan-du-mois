@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T12:23:23.000Z",
+ "updatedAt": "2026-10-19T13:39:07.000Z",
  "cols": [
   {
    "id": "perso",
@@ -251,7 +251,7 @@
      "id": "co11",
      "t": "Passer mes courbes en noir (direction artistique sombre)",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "p": "ig"
     },
     {
