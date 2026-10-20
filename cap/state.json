@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-20T09:19:44.729Z",
+ "updatedAt": "2026-10-20T09:20:20.000Z",
  "cols": [
   {
    "id": "perso",
@@ -143,6 +143,14 @@
      "t": "Marché français : trouver où s'implanter (France uniquement)",
      "w": "2026-10-19",
      "done": true
+    },
+    {
+     "id": "mo8",
+     "t": "annonces Facebook Marketplace postées",
+     "w": "2026-10-19",
+     "done": false,
+     "target": 5,
+     "count": 0
     }
    ]
   },
