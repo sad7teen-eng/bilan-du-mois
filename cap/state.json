@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-19T20:53:51.000Z",
+ "updatedAt": "2026-10-20T09:19:44.729Z",
  "cols": [
   {
    "id": "perso",
@@ -124,7 +124,7 @@
      "w": "2026-10-19",
      "done": false,
      "target": 5,
-     "count": 2
+     "count": 3
     },
     {
      "id": "mo5",
