@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-21T18:28:42.208Z",
+ "updatedAt": "2026-10-21T18:29:05.572Z",
  "cols": [
   {
    "id": "perso",
@@ -251,7 +251,7 @@
      "id": "co9",
      "t": "Préparer la prochaine vidéo YouTube",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "p": "yt"
     },
     {
