@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-20T18:51:18.063Z",
+ "updatedAt": "2026-10-21T11:43:13.197Z",
  "cols": [
   {
    "id": "perso",
@@ -54,7 +54,7 @@
      "id": "pe7",
      "t": "Linge lavé",
      "w": "2026-10-19",
-     "done": false
+     "done": true
     },
     {
      "id": "pe8",
