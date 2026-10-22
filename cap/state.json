@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-22T12:55:43.000Z",
+ "updatedAt": "2026-10-22T12:59:47.000Z",
  "cols": [
   {
    "id": "perso",
@@ -270,11 +270,11 @@
     },
     {
      "id": "tr4",
-     "t": "reels récaps de trades (au fil de la semaine)",
+     "t": "reels récaps de trades (challenge 1 000 € → 100 000 €)",
      "w": "2026-10-19",
      "done": false,
      "p": "ig",
-     "target": 2,
+     "target": 5,
      "count": 0
     }
    ]
