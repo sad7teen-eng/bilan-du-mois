@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-22T13:32:42.755Z",
+ "updatedAt": "2026-10-23T09:20:37.553Z",
  "cols": [
   {
    "id": "perso",
@@ -258,7 +258,7 @@
      "id": "co10",
      "t": "Stock de stories lifestyle",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "p": "ig"
     },
     {
