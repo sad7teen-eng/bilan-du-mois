@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-23T09:21:18.000Z",
+ "updatedAt": "2026-10-25T18:01:09.000Z",
  "cols": [
   {
    "id": "perso",
@@ -288,7 +288,7 @@
      "id": "trw-2026-10-19",
      "t": "Trading",
      "w": "2026-10-19",
-     "done": false,
+     "done": true,
      "tip": "Essayer de faire une semaine correcte, trader un maximum. À cocher en fin de semaine."
     },
     {
