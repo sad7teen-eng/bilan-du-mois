@@ -26,9 +26,9 @@
   --gain:#f4f4f4;
   --gain-dim:rgba(255,255,255,.13);
   --gain-edge:rgba(255,255,255,.38);
-  --loss:#7a7a7a;
-  --loss-dim:rgba(150,150,150,.13);
-  --loss-edge:rgba(150,150,150,.4);
+  --loss:#ff4d4d;
+  --loss-dim:rgba(255,77,77,.13);
+  --loss-edge:rgba(255,77,77,.4);
   --display:'Geist',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
   --on-gain:#000000;
   --mono:'Geist Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
@@ -98,7 +98,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .cell .c{font-size:9.5px;color:var(--muted)}
 .cell.up{background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.07));border-color:rgba(255,255,255,.18)}
 .cell.up .p{color:var(--gain)}
-.cell.down{background:linear-gradient(160deg,rgba(150,150,150,.22),rgba(150,150,150,.07));border-color:rgba(150,150,150,.18)}
+.cell.down{background:linear-gradient(160deg,rgba(255,77,77,.22),rgba(255,77,77,.07));border-color:rgba(255,77,77,.18)}
 .cell.down .p{color:var(--loss)}
 .cell .add{font-size:15px;color:#33403d;margin-top:8px}
 .cell.today{border-color:var(--fg)}
@@ -177,12 +177,12 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .tlist{display:flex;flex-direction:column;gap:12px}
 .tcard,.tedit{border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:12px;display:flex;flex-direction:column;gap:12px}
 .tcard.up{border-color:rgba(255,255,255,.18)}
-.tcard.down{border-color:rgba(150,150,150,.18)}
+.tcard.down{border-color:rgba(255,77,77,.18)}
 .t-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .t-sym{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;font-weight:600}
 .chip2{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
 .chip2.long{color:var(--gain);border-color:rgba(255,255,255,.25)}
-.chip2.short{color:var(--loss);border-color:rgba(150,150,150,.25)}
+.chip2.short{color:var(--loss);border-color:rgba(255,77,77,.25)}
 .grade{font-size:11px;font-weight:600;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line)}
 .t-res{font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
 .t-curve svg{width:100%;height:64px;display:block}
@@ -244,11 +244,11 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .wdval{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:4px;white-space:nowrap}
 .slide.on .wdval{animation:rise .6s ease both;animation-delay:calc(var(--k,0) * 140ms + 900ms)}
 .hero{position:relative;width:min(440px,82vw);border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(255,255,255,.12)}
-.hero.red{box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(150,150,150,.14)}
+.hero.red{box-shadow:0 40px 90px rgba(0,0,0,.7),0 0 80px rgba(255,77,77,.14)}
 .hero img{display:block;width:100%;max-height:56vh;object-fit:cover}
 .herowrap{display:flex;flex-direction:column;align-items:center;gap:16px}
 .rpill{font-size:clamp(26px,7vw,40px);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;padding:6px 18px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25)}
-.rpill.r{background:rgba(150,150,150,.1);border-color:rgba(150,150,150,.28)}
+.rpill.r{background:rgba(255,77,77,.1);border-color:rgba(255,77,77,.28)}
 .slide .rpill{opacity:0}
 .slide.on .rpill{animation:rpop .7s cubic-bezier(.2,1.4,.4,1) both;animation-delay:1.3s}
 @keyframes rpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
@@ -323,7 +323,7 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .seg.done i{width:100%}
 .stage{position:relative;flex:1;cursor:pointer;user-select:none}
 .stage::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 38% at 50% 48%,rgba(255,255,255,.10),transparent 70%);transition:opacity .8s;pointer-events:none}
-.stage.red::before{background:radial-gradient(40% 38% at 50% 48%,rgba(150,150,150,.10),transparent 70%)}
+.stage.red::before{background:radial-gradient(40% 38% at 50% 48%,rgba(255,77,77,.10),transparent 70%)}
 .slide{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:24px 16px;opacity:0;transform:translateY(10px) scale(.985);transition:opacity .55s ease,transform .8s cubic-bezier(.2,.7,.2,1);pointer-events:none}
 .slide.on{opacity:1;transform:none}
 .inner{display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;max-width:760px;width:100%;min-width:0}
@@ -340,12 +340,12 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .banner b{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gain);font-weight:600}
 .banner span{font-family:var(--mono);font-size:12px}
 .pill{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:5px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:var(--gain-dim);color:var(--gain)}
-.pill.red{border-color:rgba(150,150,150,.22);background:var(--loss-dim);color:var(--loss)}
+.pill.red{border-color:rgba(255,77,77,.22);background:var(--loss-dim);color:var(--loss)}
 .title{font-size:clamp(44px,9vw,104px);font-weight:600;letter-spacing:-.035em;line-height:.95;text-wrap:balance;text-shadow:0 0 40px rgba(255,255,255,.12)}
 .sub{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
 .big{font-family:var(--display);font-variant-numeric:tabular-nums;font-size:clamp(32px,6vw,72px);font-weight:600;letter-spacing:-.03em;line-height:1;white-space:nowrap;text-align:center;display:inline-block}
 .big.gain{color:var(--gain);text-shadow:0 0 36px rgba(255,255,255,.35)}
-.big.loss{color:var(--loss);text-shadow:0 0 36px rgba(150,150,150,.32)}
+.big.loss{color:var(--loss);text-shadow:0 0 36px rgba(255,77,77,.32)}
 .stats{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:-4px}
 .stat{display:flex;flex-direction:column;gap:4px;align-items:center}
 .stat b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:18px;font-weight:600}
@@ -362,13 +362,13 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .chip b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15px}
 .chip em{font-style:normal;font-size:11px;color:var(--muted)}
 .card{width:100%;max-width:340px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));display:flex;flex-direction:column;gap:6px}
-.card.red{border-color:rgba(150,150,150,.2);background:linear-gradient(180deg,rgba(150,150,150,.10),rgba(150,150,150,.03))}
+.card.red{border-color:rgba(255,77,77,.2);background:linear-gradient(180deg,rgba(255,77,77,.10),rgba(255,77,77,.03))}
 .card{font-family:var(--display)}
 .card .c-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .card .c-sym{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;letter-spacing:-.01em}
 .card .c-side{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .card .c-side.long{color:var(--gain);border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
-.card .c-side.short{color:var(--loss);border-color:rgba(150,150,150,.3);background:rgba(150,150,150,.08)}
+.card .c-side.short{color:var(--loss);border-color:rgba(255,77,77,.3);background:rgba(255,77,77,.08)}
 .card .c-r{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
 .card .c-meta{display:flex;align-items:center;flex-wrap:wrap;gap:0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .card .c-meta i{width:3px;height:3px;border-radius:50%;background:currentColor;opacity:.6;margin:0 8px}
@@ -427,13 +427,13 @@ td .go,td .imgb{white-space:nowrap;padding:7px 10px}/* ---------- Phone --------
 /* ===== Look « Liquid » : noir profond, monochrome, gros chiffre lumineux ===== */
 body:not(.light) .tile,body:not(.light) .cal{border-radius:16px;background:linear-gradient(180deg,#0d0d0d,#070707);border-color:#1c1c1c}
 body:not(.light) .tile .val.xl{font-size:clamp(40px,7vw,62px);font-weight:500;letter-spacing:-.045em;color:#fff;text-shadow:0 0 22px rgba(255,255,255,.35),0 0 70px rgba(255,255,255,.14)}
-body:not(.light) .tile .val.xl.r{color:#9a9a9a;text-shadow:none}
+body:not(.light) .tile .val.xl.r{color:#ff4d4d;text-shadow:0 0 22px rgba(255,77,77,.35),0 0 70px rgba(255,77,77,.14)}
 body:not(.light) .tile .val{font-weight:500;letter-spacing:-.03em}
 body:not(.light) .tile .lab{letter-spacing:.12em;color:#7d7d7d}
 body:not(.light) .cell{border-radius:12px;background:#0e0e0e}
 body:not(.light) .cell.up{background:linear-gradient(160deg,rgba(255,255,255,.13),rgba(255,255,255,.035));border-color:rgba(255,255,255,.16)}
-body:not(.light) .cell.down{background:#0b0b0b;border-color:rgba(255,255,255,.05)}
-body:not(.light) .cell.down .p{color:#7a7a7a}
+body:not(.light) .cell.down{background:linear-gradient(160deg,rgba(255,77,77,.16),rgba(255,77,77,.04));border-color:rgba(255,77,77,.2)}
+body:not(.light) .cell.down .p{color:#ff4d4d}
 body:not(.light) .top h1{font-weight:500}
 body:not(.light) .top h1 .name{color:#fff;text-shadow:0 0 24px rgba(255,255,255,.25)}
 body:not(.light) .ready{border-color:#262626;background:linear-gradient(90deg,#111,#080808);box-shadow:none}
@@ -851,7 +851,7 @@ function renderDash(){
     const yv = v => 4 + (max - v) / span * (H - 8), y0 = yv(0);
     const pts = s.curve.map((v, i) => [i * W / (s.curve.length - 1), yv(v)]);
     const d = smoothPath(pts), id = "sg" + (++gradSeq), ia = "sa" + gradSeq;
-    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>${zeroGrad(id, y0, H, "#f4f4f4", "#7a7a7a", 1, 1)}${zeroGrad(ia, y0, H, "#f4f4f4", "#7a7a7a", .13, .16)}</defs>
+    return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs>${zeroGrad(id, y0, H, "#f4f4f4", "#ff4d4d", 1, 1)}${zeroGrad(ia, y0, H, "#f4f4f4", "#ff4d4d", .13, .16)}</defs>
       ${min < 0 ? `<line x1="0" x2="${W}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>` : ""}
       <path d="${d} L${W} ${y0.toFixed(1)} L0 ${y0.toFixed(1)} Z" fill="url(#${ia})"/><path d="${d}" fill="none" stroke="url(#${id})" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
   })();
@@ -860,7 +860,7 @@ function renderDash(){
   const wTot = s.avgW + s.avgL || 1;
   $("tiles").innerHTML = `
     <div class="tile wide" data-tip-t="Résultat net" data-tip="${s.wins} gagnant${s.wins > 1 ? "s" : ""}, ${s.losses} perdant${s.losses > 1 ? "s" : ""}"><span class="lab">Résultat net</span><span class="val xl ${s.net < 0 ? "r" : "g"}">${s.n ? money(s.net) : "—"}</span>${spark}<span class="note">${esc(monthName())}</span></div>
-    <div class="tile" data-tip-t="Taux de réussite" data-tip="${s.n} trade${s.n > 1 ? "s" : ""} ce mois-ci"><span class="lab">Taux de réussite</span><div class="row"><span class="val">${s.winrate}%</span>${ring(s.winrate / 100, "var(--gain)")}</div><span class="note"><span class="g">${s.wins} gagnants</span> · <span class="r">${s.losses} perdants</span></span></div>
+    <div class="tile" data-tip-t="Taux de réussite" data-tip="${s.n} trade${s.n > 1 ? "s" : ""} ce mois-ci"><span class="lab">Taux de réussite</span><div class="row"><span class="val">${s.winrate}%</span>${ring(s.winrate / 100, "var(--gain)")}</div><span class="note"><span class="g">${s.wins} gagnant${s.wins > 1 ? "s" : ""}</span> · <span class="r">${s.losses} perdant${s.losses > 1 ? "s" : ""}</span></span></div>
     <div class="tile" data-tip-t="Facteur de profit" data-tip="Au-dessus de 1,5 : solide"><span class="lab">Facteur de profit</span><div class="row"><span class="val">${pfTxt}</span>${ring(s.pf === Infinity ? 1 : Math.min(1, s.pf / 3), "var(--fg)")}</div><span class="note">Gains bruts / pertes brutes</span></div>
     <div class="tile wide" data-tip-t="Gain moyen / perte moyenne" data-tip="${s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte ce mois-ci"}"><span class="lab">Gain moyen / perte moyenne</span><div class="row"><span class="val"><span class="g">${money(s.avgW, cur(), false)}</span> <span style="color:var(--muted)">/</span> <span class="r">${money(s.avgL, cur(), false)}</span></span><span class="note">${s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : ""}</span></div><div class="bar"><i style="width:${(s.avgW / wTot * 100).toFixed(1)}%;background:var(--gain)"></i><i style="width:${(s.avgL / wTot * 100).toFixed(1)}%;background:var(--loss)"></i></div></div>
     <div class="tile wide"><span class="lab">Tes jours · tous les mois</span>${(() => { const ws = weekdayStats(true); return ws.best ? weekdayHTML(ws) : `<span class="note">Saisis des trades pour voir tes meilleurs jours.</span>`; })()}<span class="note">Résultat cumulé par jour de la semaine${(() => { const n = weekdayStats(true).months; return n > 1 ? `, sur ${n} mois` : ""; })()}</span></div>`;
@@ -1049,11 +1049,11 @@ function tradeCurve(t){
   const yv = v => 6 + (max - v) / span * (H - 12), y0 = yv(0);
   const pts = vals.map((v, i) => [4 + i * (W - 8) / (vals.length - 1), yv(v)]);
   const id = "tg" + (++gradSeq), ia = "ta" + gradSeq, d = smoothPath(pts), last = pts[pts.length - 1], prev = pts[pts.length - 2];
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Courbe du mois jusqu'à ce trade"><defs>${zeroGrad(id, y0, H, "#f4f4f4", "#7a7a7a", .55, .55)}${zeroGrad(ia, y0, H, "#f4f4f4", "#7a7a7a", .1, .12)}</defs>
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Courbe du mois jusqu'à ce trade"><defs>${zeroGrad(id, y0, H, "#f4f4f4", "#ff4d4d", .55, .55)}${zeroGrad(ia, y0, H, "#f4f4f4", "#ff4d4d", .1, .12)}</defs>
     <line x1="0" x2="${W}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>
     <path d="${d} L${last[0].toFixed(1)} ${y0.toFixed(1)} L${pts[0][0].toFixed(1)} ${y0.toFixed(1)} Z" fill="url(#${ia})"/>
     <path d="${d}" fill="none" stroke="url(#${id})" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
-    <line x1="${prev[0].toFixed(1)}" y1="${prev[1].toFixed(1)}" x2="${last[0].toFixed(1)}" y2="${last[1].toFixed(1)}" stroke="${t.pnl < 0 ? "#7a7a7a" : "#f4f4f4"}" stroke-width="2.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
+    <line x1="${prev[0].toFixed(1)}" y1="${prev[1].toFixed(1)}" x2="${last[0].toFixed(1)}" y2="${last[1].toFixed(1)}" stroke="${t.pnl < 0 ? "#ff4d4d" : "#f4f4f4"}" stroke-width="2.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>`;
 }
 const thumbsHTML = (imgs, removable) => imgs.length ? `<div class="thumbs">${imgs.map((src, i) => `<div class="thumb"><img src="${src}" alt="Capture ${i + 1}">${removable ? `<button type="button" data-rmimg="${i}" aria-label="Retirer la capture">✕</button>` : ""}</div>`).join("")}</div>` : "";
 function cardHTML(t){
@@ -1276,10 +1276,10 @@ function curveSVG(curve){
   const x = i => P + i * (W - 2 * P) / Math.max(1, curve.length - 1), y = v => P + (max - v) / span * (H - 2 * P);
   const pts = curve.map((v, i) => [x(i), y(v)]), y0 = y(0);
   const d = smoothPath(pts);
-  const last = pts[pts.length - 1], up = curve[curve.length - 1] >= 0, col = up ? "#f4f4f4" : "#7a7a7a";
+  const last = pts[pts.length - 1], up = curve[curve.length - 1] >= 0, col = up ? "#f4f4f4" : "#ff4d4d";
   const area = d + ` L${last[0].toFixed(1)} ${y0.toFixed(1)} L${pts[0][0].toFixed(1)} ${y0.toFixed(1)} Z`;
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Courbe des gains">
-    <defs>${zeroGrad("cl", y0, H, "#ffffff", "#7a7a7a", 1, 1)}${zeroGrad("ag", y0, H, "#f4f4f4", "#7a7a7a", .2, .22)}</defs>
+    <defs>${zeroGrad("cl", y0, H, "#ffffff", "#ff4d4d", 1, 1)}${zeroGrad("ag", y0, H, "#f4f4f4", "#ff4d4d", .2, .22)}</defs>
     <line x1="${P}" x2="${W - P}" y1="${y0.toFixed(1)}" y2="${y0.toFixed(1)}" stroke="#2a3532" stroke-dasharray="3 5" stroke-width="1"/>
     <path class="curve-area" d="${area}" fill="url(#ag)"/><path class="curve-line" d="${d}" style="stroke:url(#cl)"/>
     <circle class="curve-dot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="5" fill="${col}"/></svg>`;
@@ -1631,7 +1631,7 @@ renderDash();
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-25-2";
+const APP_VERSION = "2026-10-25-3";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
