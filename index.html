@@ -442,6 +442,33 @@ body:not(.light) .side{background:#050505;border-right-color:#161616}
 body:not(.light) button{background:#0f0f0f;border-color:#222;border-radius:10px}
 body:not(.light) button:hover{border-color:#3a3a3a}
 body:not(.light) button.go,body:not(.light) button.primary{background:#fff;color:#000;border-color:#fff}
+
+/* ===== Animations à la souris ===== */
+.dash{position:relative;z-index:1}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  body:not(.light) .tile,body:not(.light) .cal{position:relative;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .35s,box-shadow .35s}
+  body:not(.light) .tile::before,body:not(.light) .cal::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .35s;
+    background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.075),transparent 60%)}
+  body:not(.light) .tile::after,body:not(.light) .cal::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .35s;padding:1px;
+    background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.45),transparent 65%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+  body:not(.light) .tile:hover,body:not(.light) .cal:hover{transform:translateY(-2px);border-color:#2a2a2a;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  body:not(.light) .tile:hover::before,body:not(.light) .tile:hover::after,body:not(.light) .cal:hover::before,body:not(.light) .cal:hover::after{opacity:1}
+  body:not(.light) .tile .val.xl{transition:text-shadow .4s,transform .4s;transform-origin:left center}
+  body:not(.light) .tile:hover .val.xl:not(.r){text-shadow:0 0 28px rgba(255,255,255,.55),0 0 90px rgba(255,255,255,.22);transform:scale(1.02)}
+  body:not(.light) .cell{transition:transform .2s,border-color .2s,box-shadow .2s}
+  body:not(.light) .cell:not(.blank):hover{transform:translateY(-2px) scale(1.03);border-color:rgba(255,255,255,.35);box-shadow:0 0 24px rgba(255,255,255,.08)}
+  body:not(.light) .side button{transition:background .2s,color .2s,transform .2s}
+  body:not(.light) .side button:hover{transform:translateX(3px)}
+  .glow-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(600px circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.035),transparent 60%);transition:background .1s}
+}
+.ctip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
+.ctip.on{opacity:1;transform:none}
+.ctip .box{background:rgba(22,22,22,.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid #2c2c2c;border-radius:12px;padding:9px 13px;box-shadow:0 12px 40px rgba(0,0,0,.6);white-space:nowrap}
+.ctip small{display:block;font-size:11px;color:#8b8b8b;margin-bottom:2px}
+.ctip b{font-size:14px;font-weight:600;color:#fff}
+.ctip .stem{position:absolute;left:16px;top:100%;width:1px;height:26px;background:linear-gradient(rgba(255,255,255,.15),rgba(255,255,255,.7))}
+.ctip .dot{position:absolute;left:11px;top:calc(100% + 24px);width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.15),0 0 16px #fff}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -832,10 +859,10 @@ function renderDash(){
   const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2);
   const wTot = s.avgW + s.avgL || 1;
   $("tiles").innerHTML = `
-    <div class="tile wide"><span class="lab">Résultat net</span><span class="val xl ${s.net < 0 ? "r" : "g"}">${s.n ? money(s.net) : "—"}</span>${spark}<span class="note">${esc(monthName())}</span></div>
-    <div class="tile"><span class="lab">Taux de réussite</span><div class="row"><span class="val">${s.winrate}%</span>${ring(s.winrate / 100, "var(--gain)")}</div><span class="note"><span class="g">${s.wins} gagnants</span> · <span class="r">${s.losses} perdants</span></span></div>
-    <div class="tile"><span class="lab">Facteur de profit</span><div class="row"><span class="val">${pfTxt}</span>${ring(s.pf === Infinity ? 1 : Math.min(1, s.pf / 3), "var(--fg)")}</div><span class="note">Gains bruts / pertes brutes</span></div>
-    <div class="tile wide"><span class="lab">Gain moyen / perte moyenne</span><div class="row"><span class="val"><span class="g">${money(s.avgW, cur(), false)}</span> <span style="color:var(--muted)">/</span> <span class="r">${money(s.avgL, cur(), false)}</span></span><span class="note">${s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : ""}</span></div><div class="bar"><i style="width:${(s.avgW / wTot * 100).toFixed(1)}%;background:var(--gain)"></i><i style="width:${(s.avgL / wTot * 100).toFixed(1)}%;background:var(--loss)"></i></div></div>
+    <div class="tile wide" data-tip-t="Résultat net" data-tip="${s.wins} gagnant${s.wins > 1 ? "s" : ""}, ${s.losses} perdant${s.losses > 1 ? "s" : ""}"><span class="lab">Résultat net</span><span class="val xl ${s.net < 0 ? "r" : "g"}">${s.n ? money(s.net) : "—"}</span>${spark}<span class="note">${esc(monthName())}</span></div>
+    <div class="tile" data-tip-t="Taux de réussite" data-tip="${s.n} trade${s.n > 1 ? "s" : ""} ce mois-ci"><span class="lab">Taux de réussite</span><div class="row"><span class="val">${s.winrate}%</span>${ring(s.winrate / 100, "var(--gain)")}</div><span class="note"><span class="g">${s.wins} gagnants</span> · <span class="r">${s.losses} perdants</span></span></div>
+    <div class="tile" data-tip-t="Facteur de profit" data-tip="Au-dessus de 1,5 : solide"><span class="lab">Facteur de profit</span><div class="row"><span class="val">${pfTxt}</span>${ring(s.pf === Infinity ? 1 : Math.min(1, s.pf / 3), "var(--fg)")}</div><span class="note">Gains bruts / pertes brutes</span></div>
+    <div class="tile wide" data-tip-t="Gain moyen / perte moyenne" data-tip="${s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte ce mois-ci"}"><span class="lab">Gain moyen / perte moyenne</span><div class="row"><span class="val"><span class="g">${money(s.avgW, cur(), false)}</span> <span style="color:var(--muted)">/</span> <span class="r">${money(s.avgL, cur(), false)}</span></span><span class="note">${s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : ""}</span></div><div class="bar"><i style="width:${(s.avgW / wTot * 100).toFixed(1)}%;background:var(--gain)"></i><i style="width:${(s.avgL / wTot * 100).toFixed(1)}%;background:var(--loss)"></i></div></div>
     <div class="tile wide"><span class="lab">Tes jours · tous les mois</span>${(() => { const ws = weekdayStats(true); return ws.best ? weekdayHTML(ws) : `<span class="note">Saisis des trades pour voir tes meilleurs jours.</span>`; })()}<span class="note">Résultat cumulé par jour de la semaine${(() => { const n = weekdayStats(true).months; return n > 1 ? `, sur ${n} mois` : ""; })()}</span></div>`;
 
   const now = new Date();
@@ -1577,8 +1604,34 @@ window.BSync = (() => {
 applySeed(); save();
 renderDash();
 
+
+/* ===== Animations à la souris : halo qui suit le curseur + bulles d'info ===== */
+(() => {
+  if (!matchMedia("(hover:hover)").matches) return;
+  const glow = document.createElement("div"); glow.className = "glow-bg"; document.body.prepend(glow);
+  const tip = document.createElement("div"); tip.className = "ctip"; tip.innerHTML = '<div class="box"><small></small><b></b></div><span class="stem"></span><span class="dot"></span>'; document.body.appendChild(tip);
+  let cur = null;
+  document.addEventListener("mousemove", e => {
+    glow.style.setProperty("--gx", e.clientX + "px"); glow.style.setProperty("--gy", e.clientY + "px");
+    const card = e.target.closest && e.target.closest(".tile,.cal");
+    if (card) { const r = card.getBoundingClientRect(); card.style.setProperty("--mx", (e.clientX - r.left) + "px"); card.style.setProperty("--my", (e.clientY - r.top) + "px"); }
+    const t = e.target.closest && e.target.closest("[data-tip]");
+    if (t !== cur) {
+      cur = t;
+      if (!t) { tip.classList.remove("on"); return; }
+      tip.querySelector("small").textContent = t.dataset.tipT || "";
+      tip.querySelector("b").textContent = t.dataset.tip;
+      const r = t.getBoundingClientRect(), h = tip.offsetHeight || 52;
+      tip.style.left = Math.max(8, r.left + 4) + "px";
+      tip.style.top = Math.max(8, r.top - h - 30) + "px";
+      tip.classList.remove("on"); void tip.offsetWidth; tip.classList.add("on");
+    }
+  }, {passive: true});
+  addEventListener("scroll", () => { cur = null; tip.classList.remove("on"); }, {passive: true});
+})();
+
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-25-1";
+const APP_VERSION = "2026-10-25-2";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
