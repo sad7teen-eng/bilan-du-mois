@@ -1218,6 +1218,15 @@ section.view.hasglobe .bhero .hsub{width:max-content;max-width:100%}
 .miniglobe canvas,.miniglobe:hover canvas{filter:none!important}
 .miniglobe canvas{opacity:.42;transition:opacity .45s!important;image-rendering:auto}
 .miniglobe.hov canvas{opacity:1}
+
+/* --- v31 : planète du macro au centre exact de l'écran --- */
+#macroView .mframe{position:relative}
+#macroView .mhead{position:absolute;left:clamp(16px,3vw,40px);right:clamp(16px,3vw,40px);top:calc(18px + env(safe-area-inset-top,0px));z-index:3}
+#macroView .mchips{position:absolute;left:clamp(16px,3vw,40px);right:clamp(16px,3vw,40px);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:3}
+#macroView .mbody{position:absolute;inset:0;min-height:0!important}
+#macroView.hassel .mbody{grid-template-columns:minmax(0,1fr) 400px!important;padding:96px clamp(16px,3vw,40px) 76px 0}
+#macroView .mhint{bottom:84px}
+@media (max-width:1000px){#macroView .mbody{position:relative;inset:auto}#macroView .mhead,#macroView .mchips{position:relative;left:auto;right:auto;top:auto;bottom:auto}#macroView.hassel .mbody{padding:0}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2731,6 +2740,7 @@ function setView(v, keepScroll){
   document.body.classList.toggle("inmacro", overlay);
   if (overlay) { $("macroView").hidden = false; history.replaceState(null, "", "#macro"); renderMacro(); return; }
   $("macroView").hidden = true; if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
+  requestAnimationFrame(() => window.placeGlobe && window.placeGlobe());
   ["dayModal", "certEditModal", "lightbox", "jourModal"].forEach(id => { const m = $(id); if (m && id !== "dayModal") m.hidden = true; });
   document.body.style.overflow = "";
   view = v;
@@ -3373,13 +3383,22 @@ function makeGlobe(canvas, o = {}){
     if (m > .01) { const sh = ctx.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .9); sh.addColorStop(0, `rgba(255,255,255,${(.16 * m).toFixed(3)})`); sh.addColorStop(1, "rgba(255,255,255,0)");
       ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill(); }
   }
+  let oc = null;
+  function blurPass(){
+    const bl = o.blur ? o.blur() : 0; if (bl < .08) return;
+    if (!oc) oc = document.createElement("canvas");
+    if (oc.width !== canvas.width || oc.height !== canvas.height) { oc.width = canvas.width; oc.height = canvas.height; }
+    const ox = oc.getContext("2d"); ox.clearRect(0, 0, oc.width, oc.height); ox.drawImage(canvas, 0, 0);
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.filter = `blur(${(bl * canvas.width / Math.max(1, canvas.getBoundingClientRect().width)).toFixed(2)}px)`; ctx.drawImage(oc, 0, 0); ctx.restore();
+  }
   function frame(now){
     if (st.dead) return;
     if (o.fps && now - last < 1000 / o.fps() - 2) { raf = requestAnimationFrame(frame); return; }
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     if (st.anim) { const k = Math.min(1, (now - st.anim.t0) / st.anim.d), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; st.rot = st.anim.i(e); if (k >= 1) st.anim = null; }
     else if (!st.drag && now - st.touched > 2500) { const k = Math.min(1, (now - st.touched - 2500) / 1200); st.rot[0] += st.speed * dt * k; st.rot[1] += (-18 - st.rot[1]) * dt * .4 * k; }
-    proj.rotate(st.rot); draw(now); raf = requestAnimationFrame(frame);
+    proj.rotate(st.rot); draw(now); blurPass(); raf = requestAnimationFrame(frame);
   }
   const pick = (x, y) => { if (!geo) return null; const ll = proj.invert([x, y]); if (!ll || d3.geoDistance(ll, [-st.rot[0], -st.rot[1]]) > Math.PI / 2) return null;
     for (const f of geo.feats) if (d3.geoContains(f, ll)) return f; return null; };
@@ -3407,13 +3426,14 @@ function mountMini(){
   const b = document.createElement("button"); b.type = "button"; b.id = "miniGlobe"; b.className = "miniglobe"; b.setAttribute("aria-label", "Ouvrir la planète macro");
   b.innerHTML = `<canvas></canvas>`; h.insertBefore(b, h.firstChild); h.classList.add("hasglobe");
   const place = () => { const r = h.getBoundingClientRect(); h.style.setProperty("--vl", (-r.left) + "px"); };
+  window.placeGlobe = place;
   place(); addEventListener("resize", place);
   b.onclick = openMacro;
-  let hov = false;
+  let hov = false, bv = 3;
   b.addEventListener("pointerenter", () => { hov = true; b.classList.add("hov"); });
   b.addEventListener("pointerleave", () => { hov = false; b.classList.remove("hov"); });
   loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 8, m: 0, k: .96,
-    res: () => hov ? Math.min(2, devicePixelRatio || 1) : .3, fps: () => hov ? 60 : 24}); }).catch(() => {});
+    res: () => Math.min(1.5, devicePixelRatio || 1), fps: () => hov || bv > .2 && bv < 2.8 ? 60 : 30, blur: () => (bv += ((hov ? 0 : 3) - bv) * .14)}); }).catch(() => {});
 }
 
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
@@ -3450,6 +3470,7 @@ async function openMacro(){
 let macroSel = null, flyRot = null;
 function renderMacro(){
   if (bigG) { bigG.destroy(); bigG = null; }
+  macroSel = null;
   $("macroView").innerHTML = `<div class="mframe">
       <div class="mstars2" aria-hidden="true"></div>
       <div class="mstars" aria-hidden="true"></div>
@@ -3627,7 +3648,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-30";
+const APP_VERSION = "2026-10-26-31";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
