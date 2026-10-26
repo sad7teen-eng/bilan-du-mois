@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-25T18:01:09.000Z",
+ "updatedAt": "2026-10-26T08:29:49.000Z",
  "cols": [
   {
    "id": "perso",
@@ -66,7 +66,8 @@
      "id": "pe9",
      "t": "Faire les courses",
      "w": "2026-10-19",
-     "done": false
+     "done": false,
+     "carried": true
     },
     {
      "id": "pe10",
@@ -74,7 +75,8 @@
      "w": "2026-10-19",
      "done": false,
      "target": 60,
-     "count": 0
+     "count": 0,
+     "carried": true
     },
     {
      "id": "pe11",
@@ -82,12 +84,54 @@
      "w": "2026-10-19",
      "done": false,
      "target": 3,
-     "count": 0
+     "count": 0,
+     "carried": true
     },
     {
      "id": "pe12",
      "t": "Refaire la playlist de musique",
      "w": "2026-10-19",
+     "done": false,
+     "carried": true
+    },
+    {
+     "id": "w44-9",
+     "t": "pages lues (20 par jour)",
+     "w": "2026-10-26",
+     "done": false,
+     "target": 100,
+     "count": 0
+    },
+    {
+     "id": "w44-10",
+     "t": "cours d'éloquence",
+     "w": "2026-10-26",
+     "done": false,
+     "target": 3,
+     "count": 0
+    },
+    {
+     "id": "w44-11",
+     "t": "Refaire la playlist de musique",
+     "w": "2026-10-26",
+     "done": false
+    },
+    {
+     "id": "w44-12",
+     "t": "Faire les courses",
+     "w": "2026-10-26",
+     "done": false
+    },
+    {
+     "id": "w44-13",
+     "t": "Actualisation France Travail",
+     "w": "2026-10-26",
+     "done": false
+    },
+    {
+     "id": "w44-14",
+     "t": "Appeler le garage : pose des pneus (arrivée vendredi)",
+     "w": "2026-10-26",
      "done": false
     }
    ]
@@ -151,6 +195,12 @@
      "done": true,
      "target": 5,
      "count": 5
+    },
+    {
+     "id": "w44-8",
+     "t": "Répondre aux messages Le Bon Coin / Facebook → WhatsApp",
+     "w": "2026-10-26",
+     "done": false
     }
    ]
   },
@@ -176,6 +226,25 @@
      "id": "fo3",
      "t": "Bilan du mois : le rendre parfait visuellement (fin de semaine)",
      "w": "2026-10-19",
+     "done": false,
+     "carried": true
+    },
+    {
+     "id": "w44-5",
+     "t": "Bilan du mois : finir le site (courbe animée entrée/sortie + le reste)",
+     "w": "2026-10-26",
+     "done": false
+    },
+    {
+     "id": "w44-6",
+     "t": "Trading fonds propres : bâtir une stratégie moyen/long terme",
+     "w": "2026-10-26",
+     "done": false
+    },
+    {
+     "id": "w44-7",
+     "t": "Plan de départ Kai / nouveau serveur",
+     "w": "2026-10-26",
      "done": false
     }
    ]
@@ -275,7 +344,38 @@
      "done": false,
      "p": "ig",
      "target": 5,
-     "count": 3
+     "count": 3,
+     "carried": true
+    },
+    {
+     "id": "w44-1",
+     "t": "Récaps de jeudi et vendredi : tourner, monter, programmer",
+     "w": "2026-10-26",
+     "done": false,
+     "p": "ig"
+    },
+    {
+     "id": "w44-2",
+     "t": "récaps de trades du challenge, filmés au téléphone (5 + récap du week-end)",
+     "w": "2026-10-26",
+     "done": false,
+     "p": "ig",
+     "target": 6,
+     "count": 0
+    },
+    {
+     "id": "w44-3",
+     "t": "Vidéo YouTube « mon quotidien » : plans au fil de la semaine",
+     "w": "2026-10-26",
+     "done": false,
+     "p": "yt"
+    },
+    {
+     "id": "w44-4",
+     "t": "Compte TikTok secret (IA, voitures, luxe) : créer + 1 vidéo",
+     "w": "2026-10-26",
+     "done": false,
+     "p": "tt"
     }
    ]
   },
