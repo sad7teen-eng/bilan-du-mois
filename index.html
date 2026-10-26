@@ -3406,7 +3406,10 @@ function makeGlobe(canvas, o = {}){
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     if (st.anim) { const k = Math.min(1, (now - st.anim.t0) / st.anim.d), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; st.rot = st.anim.i(e); if (k >= 1) st.anim = null; }
     else if (!st.drag && now - st.touched > 2500) { const k = Math.min(1, (now - st.touched - 2500) / 1200); st.rot[0] += st.speed * dt * k; st.rot[1] += (-18 - st.rot[1]) * dt * .4 * k; }
-    proj.rotate(st.rot); draw(now); blurPass(); raf = requestAnimationFrame(frame);
+    raf = requestAnimationFrame(frame);
+    /* page cachée (autre onglet du journal) : rien à dessiner, mais la boucle continue */
+    if (!canvas.offsetWidth || !canvas.offsetHeight) return;
+    try { proj.rotate(st.rot); draw(now); blurPass(); } catch(e) {}
   }
   const pick = (x, y) => { if (!geo) return null; const ll = proj.invert([x, y]); if (!ll || d3.geoDistance(ll, [-st.rot[0], -st.rot[1]]) > Math.PI / 2) return null;
     for (const f of geo.feats) if (d3.geoContains(f, ll)) return f; return null; };
@@ -3667,7 +3670,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-32";
+const APP_VERSION = "2026-10-26-33";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
