@@ -1075,6 +1075,74 @@ body:not(.light) .jc{background:linear-gradient(180deg,#111,#0a0a0a);border-colo
 body.light .hnum{font-weight:600;letter-spacing:-.055em;color:#050505;text-shadow:0 0 1px rgba(0,0,0,.4),0 0 22px rgba(0,0,0,.28),0 16px 46px rgba(0,0,0,.38)}
 body.light .hnum::before{content:"";position:absolute;left:4%;right:4%;top:22%;bottom:4%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.30),rgba(0,0,0,.10) 60%,transparent);filter:blur(26px)}
 body.light .hnum .cur{color:#1a1a1c}
+
+/* ===== Planète macro ===== */
+.top:has(.miniglobe){justify-content:flex-start;align-items:center;gap:16px}
+.miniglobe{flex:none;width:62px;height:62px;padding:0!important;border:0!important;border-radius:50%!important;background:none!important;cursor:pointer;position:relative;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.miniglobe canvas{width:100%;height:100%;display:block;border-radius:50%}
+.miniglobe::after{content:"";position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 14px 30px rgba(0,0,0,.25);pointer-events:none}
+body:not(.light) .miniglobe::after{box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 26px rgba(255,255,255,.12)}
+.miniglobe:hover{transform:scale(1.08) rotate(-6deg)}
+@media (max-width:640px){.miniglobe{width:48px;height:48px}}
+.globefly{position:fixed;inset:0;z-index:65;pointer-events:none}
+.globefly .gf-bg{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,#16181c,#050506 70%);opacity:0}
+.globefly canvas{position:absolute}
+#macroView{transition:opacity .45s}
+#macroView.entering{opacity:0}
+.mframe{position:relative;overflow:hidden;border-radius:26px;background:radial-gradient(120% 90% at 50% 40%,#16181c,#050506 70%);color:#f2f2f2;padding:22px 24px 20px;min-height:calc(100dvh - 140px);display:flex;flex-direction:column;gap:14px;box-shadow:0 40px 100px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.06)}
+.mstars{position:absolute;inset:0;pointer-events:none;opacity:.5;background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 12%,#fff,transparent),radial-gradient(1px 1px at 42% 78%,#fff,transparent),radial-gradient(1px 1px at 88% 64%,#fff,transparent),radial-gradient(1px 1px at 22% 58%,#ddd,transparent),radial-gradient(1px 1px at 58% 32%,#ccc,transparent),radial-gradient(1.5px 1.5px at 92% 88%,#fff,transparent),radial-gradient(1px 1px at 6% 90%,#bbb,transparent),radial-gradient(1px 1px at 34% 8%,#eee,transparent)}
+.mhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mback{background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important;color:#fff!important;border-radius:999px!important;padding:8px 14px!important}
+.mtitle{flex:1;min-width:200px}
+.mtitle h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;color:#fff;text-shadow:none!important}
+.mtitle p{margin:3px 0 0;font-size:12.5px;color:#9a9da3}
+.msearch input{width:220px;max-width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:999px;color:#fff;font:13px var(--display);padding:9px 14px}
+.msearch input::placeholder{color:#8a8d93}
+.mbody{position:relative;flex:1;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:center;min-height:0}
+@media (max-width:1000px){.mbody{grid-template-columns:minmax(0,1fr)}}
+.mglobe{position:relative;display:grid;place-items:center;min-height:0}
+#bigGlobe{width:min(100%,64vh,640px);aspect-ratio:1;display:block;touch-action:none;cursor:grab}
+.mhint{position:absolute;bottom:0;left:0;right:0;text-align:center;margin:0;font-size:11.5px;color:#7c7f85}
+.mtip{position:absolute;pointer-events:none;background:rgba(20,20,22,.92);border:1px solid rgba(255,255,255,.14);color:#fff;font-size:12px;padding:5px 9px;border-radius:8px;white-space:nowrap}
+.mpanel{position:relative;align-self:stretch;max-height:calc(100dvh - 230px);overflow:auto;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:16px;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);scrollbar-width:thin}
+.mp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:4px 0 10px}
+.mlab{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9a9da3}
+.mp-h small{font-size:11px;color:#7c7f85}
+.mrates{display:flex;flex-direction:column;gap:2px}
+.mrates button{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px;background:none!important;border:0!important;color:#eee!important;padding:7px 8px!important;border-radius:10px!important;text-align:left;font-size:13px}
+.mrates button:hover{background:rgba(255,255,255,.07)!important}
+.mrates img{width:22px;height:15px;object-fit:cover;border-radius:3px}
+.mrates b{font-variant-numeric:tabular-nums;font-weight:600}
+.mmuted{font-size:12px;color:#8a8d93;margin:8px 0 0;line-height:1.5}
+.mp-c{display:flex;flex-direction:column;gap:12px;animation:dlIn .45s cubic-bezier(.2,.8,.2,1)}
+.mp-top{display:flex;align-items:center;gap:12px}
+.mflag{width:44px;height:30px;object-fit:cover;border-radius:5px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.mp-top h2{margin:0;font-size:20px;font-weight:600;color:#fff}
+.mp-top small{font-size:11.5px;color:#8a8d93}
+.mclose{margin-left:auto;width:32px;height:32px;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.08)!important;border:1px solid rgba(255,255,255,.14)!important;color:#fff!important;font-size:18px}
+.mk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mk-i{border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.04);display:flex;flex-direction:column;gap:2px;min-width:0}
+.mk-i.wide{grid-column:1/-1}
+.mk-i small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a8d93}
+.mk-i b{font-size:19px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums;min-height:24px}
+.mk-i em{font-style:normal;font-size:11px;color:#8a8d93}
+.msym{font-weight:400;color:#9a9da3;font-size:14px}
+.sk{display:block;width:70%;height:18px;border-radius:6px;background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(255,255,255,.14),rgba(255,255,255,.06));background-size:200% 100%;animation:skm 1.2s linear infinite}
+@keyframes skm{to{background-position:-200% 0}}
+.mnews{display:flex;flex-direction:column;gap:6px}
+.mn{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;text-decoration:none;color:#eee;padding:8px;border-radius:12px;border:1px solid transparent}
+.mn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+.mn img{width:64px;height:44px;object-fit:cover;border-radius:7px}
+.mn span{display:flex;flex-direction:column;gap:3px;min-width:0;grid-column:auto}
+.mn b{font-size:12.5px;font-weight:500;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mn small{font-size:11px;color:#8a8d93}
+.mn:not(:has(img)) span{grid-column:1/-1}
+.msrc{font-size:10.5px}
+.mchips{position:relative;display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.mchips button{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;background:rgba(255,255,255,.06)!important;border:1px solid rgba(255,255,255,.12)!important;color:#ddd!important;border-radius:999px!important;padding:6px 12px 6px 7px!important;font-size:12px}
+.mchips button img{width:20px;height:14px;object-fit:cover;border-radius:3px}
+.mchips button.on,.mchips button:hover{background:#fff!important;color:#000!important}
+@media (max-width:640px){.mframe{padding:16px;border-radius:20px}.msearch input{width:100%}.msearch{flex-basis:100%}.mpanel{max-height:none}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -1168,6 +1236,7 @@ body.light .hnum .cur{color:#1a1a1c}
   <section class="view" data-view="strategie" id="stratView" hidden></section>
   <section class="view" data-view="analytics" id="anaView" hidden></section>
   <section class="view" data-view="graphique" id="chartView" hidden></section>
+  <section class="view" data-view="macro" id="macroView" hidden></section>
 
   <footer class="savebar">
     <span class="st" id="saveSt"></span>
@@ -2578,7 +2647,7 @@ $("btnCal").onclick = () => $("calSec").scrollIntoView({behavior: reduced ? "aut
 
 
 /* ===== Pages : navigation du haut (Tableau, Résultats, Certificats, Stratégie, Analytics) ===== */
-const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graphique"];
+const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graphique", "macro"];
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
 function setView(v){
   if (!VIEWS.includes(v)) v = "tableau";
@@ -2592,6 +2661,7 @@ function setView(v){
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
+  if (v === "macro") renderMacro(); else if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   window.scrollTo(0, 0);
 }
@@ -3102,6 +3172,221 @@ $("jourModal").addEventListener("click", e => {
   if (ds.jchart) { cSel = ds.jchart; $("jourModal").hidden = true; setView("graphique"); return; }
 });
 
+
+/* ===== Planète macro : petite planète sur le tableau, qui s'ouvre sur la page macroéconomie ===== */
+const GEO_SRC = {
+  d3: "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js",
+  topo: "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js",
+  atlas: "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",
+  cdata: "data/countries.json"
+};
+const EZ = new Set(["AT", "BE", "BG", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"]);
+/* Taux directeurs : relevés le 26 oct. 2026 (Wikipédia « List of countries by central bank interest rates », banques centrales). */
+const RATES = {
+  US: ["Réserve fédérale (Fed)", 4.00, "16 sept. 2026", "haut de la fourchette"], EZ: ["Banque centrale européenne", 2.50, "10 sept. 2026", "taux de dépôt"],
+  GB: ["Banque d'Angleterre", 3.75, "18 déc. 2025"], JP: ["Banque du Japon", 1.25, "18 sept. 2026"], CH: ["Banque nationale suisse", 0.00, "20 juin 2025"],
+  CA: ["Banque du Canada", 2.25, "30 oct. 2025"], AU: ["Banque de réserve d'Australie", 4.35, "6 mai 2026"], NZ: ["Banque de réserve de Nouvelle-Zélande", 2.75, "2 sept. 2026"],
+  CN: ["Banque populaire de Chine", 3.00, "20 mai 2025", "LPR 1 an"], IN: ["Banque de réserve d'Inde", 5.25, "5 déc. 2025"], BR: ["Banque centrale du Brésil", 13.75, "16 sept. 2026", "Selic"],
+  MX: ["Banque du Mexique", 6.50, "7 mai 2026"], ZA: ["Banque de réserve sud-africaine", 7.00, "1 juin 2026"], TR: ["Banque centrale de Turquie", 37.00, "23 janv. 2026"],
+  RU: ["Banque de Russie", 14.00, "24 juil. 2026"], KR: ["Banque de Corée", 3.00, "27 août 2026"], NO: ["Norges Bank", 4.25, "7 mai 2026"],
+  SE: ["Riksbank", 1.75, "1 oct. 2025"], SA: ["Banque centrale saoudienne", 4.50, "16 sept. 2026"], ID: ["Bank Indonesia", 5.75, "18 juin 2026"],
+  AR: ["Banque centrale d'Argentine", 29.00, "31 janv. 2025"], PL: ["Banque nationale de Pologne", 3.75, "4 mars 2026"]
+};
+const KEY_ECO = ["US", "CN", "DE", "JP", "GB", "FR", "IN", "IT", "BR", "CA", "RU", "KR", "AU", "MX", "ES", "SA", "CH", "TR", "ZA"];
+const EN_FIX = {CD: "Congo", PS: "Palestine", KR: "South Korea", KP: "North Korea", RU: "Russia", IR: "Iran", SY: "Syria", VE: "Venezuela", BO: "Bolivia", TZ: "Tanzania", VN: "Vietnam", LA: "Laos", MD: "Moldova", TW: "Taiwan", CZ: "Czech Republic", FK: "Falklands"};
+let geo = null, geoP = null;
+const loadJS = src => new Promise((res, rej) => { if ([...document.scripts].some(s => s.src === src)) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+function loadGeo(){
+  if (geo) return Promise.resolve(geo);
+  if (!geoP) geoP = (async () => {
+    await loadJS(GEO_SRC.d3); await loadJS(GEO_SRC.topo);
+    const [w, c] = await Promise.all([fetch(GEO_SRC.atlas).then(r => r.json()), fetch(GEO_SRC.cdata).then(r => r.json())]);
+    const feats = topojson.feature(w, w.objects.countries).features.filter(f => f.id && c[f.id]);
+    feats.forEach(f => { const v = c[f.id]; if (v[0] === "BG") { v[4] = "EUR"; v[5] = "euro"; v[6] = "€"; } f.iso = v[0]; f.c = v; f.cen = d3.geoCentroid(f); f.area = d3.geoArea(f); });
+    geo = {feats, byIso: Object.fromEntries(feats.map(f => [f.iso, f]))}; return geo;
+  })().catch(e => { geoP = null; throw e; });
+  return geoP;
+}
+const rateOf = iso => RATES[iso] || (EZ.has(iso) ? RATES.EZ : null);
+
+/* Une planète dessinée au canvas, projection orthographique */
+function makeGlobe(canvas, o = {}){
+  const ctx = canvas.getContext("2d"), proj = d3.geoOrthographic().clipAngle(90).precision(.4), path = d3.geoPath(proj, ctx), grat = d3.geoGraticule10();
+  const st = {rot: o.rot ? o.rot.slice() : [-20, -18, 0], speed: o.speed ?? 8, sel: null, hover: null, drag: null, anim: null, w: 0, dead: false};
+  const key = new Set(KEY_ECO), phase = {}; KEY_ECO.forEach((k, i) => phase[k] = i * 1.7);
+  let last = performance.now(), raf = 0;
+  function fit(){ const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+    if (Math.abs(r.width - st.w) > .5 || canvas.width !== Math.round(r.width * dpr)) { st.w = r.width; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
+    proj.scale(r.width / 2 * .94).translate([r.width / 2, r.height / 2]); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
+  function draw(now){
+    const r = fit(), R = proj.scale(), [cx, cy] = proj.translate(), t = now / 1000;
+    ctx.clearRect(0, 0, r.width, r.height);
+    /* halo atmosphérique */
+    const halo = ctx.createRadialGradient(cx, cy, R * .9, cx, cy, R * 1.06); halo.addColorStop(0, "rgba(255,255,255,0)"); halo.addColorStop(.6, "rgba(200,210,230,.10)"); halo.addColorStop(1, "rgba(200,210,230,0)");
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.06, 0, 7); ctx.fill();
+    const sg = ctx.createRadialGradient(cx - R * .38, cy - R * .42, R * .05, cx, cy, R);
+    sg.addColorStop(0, "#3d4046"); sg.addColorStop(.45, "#121316"); sg.addColorStop(1, "#000");
+    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sg; ctx.fill();
+    if (!o.mini) { ctx.beginPath(); path(grat); ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.lineWidth = .5; ctx.stroke(); }
+    if (geo) for (const f of geo.feats) {
+      ctx.beginPath(); path(f);
+      let a = .14; if (key.has(f.iso)) a = .34 + .22 * (.5 + .5 * Math.sin(t * 1.1 + phase[f.iso]));
+      if (st.hover === f.id) a = .8; if (st.sel === f.id) a = 1;
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.fill();
+      if (!o.mini) { ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.lineWidth = .4; ctx.stroke(); }
+    }
+    /* les pays clés brillent : petit point lumineux */
+    if (geo) { ctx.save(); ctx.shadowColor = "rgba(255,255,255,.9)";
+      for (const iso of KEY_ECO) { const f = geo.byIso[iso]; if (!f) continue; const p = proj(f.cen); if (!p || d3.geoDistance(f.cen, [-st.rot[0], -st.rot[1]]) > 1.45) continue;
+        const k = .5 + .5 * Math.sin(t * 1.6 + phase[iso]); ctx.shadowBlur = (o.mini ? 4 : 12) * k + 2; ctx.fillStyle = `rgba(255,255,255,${(.55 + .45 * k).toFixed(2)})`;
+        ctx.beginPath(); ctx.arc(p[0], p[1], o.mini ? .9 : 1.8 + k, 0, 7); ctx.fill(); }
+      ctx.restore(); }
+    /* reflet + bord lumineux */
+    const sh = ctx.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .9); sh.addColorStop(0, "rgba(255,255,255,.16)"); sh.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.22)"; ctx.lineWidth = 1; ctx.stroke();
+  }
+  function frame(now){
+    if (st.dead) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (st.anim) { const k = Math.min(1, (now - st.anim.t0) / st.anim.d), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; st.rot = st.anim.i(e); if (k >= 1) st.anim = null; }
+    else if (!st.drag && !st.sel) st.rot[0] += st.speed * dt;
+    proj.rotate(st.rot); draw(now); raf = requestAnimationFrame(frame);
+  }
+  const pick = (x, y) => { if (!geo) return null; const ll = proj.invert([x, y]); if (!ll || d3.geoDistance(ll, [-st.rot[0], -st.rot[1]]) > Math.PI / 2) return null;
+    for (const f of geo.feats) if (d3.geoContains(f, ll)) return f; return null; };
+  if (o.interactive) {
+    canvas.addEventListener("pointerdown", e => { st.drag = {x: e.clientX, y: e.clientY, r: st.rot.slice(), moved: 0}; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", e => { const b = canvas.getBoundingClientRect();
+      if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (b.width * .94);
+        st.rot = [st.drag.r[0] + dx * k, Math.max(-75, Math.min(75, st.drag.r[1] - dy * k)), 0]; st.anim = null; return; }
+      const f = pick(e.clientX - b.left, e.clientY - b.top); st.hover = f ? f.id : null; canvas.style.cursor = f ? "pointer" : "grab"; o.onHover && o.onHover(f, e); });
+    canvas.addEventListener("pointerleave", () => { st.hover = null; o.onHover && o.onHover(null); });
+    canvas.addEventListener("pointerup", e => { const d = st.drag; st.drag = null; if (d && d.moved < 6) { const b = canvas.getBoundingClientRect(), f = pick(e.clientX - b.left, e.clientY - b.top); if (f) o.onPick && o.onPick(f); } });
+  } else if (o.onClick) canvas.addEventListener("click", o.onClick);
+  raf = requestAnimationFrame(frame);
+  return {
+    st, focus(f){ st.sel = f ? f.id : null; if (!f) return; const to = [-f.cen[0], -f.cen[1] * .8, 0], from = st.rot.slice(); while (to[0] - from[0] > 180) to[0] -= 360; while (from[0] - to[0] > 180) to[0] += 360;
+      st.anim = {t0: performance.now(), d: 1100, i: d3.interpolate(from, to)}; },
+    release(){ st.sel = null; }, destroy(){ st.dead = true; cancelAnimationFrame(raf); }
+  };
+}
+
+/* --- petite planète à côté de « Bonsoir, Kael » --- */
+let miniG = null, bigG = null;
+function mountMini(){
+  const h = document.querySelector('section.view[data-view="tableau"] .top'); if (!h || $("miniGlobe")) return;
+  const b = document.createElement("button"); b.type = "button"; b.id = "miniGlobe"; b.className = "miniglobe"; b.setAttribute("aria-label", "Ouvrir la planète macro");
+  b.setAttribute("data-tip-t", "Planète macro"); b.setAttribute("data-tip", "Taux, inflation, PIB et actu de chaque pays");
+  b.innerHTML = `<canvas></canvas>`; h.insertBefore(b, h.firstChild);
+  b.onclick = openMacro;
+  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 14}); }).catch(() => {});
+}
+
+/* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
+async function openMacro(){
+  const src = $("miniGlobe"); if (!src) { setView("macro"); return; }
+  try { await loadGeo(); } catch(e) { setView("macro"); return; }
+  document.querySelector(".ctip")?.classList.remove("on");
+  const r0 = src.getBoundingClientRect();
+  const fly = document.createElement("div"); fly.className = "globefly"; fly.innerHTML = `<div class="gf-bg"></div><canvas></canvas>`; document.body.appendChild(fly);
+  const cv = fly.querySelector("canvas"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
+  const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined});
+  src.style.visibility = "hidden";
+  setView("macro"); $("macroView").classList.add("entering");
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
+  fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
+  const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
+  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 260 * (1 - k) + 6 * k; if (k < 1) requestAnimationFrame(slow); })();
+  await a.finished.catch(() => {});
+  if (bigG) bigG.st.rot = g.st.rot.slice();
+  $("macroView").classList.remove("entering");
+  fly.animate([{opacity: 1}, {opacity: 0}], {duration: 380, fill: "forwards"}).finished.then(() => { g.destroy(); fly.remove(); });
+  src.style.visibility = "";
+}
+
+/* --- la page macro --- */
+let macroSel = null;
+function renderMacro(){
+  if (bigG) { bigG.destroy(); bigG = null; }
+  $("macroView").innerHTML = `<div class="mframe">
+      <div class="mstars" aria-hidden="true"></div>
+      <header class="mhead"><button type="button" class="mback" id="mBack">‹ Tableau</button>
+        <div class="mtitle"><h1>Planète macro</h1><p>Touchez un pays : taux directeur, inflation, PIB, devise et l'actu éco du moment.</p></div>
+        <label class="msearch"><input id="mSearch" list="mList" placeholder="Chercher un pays…" autocomplete="off"><datalist id="mList"></datalist></label></header>
+      <div class="mbody">
+        <div class="mglobe"><canvas id="bigGlobe"></canvas><div class="mtip" id="mTip" hidden></div><p class="mhint">Glissez pour tourner · touchez un pays</p></div>
+        <aside class="mpanel" id="mPanel"></aside>
+      </div>
+      <div class="mchips" id="mChips"></div>
+    </div>`;
+  $("mBack").onclick = () => setView("tableau");
+  loadGeo().then(() => {
+    if (view !== "macro") return;
+    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 6,
+      onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2]; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
+      onPick: f => selectCountry(f.iso)});
+    $("mList").innerHTML = geo.feats.slice().sort((a, b) => a.c[2].localeCompare(b.c[2], "fr")).map(f => `<option value="${esc(f.c[2])}">`).join("");
+    $("mChips").innerHTML = KEY_ECO.map(i => geo.byIso[i] ? `<button type="button" data-iso="${i}"><img src="https://flagcdn.com/w40/${i.toLowerCase()}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">${esc(geo.byIso[i].c[2])}</button>` : "").join("");
+    if (macroSel) selectCountry(macroSel); else drawOverview();
+  }).catch(() => { $("mPanel").innerHTML = `<p class="mmuted">La carte n'a pas pu se charger (connexion ?).</p>`; });
+}
+function drawOverview(){
+  const rows = Object.entries(RATES).map(([iso, r]) => ({iso, r, n: iso === "EZ" ? "Zone euro" : (geo && geo.byIso[iso] ? geo.byIso[iso].c[2] : iso)})).sort((a, b) => b.r[1] - a.r[1]);
+  $("mPanel").innerHTML = `<div class="mp-h"><span class="mlab">Taux directeurs</span><small>relevés le 26 oct. 2026</small></div>
+    <div class="mrates">${rows.map(x => `<button type="button" data-iso="${x.iso === "EZ" ? "DE" : x.iso}"><img src="https://flagcdn.com/w40/${x.iso === "EZ" ? "eu" : x.iso.toLowerCase()}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(x.n)}</span><b>${x.r[1].toFixed(2).replace(".", ",")} %</b></button>`).join("")}</div>
+    <p class="mmuted">À vérifier sur le site de la banque centrale avant de trader.</p>`;
+}
+const wbCache = {}, newsCache = {};
+async function wb(iso3, ind){
+  const k = iso3 + ind; if (wbCache[k]) return wbCache[k];
+  const r = await fetch(`https://api.worldbank.org/v2/country/${iso3}/indicator/${ind}?format=json&mrnev=1`).then(r => r.json());
+  const v = r && r[1] && r[1][0]; return wbCache[k] = v && v.value != null ? {v: v.value, y: v.date} : null;
+}
+async function news(f){
+  const k = f.iso; if (newsCache[k]) return newsCache[k];
+  const name = EN_FIX[f.iso] || f.c[3];
+  const base = `"${name}" (economy OR inflation OR "central bank" OR "interest rate" OR recession OR tariffs OR sanctions OR war OR markets OR currency)`;
+  for (const lang of ["french", "english"]) {
+    try {
+      const u = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(base + " sourcelang:" + lang)}&mode=ArtList&maxrecords=10&format=json&sort=DateDesc&timespan=7d`;
+      const txt = await fetch(u).then(r => r.text()); const j = JSON.parse(txt);
+      if (j.articles && j.articles.length) return newsCache[k] = j.articles;
+    } catch(e) {}
+  }
+  return newsCache[k] = [];
+}
+const agoFr = s => { const d = new Date(s.replace(/^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)Z$/, "$1-$2-$3T$4:$5:$6Z")), m = Math.round((Date.now() - d) / 60000);
+  return m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`; };
+const bigNum = v => v >= 1e9 ? Math.round(v / 1e9).toLocaleString("fr-FR").replace(/\s/g, "\u00a0") + "\u00a0Md$" : Math.round(v / 1e6).toLocaleString("fr-FR").replace(/\s/g, "\u00a0") + "\u00a0M$";
+async function selectCountry(iso){
+  if (!geo) return; const f = geo.byIso[iso]; if (!f) return; macroSel = iso; bigG && bigG.focus(f);
+  document.querySelectorAll("#mChips button").forEach(b => b.classList.toggle("on", b.dataset.iso === iso));
+  const c = f.c, rate = rateOf(iso), ez = EZ.has(iso);
+  $("mPanel").innerHTML = `<div class="mp-c">
+    <div class="mp-top"><img class="mflag" src="https://flagcdn.com/w80/${iso.toLowerCase()}.png" alt="" onerror="this.style.visibility='hidden'"><div><h2>${esc(c[2])}</h2><small>${ez ? "Zone euro · " : ""}${esc(c[3])}</small></div><button type="button" class="mclose" id="mClose" aria-label="Fermer">×</button></div>
+    <div class="mk">
+      <div class="mk-i wide"><small>Taux directeur</small>${rate ? `<b>${rate[1].toFixed(2).replace(".", ",")} %</b><em>${esc(rate[0])}${rate[3] ? " · " + rate[3] : ""} · dernier changement ${rate[2]}</em>` : `<b>—</b><em>Pas dans notre relevé</em>`}</div>
+      <div class="mk-i" id="mkInf"><small>Inflation</small><b class="sk"></b></div>
+      <div class="mk-i" id="mkGdp"><small>PIB</small><b class="sk"></b></div>
+      <div class="mk-i" id="mkGr"><small>Croissance</small><b class="sk"></b></div>
+      <div class="mk-i" id="mkUn"><small>Chômage</small><b class="sk"></b></div>
+      <div class="mk-i wide"><small>Devise</small><b>${esc(c[4] || "—")} <span class="msym">${esc(c[6] || "")}</span></b><em>${esc(c[5] || "")}</em></div>
+    </div>
+    <div class="mp-h"><span class="mlab">Actu éco & géopolitique · 7 jours</span></div>
+    <div class="mnews" id="mNews"><p class="mmuted">Chargement des articles…</p></div>
+    <p class="mmuted msrc">Sources : Banque mondiale (chiffres annuels), GDELT (articles), banques centrales.</p></div>`;
+  $("mClose").onclick = () => { macroSel = null; bigG && bigG.release(); document.querySelectorAll("#mChips button").forEach(b => b.classList.remove("on")); drawOverview(); };
+  const put = (id, val, y, fmt) => { const el = $(id); if (!el || macroSel !== iso) return; el.querySelector("b").classList.remove("sk"); el.querySelector("b").textContent = val == null ? "—" : fmt(val); if (y) el.insertAdjacentHTML("beforeend", `<em>en ${y}</em>`); };
+  const pc = v => (v > 0 ? "+" : "") + v.toFixed(1).replace(".", ",") + " %";
+  [["mkInf", "FP.CPI.TOTL.ZG", pc], ["mkGdp", "NY.GDP.MKTP.CD", bigNum], ["mkGr", "NY.GDP.MKTP.KD.ZG", pc], ["mkUn", "SL.UEM.TOTL.ZS", v => v.toFixed(1).replace(".", ",") + " %"]]
+    .forEach(([id, ind, fmt]) => wb(c[1], ind).then(r => put(id, r && r.v, r && r.y, fmt)).catch(() => put(id, null, null, fmt)));
+  news(f).then(a => { if (macroSel !== iso || !$("mNews")) return;
+    $("mNews").innerHTML = a.length ? a.slice(0, 8).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener" class="mn">${x.socialimage ? `<img src="${esc(x.socialimage)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(x.title)}</b><small>${esc(x.domain)} · ${agoFr(x.seendate)}</small></span></a>`).join("")
+      : `<p class="mmuted">Pas d'article trouvé cette semaine (ou la source ne répond pas).</p>`; });
+}
+$("macroView").addEventListener("click", e => { const b = e.target.closest("[data-iso]"); if (b) selectCountry(b.dataset.iso); });
+$("macroView").addEventListener("change", e => { if (e.target.id !== "mSearch" || !geo) return; const q = e.target.value.trim().toLowerCase(); const f = geo.feats.find(x => x.c[2].toLowerCase() === q) || geo.feats.find(x => x.c[2].toLowerCase().startsWith(q)); if (f) { selectCountry(f.iso); e.target.value = ""; } });
+
 let wheelAcc = 0, wheelT = 0;
 $("anaView").addEventListener("wheel", e => {
   if (!e.target.closest("#srDial")) return;
@@ -3117,6 +3402,7 @@ $("anaView").addEventListener("keydown", e => { if (!e.target.closest("#srDial")
 
 applySeed(); save();
 renderDash();
+mountMini();
 setView(view);
 
 /* ===== Profondeur : la planète glisse plus lentement que le tableau ===== */
@@ -3186,7 +3472,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-20";
+const APP_VERSION = "2026-10-26-21";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
