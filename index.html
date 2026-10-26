@@ -2705,6 +2705,9 @@ const CH_PRESETS = {
 let chartLib = null, chart = null, cSeries = null, cBars = [], cSrc = "", cTf = "1h", cSel = null, cLines = [], cBusy = false, cOldest = Infinity;
 const cCache = new Map();
 let oandaErr = "";
+/* Clé Twelve Data : celle du site (TD_KEY, la même pour tous les élèves) ou celle collée dans la page */
+const TD_KEY = "";
+const tdKey = () => (state.chart && state.chart.tdKey) || TD_KEY;
 const oandaTok = () => { try { return localStorage.getItem("bilan-oanda") || ""; } catch(e) { return ""; } };
 function chartPrefs(){
   if (!state.chart || typeof state.chart !== "object") state.chart = {};
@@ -2724,6 +2727,24 @@ function loadLib(){
 async function fetchBars(tf, endMs){
   const key = tf + "|" + endMs; if (cCache.has(key)) return cCache.get(key);
   const q = `interval=${tf}&limit=1000${endMs ? "&endTime=" + endMs : ""}`;
+  const td = tdKey();
+  if (td) {
+    const lsk = "bilan-td|" + tf + "|" + (endMs || "now");
+    try { const c = JSON.parse(localStorage.getItem(lsk) || "null"); if (c && (endMs ? c.at : Date.now() - c.at < 10 * 60e3)) { const out = {name: "XAU/USD · Twelve Data", bars: c.bars}; cCache.set(key, out); return out; } } catch(e) {}
+    try {
+      const iv = {"5m": "5min", "15m": "15min", "1h": "1h", "4h": "4h", "1d": "1day"}[tf];
+      const end = endMs ? "&end_date=" + encodeURIComponent(new Date(endMs).toISOString().slice(0, 19).replace("T", " ")) : "";
+      const r = await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${iv}&outputsize=1000&timezone=UTC&order=asc${end}&apikey=${encodeURIComponent(td)}`);
+      const j = await r.json();
+      if (j.status === "ok" && Array.isArray(j.values) && j.values.length) {
+        const bars = j.values.map(v => { const t = Math.floor(Date.parse(v.datetime.replace(" ", "T") + "Z") / 1000); return {t, time: t + tzOff(t), open: +v.open, high: +v.high, low: +v.low, close: +v.close}; }).sort((a, b) => a.t - b.t);
+        oandaErr = ""; const out = {name: "XAU/USD · Twelve Data", bars}; cCache.set(key, out);
+        try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).slice(0, -24).forEach(k => localStorage.removeItem(k)); localStorage.setItem(lsk, JSON.stringify({at: Date.now(), bars})); } catch(e) {}
+        return out;
+      }
+      oandaErr = j.code === 429 ? "Twelve Data : trop de demandes, réessayez dans une minute." : j.code === 401 ? "Clé Twelve Data refusée." : "Twelve Data : " + (j.message || "pas de données").slice(0, 80);
+    } catch(e) { oandaErr = "Twelve Data injoignable."; }
+  }
   const tok = oandaTok();
   if (tok) {
     try {
@@ -2735,7 +2756,7 @@ async function fetchBars(tf, endMs){
       else oandaErr = "OANDA ne répond pas (" + r.status + ").";
     } catch(e) { oandaErr = "OANDA injoignable depuis le navigateur."; }
   }
-  const srcs = [["Binance · XAUUSDT (en attendant OANDA)", "https://fapi.binance.com/fapi/v1/klines?symbol=XAUUSDT&" + q], ["Binance · PAXG (en attendant OANDA)", "https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&" + q]];
+  const srcs = [["Binance · XAUUSDT (secours)", "https://fapi.binance.com/fapi/v1/klines?symbol=XAUUSDT&" + q], ["Binance · PAXG (secours)", "https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&" + q]];
   for (const [name, url] of srcs) {
     try {
       const r = await fetch(url); if (!r.ok) continue;
@@ -2809,9 +2830,9 @@ function renderChartPage(){
         <div class="chfoot">
           <div class="chlook"><span>Bougies</span>${Object.entries(CH_PRESETS).map(([k, p]) => `<button type="button" class="chp${c.preset === k ? " on" : ""}" data-preset="${k}"><i style="background:${p.up}"></i><i style="background:${p.down};${k === "nb" ? "box-shadow:inset 0 0 0 1px #888" : ""}"></i>${p.lab}</button>`).join("")}
             <label class="chc" title="Hausse"><input type="color" data-col="up" value="${c.up}">Hausse</label><label class="chc" title="Baisse"><input type="color" data-col="down" value="${c.down}">Baisse</label><label class="chc" title="Fond"><input type="color" data-col="bg" value="${c.bg}">Fond</label></div>
-          <div class="chsrc">${oandaTok() ? `<span class="ok">● OANDA branché</span><button type="button" data-oanda="off">Retirer</button>` : `<button type="button" class="go" data-oanda="open">Brancher OANDA</button>`}
-            <div class="chtok" id="chTok" hidden><input type="password" id="chTokIn" placeholder="Collez votre token API OANDA (compte démo gratuit)" autocomplete="off"><button type="button" data-oanda="save">Enregistrer</button>
-              <small class="muted">Sur oanda.com : ouvrez un compte démo gratuit, puis Gérer l'accès API → Générer. Le token reste sur cet appareil.</small></div></div>
+          <div class="chsrc">${tdKey() ? `<span class="ok">● Twelve Data branché · XAU/USD</span>${state.chart && state.chart.tdKey ? `<button type="button" data-td="off">Retirer la clé</button>` : ""}` : `<button type="button" class="go" data-td="open">Brancher Twelve Data</button>`}
+            <div class="chtok" id="chTok" hidden><input type="password" id="chTokIn" placeholder="Collez votre clé API Twelve Data" autocomplete="off"><button type="button" data-td="save">Enregistrer</button>
+              <small class="muted">twelvedata.com → compte gratuit → API Keys. La clé est enregistrée dans votre journal (synchronisée sur vos appareils).</small></div></div>
           <div class="chlinks"><a href="https://www.tradingview.com/chart/?symbol=OANDA%3AXAUUSD" target="_blank" rel="noopener">Ouvrir sur TradingView ↗</a><a class="muted" href="https://www.tradingview.com/" target="_blank" rel="noopener">Graphique par TradingView</a></div>
         </div>
       </section>
@@ -2851,6 +2872,11 @@ function showChSel(t){
     <small class="muted">${whenTxt(t, new Date())}${t.time ? "" : " · heure inconnue, placé à midi"}</small>`;
 }
 $("chartView").addEventListener("click", e => {
+  const td = e.target.closest("[data-td]"); if (td) { const k = td.dataset.td;
+    if (k === "open") { $("chTok").hidden = !$("chTok").hidden; if (!$("chTok").hidden) $("chTokIn").focus(); }
+    if (k === "save") { const v = $("chTokIn").value.trim(); if (!v) return; chartPrefs().tdKey = v; save(); cCache.clear(); renderChartPage(); }
+    if (k === "off") { delete chartPrefs().tdKey; save(); cCache.clear(); renderChartPage(); }
+    return; }
   const oa = e.target.closest("[data-oanda]"); if (oa) { const k = oa.dataset.oanda;
     if (k === "open") { $("chTok").hidden = !$("chTok").hidden; if (!$("chTok").hidden) $("chTokIn").focus(); }
     if (k === "save") { const v = $("chTokIn").value.trim(); if (!v) return; try { localStorage.setItem("bilan-oanda", v); } catch(err) {} cCache.clear(); renderChartPage(); }
@@ -2917,7 +2943,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-6";
+const APP_VERSION = "2026-10-26-7";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
