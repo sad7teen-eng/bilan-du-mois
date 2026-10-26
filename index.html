@@ -2722,7 +2722,7 @@ const cCache = new Map();
 let oandaErr = "";
 /* Clé Twelve Data : celle du site (TD_KEY, la même pour tous les élèves) ou celle collée dans la page */
 const TD_KEY = "";
-const tdKey = () => (state.chart && state.chart.tdKey) || TD_KEY;
+const tdKey = () => { let l = ""; try { l = localStorage.getItem("bilan-td-key") || ""; } catch(e) {} const k = (state.chart && state.chart.tdKey) || l || TD_KEY; if (k && state.chart && !state.chart.tdKey && k !== TD_KEY) state.chart.tdKey = k; return k; };
 const oandaTok = () => { try { return localStorage.getItem("bilan-oanda") || ""; } catch(e) { return ""; } };
 function chartPrefs(){
   if (!state.chart || typeof state.chart !== "object") state.chart = {};
@@ -2889,8 +2889,8 @@ function showChSel(t){
 $("chartView").addEventListener("click", e => {
   const td = e.target.closest("[data-td]"); if (td) { const k = td.dataset.td;
     if (k === "open") { $("chTok").hidden = !$("chTok").hidden; if (!$("chTok").hidden) $("chTokIn").focus(); }
-    if (k === "save") { const v = $("chTokIn").value.trim(); if (!v) return; chartPrefs().tdKey = v; save(); cCache.clear(); renderChartPage(); }
-    if (k === "off") { delete chartPrefs().tdKey; save(); cCache.clear(); renderChartPage(); }
+    if (k === "save") { const v = $("chTokIn").value.trim(); if (!v) return; chartPrefs().tdKey = v; try { localStorage.setItem("bilan-td-key", v); } catch(err) {} save(); cCache.clear(); renderChartPage(); }
+    if (k === "off") { delete chartPrefs().tdKey; try { localStorage.removeItem("bilan-td-key"); } catch(err) {} save(); cCache.clear(); renderChartPage(); }
     return; }
   const oa = e.target.closest("[data-oanda]"); if (oa) { const k = oa.dataset.oanda;
     if (k === "open") { $("chTok").hidden = !$("chTok").hidden; if (!$("chTok").hidden) $("chTokIn").focus(); }
@@ -2985,7 +2985,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-10";
+const APP_VERSION = "2026-10-26-11";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
