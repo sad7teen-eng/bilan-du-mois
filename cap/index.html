@@ -150,9 +150,40 @@ input[type=text],input[type=date]{font:inherit;color:var(--ink);background:#fff;
 .syncbox span{font-size:12px;color:var(--mute)}
 .syncbox div{display:flex;gap:8px;justify-content:flex-end}
 @media (max-width:520px){body{padding:calc(18px + env(safe-area-inset-top,0px)) 14px 70px}.top h1{font-size:22px}.stats{gap:20px}.stat .v{font-size:18px}.board{grid-template-columns:minmax(0,1fr)}.lifegrid{grid-template-columns:minmax(0,1fr)}}
+
+/* ===== Fond 3D « verre » : boules noires floues derrière, cartes transparentes ===== */
+body{background:#eceef1!important}
+.scene{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#fbfbfc 0%,#eef0f3 55%,#e4e7eb 100%)}
+.orb{position:absolute;border-radius:50%;will-change:transform}
+.orb i{position:absolute;inset:0;border-radius:50%}
+.orb.o1{width:min(72vmin,702px);aspect-ratio:1;left:50%;margin-left:calc(min(72vmin,702px) / -2 + 18vw);top:50vh}
+.orb.o1 i{background:radial-gradient(circle at 34% 28%,#8a8d93 0%,#3a3c40 14%,#141416 38%,#050506 62%,#000 70.5%,transparent 71%);filter:blur(16px);opacity:.70}
+.orb.o1::after{content:"";position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle at 30% 24%,rgba(255,255,255,.55),transparent 22%);filter:blur(14px)}
+.orb.o2{width:min(40vmax,560px);aspect-ratio:1;left:-12vmax;top:-10vmax}
+.orb.o2 i{background:radial-gradient(circle at 60% 40%,#4a4c51,#121214 55%,transparent 72%);filter:blur(60px);opacity:.38}
+.orb.o3{width:min(26vmax,380px);aspect-ratio:1;left:-6vmax;bottom:-10vmax}
+.orb.o3 i{background:radial-gradient(circle at 60% 35%,#3a3c41,#0d0d0f 55%,transparent 72%);filter:blur(70px);opacity:.3}
+.wrap{position:relative;z-index:1}
+.col,.goal,.ctr,.life,.newcol,.syncbox,.savebar{
+  background:linear-gradient(145deg,rgba(255,255,255,.66),rgba(255,255,255,.34))!important;
+  -webkit-backdrop-filter:blur(30px) saturate(170%) brightness(1.12);backdrop-filter:blur(30px) saturate(170%) brightness(1.12);
+  border:1px solid rgba(255,255,255,.7)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.25),0 1px 2px rgba(0,0,0,.04),0 24px 60px rgba(16,18,24,.12)}
+.col,.goal,.ctr{border-radius:18px!important}
+.life{border-radius:22px!important}
+.savebar{z-index:5;border-radius:0!important}
+.settings{background:rgba(255,255,255,.4)!important}
+.top{border-bottom-color:rgba(0,0,0,.07)!important}
+.top h1,.ctr .big,.stat .v{text-shadow:0 14px 34px rgba(0,0,0,.18),0 3px 8px rgba(0,0,0,.08)}
+.ticker{background:rgba(255,255,255,.35);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+button,select,input[type=text],input[type=date]{background:rgba(255,255,255,.6)}
+.it:hover,button:hover{background:rgba(255,255,255,.75)}
+.box{background:rgba(255,255,255,.7)}
+@media (hover:hover){.col,.goal,.ctr{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}.goal:hover,.ctr:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 #fff,0 30px 70px rgba(16,18,24,.16)}}
 </style>
 </head>
 <body>
+<div class="scene" aria-hidden="true"><div class="orb o2"><i></i></div><div class="orb o3"><i></i></div><div class="orb o1"><i></i></div></div>
 <div class="wrap">
   <header class="top">
     <div>
@@ -481,7 +512,13 @@ $("#carry").onclick=()=>{const prev=dkey(addDays(parse(week),-7));
 render();
 loadRemote();
 /* mise à jour automatique de la page */
-const APP_VERSION="cap-2026-10-18-1";
+
+/* profondeur : les boules glissent plus lentement que la page */
+(()=>{const o1=document.querySelector(".orb.o1"),o2=document.querySelector(".orb.o2");if(!o1)return;let tk=0,mx=0,my=0;
+const upd=()=>{tk=0;const y=scrollY;o1.style.transform=`translate3d(${mx*-18}px,${y*-.12+my*-12}px,0)`;o2.style.transform=`translate3d(${mx*10}px,${y*-.05+my*8}px,0)`;};
+addEventListener("scroll",()=>{if(!tk)tk=requestAnimationFrame(upd)},{passive:true});
+if(matchMedia("(pointer:fine)").matches)addEventListener("pointermove",e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5;if(!tk)tk=requestAnimationFrame(upd)},{passive:true});upd();})();
+const APP_VERSION="cap-2026-10-26-1";
 async function checkUpdate(){try{const r=await fetch(location.pathname+"?check="+Date.now(),{cache:"no-store"});if(!r.ok)return;const m=(await r.text()).match(/APP_VERSION="([^"]+)"/);if(m&&m[1]!==APP_VERSION)location.replace(location.pathname+"?v="+encodeURIComponent(m[1]));}catch(e){}}
 checkUpdate();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")checkUpdate();});
 })();
