@@ -3449,7 +3449,7 @@ function makeGlobe(canvas, o = {}){
   if (o.interactive) {
     canvas.addEventListener("pointerdown", e => { st.touched = performance.now() + 1e9; o.onTouch && o.onTouch(); st.drag = {x: e.clientX, y: e.clientY, r: st.rot.slice(), moved: 0}; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", e => { const b = canvas.getBoundingClientRect();
-      if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (proj.scale() * 2);
+      if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (proj.scale() * 2) * 1.6;
         st.rot = [st.drag.r[0] + dx * k, Math.max(-75, Math.min(75, st.drag.r[1] - dy * k)), 0]; st.anim = null; return; }
       const cy0 = pickCity(e.clientX - b.left, e.clientY - b.top); st.hoverCity = cy0;
       if (cy0) { canvas.style.cursor = "default"; o.onCity && o.onCity(cy0, e); return; }
@@ -3457,9 +3457,6 @@ function makeGlobe(canvas, o = {}){
     /* molette : zoom vers le point visé, du globe entier jusqu'au niveau d'un pays */
     canvas.addEventListener("wheel", e => { e.preventDefault(); const b = canvas.getBoundingClientRect();
       const z0 = st.zt ?? st.z ?? 1, z1 = Math.max(1, Math.min(4.5, z0 * Math.exp(-e.deltaY * .0016)));
-      if (z1 > z0) { const ll = proj.invert([e.clientX - b.left, e.clientY - b.top]);
-        if (ll && d3.geoDistance(ll, [-st.rot[0], -st.rot[1]]) < Math.PI / 2) { let tx = -ll[0]; while (tx - st.rot[0] > 180) tx -= 360; while (st.rot[0] - tx > 180) tx += 360;
-          const f = Math.min(.45, (z1 - z0) / z0 * 1.6); st.rot = [st.rot[0] + (tx - st.rot[0]) * f, Math.max(-75, Math.min(75, st.rot[1] + (-ll[1] - st.rot[1]) * f)), 0]; } }
       st.zt = z1; st.anim = null; st.touched = performance.now(); o.onTouch && o.onTouch(); }, {passive: false});
     canvas.addEventListener("pointerleave", () => { st.hover = null; o.onHover && o.onHover(null); });
     canvas.addEventListener("pointerup", e => { st.touched = performance.now(); const d = st.drag; st.drag = null; if (d && d.moved < 6) { const b = canvas.getBoundingClientRect(), f = pick(e.clientX - b.left, e.clientY - b.top); if (f) o.onPick && o.onPick(f); } });
@@ -3731,7 +3728,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-41";
+const APP_VERSION = "2026-10-26-42";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
