@@ -946,6 +946,10 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 .chtok{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-basis:100%}
 .chtok input{flex:1;min-width:220px;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--fg);font:13px var(--display);padding:8px 10px}
 .chtok small{flex-basis:100%;font-size:11.5px}
+
+/* Les fenêtres passent au-dessus de la barre du haut */
+.modal,.crop,.lightbox{z-index:50!important}
+.story{z-index:60!important}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -1664,7 +1668,14 @@ function editHTML(){
       <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
       <label class="fld" for="e-r">Nombre de R *<input class="pnl" id="e-r" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${t.r != null ? esc(String(t.r).replace(".", ",")) : ""}"></label>
     </div>
-    <label class="fld tiny" for="e-time">Heure (facultatif)<input id="e-time" type="time" value="${esc(t.time || "")}"></label>
+    <div class="row2">
+      <label class="fld" for="e-time">Heure d'entrée *<input id="e-time" type="time" value="${esc(t.time || "")}"></label>
+      <label class="fld" for="e-lots">Lots<input class="pnl" id="e-lots" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" value="${t.lots != null ? esc(String(t.lots).replace(".", ",")) : ""}"></label>
+    </div>
+    <div class="row2">
+      <label class="fld" for="e-entry">Prix d'entrée<input class="pnl" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${t.entry != null ? esc(String(t.entry).replace(".", ",")) : ""}"></label>
+      <label class="fld" for="e-exit">Prix de sortie<input class="pnl" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${t.exit != null ? esc(String(t.exit).replace(".", ",")) : ""}"></label>
+    </div>
     <div class="row2">
       <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
       <div class="fld">Sens<div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></div>
@@ -1702,7 +1713,7 @@ function startNew(){ edit = {id: uid(), pnl: "", sym: "XAUUSD", side: "Long", se
 function readForm(){
   if (!edit) return;
   const g = id => document.getElementById(id);
-  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
+  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.entryTxt = g("e-entry").value; edit.exitTxt = g("e-exit").value; edit.lotsTxt = g("e-lots").value; edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
 }
 async function addImages(files){
   files = [...files].filter(f => f.type.startsWith("image/")).slice(0, 6);
@@ -1818,6 +1829,8 @@ $("dayList").addEventListener("submit", e => {
   const er = $("dayErr");
   if (!(imgCache[edit.id + "#main"] || []).length) { er.textContent = "Ajoute la photo du trade pour pouvoir le valider."; er.hidden = false; document.querySelector(".tedit").scrollIntoView({block: "start", behavior: "smooth"}); return; }
   if (!isFinite(v)) { er.textContent = "Résultat illisible. Écris un nombre, par exemple 250 ou -120."; er.hidden = false; return; }
+  if (!edit.time) { er.textContent = "Indique l'heure d'entrée : sans elle, le trade ne s'affiche pas au bon endroit sur le graphique."; er.hidden = false; document.getElementById("e-time")?.focus(); return; }
+  [["entryTxt", "entry"], ["exitTxt", "exit"], ["lotsTxt", "lots"]].forEach(([a, b]) => { if (edit[a] !== undefined) { const v = num(edit[a]); edit[b] = String(edit[a]).trim() && isFinite(v) ? v : null; delete edit[a]; } });
   if (edit.rTxt !== undefined && (!String(edit.rTxt).trim() || !isFinite(num(edit.rTxt)))) { er.textContent = "Indique le nombre de R (par exemple 2,5 ou -1) : il est obligatoire pour tes statistiques."; er.hidden = false; return; }
   if (edit.rTxt !== undefined) { const rv = num(edit.rTxt); edit.r = String(edit.rTxt).trim() && isFinite(rv) ? rv : null; delete edit.rTxt; }
   const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
@@ -2943,7 +2956,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-7";
+const APP_VERSION = "2026-10-26-8";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
