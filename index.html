@@ -873,7 +873,8 @@ body:not(.light) .crow{background:linear-gradient(180deg,#0d0d0d,#080808)!import
 
 /* ===== Certificats : jeu de cartes ===== */
 .deck{display:flex;flex-direction:column;align-items:center;gap:14px;outline:none;padding-top:8px}
-.deck-stage{position:relative;width:100%;height:clamp(300px,42vw,440px);perspective:1400px;touch-action:pan-y;user-select:none;overflow:hidden;cursor:grab}
+.deck-stage{position:relative;width:100%;height:clamp(340px,46vw,500px);perspective:1400px;touch-action:pan-y;user-select:none;overflow:hidden;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 86%,transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0,#000 12%,#000 88%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 86%,transparent 100%);mask-composite:intersect}
+body.light .di-in{padding:16px 26px;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.4));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);border:1px solid rgba(255,255,255,.75);box-shadow:inset 0 1px 0 #fff,0 20px 50px rgba(16,18,24,.12)}
 .deck-stage:active{cursor:grabbing}
 .dcard{position:absolute;left:50%;top:50%;width:min(440px,74vw);padding:0!important;border-radius:18px!important;overflow:hidden;background:#0b0b0b!important;border:1px solid #262626!important;box-shadow:0 30px 70px rgba(0,0,0,.7);transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .4s;display:flex;flex-direction:column;text-align:left;color:#fff;will-change:transform}
 .dcard.on{border-color:#444!important;box-shadow:0 34px 90px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.08)}
@@ -1014,11 +1015,12 @@ body.light .tico.gold{box-shadow:0 4px 12px rgba(160,112,26,.35)}
 .cell.wkc .c{align-self:center;margin:auto 0}
 .cell.wkc:hover{transform:none!important}
 body.light .cell{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.7);box-shadow:0 1px 2px rgba(0,0,0,.03)}
-body.light .cell.up{background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(255,255,255,.62));border-color:rgba(255,255,255,.95);box-shadow:0 10px 24px rgba(16,18,24,.10)}
+body.light .cell.up{background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(232,250,240,.75));border-color:rgba(46,160,96,.22);box-shadow:0 10px 24px rgba(16,18,24,.10),inset 0 -14px 24px -18px rgba(46,160,96,.35)}
+body.light .cell.up .cbar{background:linear-gradient(90deg,#0b0b0c,#2ea060)}
 body.light .cell .p{font-size:16px!important;font-weight:650}
 body.light .cell.up .p{color:#0b0b0c!important}
 body.light .cell.down .p{color:#e5484d!important}
-body.light .cell.down{background:linear-gradient(160deg,rgba(255,236,236,.95),rgba(255,255,255,.6));border-color:rgba(229,72,77,.25);box-shadow:0 10px 24px rgba(229,72,77,.10)}
+body.light .cell.down{background:linear-gradient(160deg,rgba(255,226,227,.98),rgba(255,240,240,.7));border-color:rgba(229,72,77,.42);box-shadow:0 10px 26px rgba(229,72,77,.18),inset 0 -14px 24px -18px rgba(229,72,77,.5)}
 body.light .cell.today{border-color:#0b0b0c!important}
 body.light .cell:not(.blank):not(.wkc):hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(16,18,24,.16)}
 @media (max-width:760px){
@@ -2900,7 +2902,7 @@ async function fetchBars(tf, endMs){
       const r = await fetch(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${iv}&outputsize=1000&timezone=UTC&order=asc${end}&apikey=${encodeURIComponent(td)}`);
       const j = await r.json();
       if (j.status === "ok" && Array.isArray(j.values) && j.values.length) {
-        const bars = j.values.map(v => { const t = Math.floor(Date.parse(v.datetime.replace(" ", "T") + "Z") / 1000); return {t, time: t + tzOff(t), open: +v.open, high: +v.high, low: +v.low, close: +v.close}; }).sort((a, b) => a.t - b.t);
+        const bars = j.values.map(v => { const d0 = String(v.datetime), t = Math.floor(Date.parse(d0.length <= 10 ? d0 + "T00:00:00Z" : d0.replace(" ", "T") + "Z") / 1000); return {t, time: t + tzOff(t), open: +v.open, high: +v.high, low: +v.low, close: +v.close}; }).sort((a, b) => a.t - b.t);
         oandaErr = ""; const out = {name: "XAU/USD · Twelve Data", bars}; cCache.set(key, out);
         return out;
       }
@@ -3184,7 +3186,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-18";
+const APP_VERSION = "2026-10-26-20";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
