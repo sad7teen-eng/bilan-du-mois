@@ -870,6 +870,38 @@ body:not(.light) .crow{background:linear-gradient(180deg,#0d0d0d,#080808)!import
 .crow:hover .cr-go{transform:translateX(3px);color:var(--fg)}
 .slot.wide{aspect-ratio:auto;padding:28px!important;font-size:14px;width:100%}
 @media (max-width:560px){.crow{grid-template-columns:40px 56px minmax(0,1fr) auto;gap:10px;padding:10px!important}.cr-im{width:56px;height:40px}.cr-go{display:none}.cr-v{font-size:16px}}
+
+/* ===== Certificats : jeu de cartes ===== */
+.deck{display:flex;flex-direction:column;align-items:center;gap:14px;outline:none;padding-top:8px}
+.deck-stage{position:relative;width:100%;height:clamp(300px,42vw,440px);perspective:1400px;touch-action:pan-y;user-select:none;overflow:hidden;cursor:grab}
+.deck-stage:active{cursor:grabbing}
+.dcard{position:absolute;left:50%;top:50%;width:min(440px,74vw);padding:0!important;border-radius:18px!important;overflow:hidden;background:#0b0b0b!important;border:1px solid #262626!important;box-shadow:0 30px 70px rgba(0,0,0,.7);transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .4s;display:flex;flex-direction:column;text-align:left;color:#fff;will-change:transform}
+.dcard.on{border-color:#444!important;box-shadow:0 34px 90px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.08)}
+.dcard.on.tilt{transition:filter .5s,opacity .4s}
+.dcard.on.tilt{transform:translate(-50%,-50%) perspective(900px) rotateX(var(--rx,0)) rotateY(var(--ry,0)) scale(1.02)!important}
+.dc-im{display:block;aspect-ratio:4/3;background:#000}
+.dc-im img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.dc-none{display:grid;place-items:center;height:100%;color:#777;font-size:12px}
+.dc-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(180deg,#121212,#0a0a0a);border-top:1px solid #1f1f1f}
+.dc-foot b{display:block;font-size:13.5px;font-weight:600}
+.dc-foot small{font-size:11px;color:#8b8b8b}
+.dc-foot em{font-style:normal;font-size:18px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dc-glare{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(420px circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.18),transparent 55%);mix-blend-mode:screen}
+.dcard.tilt .dc-glare{opacity:1}
+.deck-bar{display:flex;align-items:center;gap:14px}
+.deck-bar button{width:40px;height:40px;padding:0!important;border-radius:50%!important;font-size:18px}
+.deck-bar button:disabled{opacity:.3}
+.deck-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:60vw}
+.deck-dots i{width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer;transition:width .3s,background .3s}
+.deck-dots i.on{width:22px;border-radius:999px;background:var(--fg)}
+.deck-info{width:100%;display:flex;justify-content:center}
+.di-in{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;animation:dlIn .4s cubic-bezier(.2,.8,.2,1)}
+.di-in b{font-size:16px;font-weight:600}
+.di-v{font-size:clamp(30px,5vw,44px);font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+body:not(.light) .di-v{text-shadow:0 0 24px rgba(255,255,255,.3)}
+.di-in small{font-size:12px;color:var(--muted)}
+.di-acts{display:flex;gap:8px;margin-top:6px}
+.di-acts button{border-radius:999px!important;padding:7px 14px!important;font-size:12px}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -953,8 +985,8 @@ body:not(.light) .crow{background:linear-gradient(180deg,#0d0d0d,#080808)!import
   <section class="view" data-view="certs" id="certModal" hidden>
     <header class="top vhead"><div><h1>Certificats</h1><div class="meta" id="certSum"></div></div>
       <div class="tools"><button type="button" class="go" id="certAdd">+ Ajouter un certificat</button></div></header>
-    <div id="certHero"></div>
     <div class="clist" id="certGrid"></div>
+    <div id="certHero"></div>
     <button type="button" id="certClose" hidden></button><span id="certTitle" hidden></span>
     <input type="file" id="certPick" accept="image/*,application/pdf" hidden>
     <datalist id="firms"><option>FTMO</option><option>Alpha Capital</option><option>The5ers</option><option>FundedNext</option><option>Topstep</option><option>Apex</option></datalist>
@@ -1425,18 +1457,20 @@ function drawCerts(){
         <div class="ch-sub">${pays.length} payout${pl(pays.length)} · depuis ${asc[0].date ? new Date(asc[0].date).toLocaleDateString("fr-FR", {month: "long", year: "numeric"}) : "le début"}</div></div>
         <div class="ch-kpis"><div><small>Plus gros</small><b class="mv">${frN(big, 0)} ${cc}</b></div><div><small>Moyenne</small><b class="mv">${frN(tot / pays.length, 0)} ${cc}</b></div><div><small>Dernier</small><b>${esc(fd(cs.find(c => c.kind === "Payout")?.date))}</b></div></div></div>
       ${curve}</section>` : "";
-  /* Liste, rangée par année */
-  const years = []; cs.forEach(c => { const y = (c.date || "").slice(0, 4) || "Sans date"; let g = years.find(x => x.y === y); if (!g) years.push(g = {y, cs: []}); g.cs.push(c); });
-  $("certGrid").innerHTML = years.map(g => { const sum = g.cs.filter(c => c.kind === "Payout" && certAmt(c).v != null).reduce((a, c) => a + certAmt(c).v, 0);
-    return `<div class="cy"><span>${g.y}</span><small>${g.cs.length} certificat${pl(g.cs.length)}${sum ? " · " + frN(sum, 0) + " " + cc : ""}</small></div>` + g.cs.map(c => {
-      const im = (imgCache["cert:" + c.id] || [])[0] || c.src, A = certAmt(c), d = c.date ? new Date(c.date) : null;
-      return `<button type="button" class="crow" data-open="${c.id}">
-        <span class="cr-d">${d ? `<b>${d.getDate()}</b><small>${MON3[d.getMonth()]}</small>` : "—"}</span>
-        <span class="cr-im">${im ? `<img src="${im}" alt="" loading="lazy">` : ""}</span>
-        <span class="cr-m"><b>${esc(c.firm)}</b><small><em class="kchip">${esc(c.kind)}</em></small></span>
-        <span class="cr-v mv">${A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, A.v % 1 ? 2 : 0) + (A.c ? " " + A.c : "") : esc(c.amount || "")}</span>
-        <span class="cr-go" aria-hidden="true">→</span></button>`; }).join(""); }).join("")
-    || `<button type="button" class="slot wide" data-newcert="1">+ Ajouter votre premier certificat</button>`;
+  /* Jeu de cartes : on fait glisser les certificats */
+  deckList = cs; deckSel = Math.max(0, Math.min(cs.length - 1, deckSel));
+  $("certGrid").innerHTML = cs.length ? `<div class="deck" id="deck" tabindex="0" aria-label="Certificats, glissez pour parcourir">
+      <div class="deck-stage">${cs.map((c, i) => { const im = (imgCache["cert:" + c.id] || [])[0] || c.src, A = certAmt(c);
+        return `<button type="button" class="dcard" data-ci="${i}" aria-label="${esc(c.firm)} ${esc(c.amount || "")}">
+          <span class="dc-im">${im ? `<img src="${im}" alt="" draggable="false">` : `<span class="dc-none">Pas d'image</span>`}</span>
+          <span class="dc-foot"><span><b>${esc(c.firm)}</b><small>${esc(fd(c.date))}</small></span><em class="mv">${A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, A.v % 1 ? 2 : 0) + (A.c ? " " + A.c : "") : esc(c.amount || "")}</em></span>
+          <span class="dc-glare"></span></button>`; }).join("")}</div>
+      <div class="deck-bar"><button type="button" data-dkstep="-1" aria-label="Carte précédente">‹</button>
+        <div class="deck-dots">${cs.map((_, i) => `<i data-dkgo="${i}"></i>`).join("")}</div>
+        <button type="button" data-dkstep="1" aria-label="Carte suivante">›</button></div>
+      <div class="deck-info" id="deckInfo"></div></div>`
+    : `<button type="button" class="slot wide" data-newcert="1">+ Ajouter votre premier certificat</button>`;
+  layoutDeck();
   $("certEditModal").hidden = !certEdit;
   if (!certEdit) { $("certEdit").innerHTML = ""; return; }
   const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -1450,6 +1484,48 @@ function drawCerts(){
     <div class="e-acts"><span class="grow"></span>${(state.certs || []).some(x => x.id === c.id) ? `<button type="button" class="mini del" id="cfDel">Supprimer</button>` : ""}
       <button type="button" class="mini ghost" id="cfCancel">Annuler</button><button type="submit" class="go save">Enregistrer</button></div></form>`;
 }
+let deckSel = 0, deckList = [];
+function layoutDeck(){
+  const st = document.querySelector("#certGrid .deck-stage"); if (!st) return;
+  const W = st.clientWidth || 800, gap = Math.min(150, W * .17);
+  st.querySelectorAll(".dcard").forEach(c => { const d = +c.dataset.ci - deckSel, a = Math.abs(d);
+    c.style.transform = `translate(-50%,-50%) translateX(${d * gap}px) translateY(${a * a * 7}px) rotate(${d * 5}deg) scale(${Math.max(.6, 1 - a * .09)})`;
+    c.style.zIndex = 100 - a; c.style.opacity = a > 4 ? 0 : 1; c.style.pointerEvents = a > 4 ? "none" : "";
+    c.style.filter = a ? `brightness(${Math.max(.35, 1 - a * .2)})` : ""; c.classList.toggle("on", !d); c.tabIndex = d ? -1 : 0; });
+  document.querySelectorAll("#certGrid .deck-dots i").forEach((x, i) => x.classList.toggle("on", i === deckSel));
+  const c = deckList[deckSel]; if (!c) return; const A = certAmt(c);
+  $("deckInfo").innerHTML = `<div class="di-in"><span class="kchip">${esc(c.kind)}</span><b>${esc(c.firm)}</b><span class="di-v mv">${A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, 2) + (A.c ? " " + A.c : "") : esc(c.amount || "")}</span>
+    <small>${c.date ? new Date(c.date).toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long", year: "numeric"}) : ""} · ${deckSel + 1} / ${deckList.length}</small>
+    <div class="di-acts"><button type="button" data-dkopen="1">Voir en grand</button><button type="button" data-dkedit="1">Modifier</button></div></div>`;
+  st.parentElement.querySelectorAll("[data-dkstep]").forEach(b => { b.disabled = (+b.dataset.dkstep < 0 && !deckSel) || (+b.dataset.dkstep > 0 && deckSel === deckList.length - 1); });
+}
+function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
+function openDeckCard(){ const c = deckList[deckSel]; if (!c) return; const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
+  if (!im) { certEdit = {...c}; drawCerts(); return; } lbId = c.id; $("lightImg").src = im; $("lightbox").hidden = false; }
+(() => {
+  const g = $("certGrid"); let wAcc = 0, wT = 0, px = null, moved = false;
+  g.addEventListener("click", e => {
+    if (moved) { moved = false; return; }
+    const s = e.target.closest("[data-dkstep]"); if (s) { stepDeck(+s.dataset.dkstep); return; }
+    const go = e.target.closest("[data-dkgo]"); if (go) { deckSel = +go.dataset.dkgo; layoutDeck(); return; }
+    if (e.target.closest("[data-dkopen]")) { openDeckCard(); return; }
+    if (e.target.closest("[data-dkedit]")) { certEdit = {...deckList[deckSel]}; drawCerts(); return; }
+    const c = e.target.closest(".dcard"); if (c) { if (+c.dataset.ci !== deckSel) { deckSel = +c.dataset.ci; layoutDeck(); } else openDeckCard(); }
+  });
+  g.addEventListener("wheel", e => { if (!e.target.closest(".deck-stage")) return; const v = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; const dir = Math.sign(v);
+    if (!dir || (dir < 0 && !deckSel) || (dir > 0 && deckSel === deckList.length - 1)) return;
+    e.preventDefault(); wAcc += v; if (Math.abs(wAcc) > 40 && Date.now() - wT > 140) { stepDeck(Math.sign(wAcc)); wAcc = 0; wT = Date.now(); } }, {passive: false});
+  g.addEventListener("pointerdown", e => { if (e.target.closest(".deck-stage")) { px = e.clientX; moved = false; } });
+  g.addEventListener("pointermove", e => {
+    if (px != null && Math.abs(e.clientX - px) > 50) { moved = true; stepDeck(e.clientX < px ? 1 : -1); px = e.clientX; }
+    const c = e.target.closest && e.target.closest(".dcard.on"); g.querySelectorAll(".dcard.tilt").forEach(x => { if (x !== c) { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); } });
+    if (c && px == null) { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+      c.classList.add("tilt"); c.style.setProperty("--rx", ((.5 - y) * 10).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 14).toFixed(2) + "deg"); c.style.setProperty("--gx", (x * 100).toFixed(1) + "%"); c.style.setProperty("--gy", (y * 100).toFixed(1) + "%"); }
+  });
+  addEventListener("pointerup", () => { px = null; });
+  g.addEventListener("keydown", e => { if (!e.target.closest("#deck")) return; if (e.key === "ArrowRight") { e.preventDefault(); stepDeck(1); } if (e.key === "ArrowLeft") { e.preventDefault(); stepDeck(-1); } if (e.key === "Enter" && e.target.id === "deck") openDeckCard(); });
+  addEventListener("resize", layoutDeck);
+})();
 function readCert(){ const g = id => document.getElementById(id); if (certEdit && g("cf-firm")) { certEdit.firm = g("cf-firm").value; certEdit.amount = g("cf-amount").value; certEdit.date = g("cf-date").value; } }
 async function setCertFile(f){
   if (!f || !certEdit) return; readCert();
@@ -2616,7 +2692,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-3";
+const APP_VERSION = "2026-10-26-4";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
