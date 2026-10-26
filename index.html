@@ -1186,6 +1186,14 @@ body.inmacro .topnav,body.inmacro .dock{visibility:hidden}
 #macroView .mchips button{flex:none;padding:7px 14px 7px 8px!important}
 #macroView .mchips button b{font-weight:600;font-variant-numeric:tabular-nums;opacity:.75;margin-left:2px}
 @media (max-width:1000px){#macroView.hassel .mbody{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) minmax(0,1.1fr)}#macroView .mframe{height:auto;min-height:100dvh;overflow:visible}#macroView .mglobe{height:52vh}}
+
+/* --- planète transparente en haut à gauche (v24) --- */
+section.view.hasglobe{--pg:clamp(220px,22vw,340px)!important;--crop:calc(var(--pg) * .16)!important}
+.miniglobe{top:0!important}
+.miniglobe canvas{filter:none!important}
+.miniglobe:hover{transform:scale(1.04)!important}
+#macroView #bigGlobe{height:min(100%,960px)!important}
+@media (max-width:640px){section.view.hasglobe{--pg:190px!important;--crop:40px!important}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3258,39 +3266,84 @@ const rateOf = iso => RATES[iso] || (EZ.has(iso) ? RATES.EZ : null);
 
 /* Une planète dessinée au canvas, projection orthographique */
 function makeGlobe(canvas, o = {}){
-  const ctx = canvas.getContext("2d"), proj = d3.geoOrthographic().clipAngle(90).precision(.4), path = d3.geoPath(proj, ctx), grat = d3.geoGraticule10();
-  const st = {rot: o.rot ? o.rot.slice() : [-20, -18, 0], speed: o.speed ?? 8, sel: null, hover: null, drag: null, anim: null, w: 0, dead: false, touched: -1e9};
+  /* m = 0 : planète transparente du tableau (océans vides, grille fine, petits avions)
+     m = 1 : vraie planète de l'univers noir (sphère pleine, aura blanche, anneaux) */
+  const ctx = canvas.getContext("2d"), proj = d3.geoOrthographic().clipAngle(90).precision(.5), path = d3.geoPath(proj, ctx);
+  const projB = d3.geoOrthographic().clipAngle(90).precision(.8).reflectX(true), pathB = d3.geoPath(projB, ctx), grat = d3.geoGraticule().step([15, 15])();
+  const st = {rot: o.rot ? o.rot.slice() : [-20, -18, 0], speed: o.speed ?? 8, sel: null, hover: null, drag: null, anim: null, w: 0, dead: false, touched: -1e9, m: o.m ?? 0, k: o.k ?? .96};
   const key = new Set(KEY_ECO), phase = {}; KEY_ECO.forEach((k, i) => phase[k] = i * 1.7);
-  let last = performance.now(), raf = 0;
+  const flights = []; let last = performance.now(), raf = 0, nextF = 0;
+  const mix = (a, b, t) => a + (b - a) * t;
   function fit(){ const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
-    if (Math.abs(r.width - st.w) > .5 || canvas.width !== Math.round(r.width * dpr)) { st.w = r.width; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
-    proj.scale(r.width / 2 * (o.mini ? 1 : .94)).translate([r.width / 2, r.height / 2]); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
+    if (canvas.width !== Math.round(r.width * dpr) || canvas.height !== Math.round(r.height * dpr)) { canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
+    const R = Math.min(r.width, r.height) / 2 * st.k; proj.scale(R).translate([r.width / 2, r.height / 2]); projB.scale(R).translate([r.width / 2, r.height / 2]);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
+  function spawn(now){
+    if (!geo) return; const pick = () => geo.byIso[KEY_ECO[Math.floor(Math.random() * KEY_ECO.length)]];
+    const a = pick(), b = pick(); if (!a || !b || a === b) return;
+    flights.push({a: a.cen, b: b.cen, t0: now, d: 2600 + Math.random() * 2400, ip: d3.geoInterpolate(a.cen, b.cen), h: .12 + Math.random() * .14});
+  }
   function draw(now){
-    const r = fit(), R = proj.scale(), [cx, cy] = proj.translate(), t = now / 1000;
+    const r = fit(), R = proj.scale(), [cx, cy] = proj.translate(), t = now / 1000, m = st.m;
+    const ink0 = o.mini && !document.body.classList.contains("light") ? [235, 236, 240] : (o.ink || [22, 24, 28]), ink = ink0.map(v => Math.round(mix(v, 255, m))), rgba = a => `rgba(${ink[0]},${ink[1]},${ink[2]},${Math.max(0, a).toFixed(3)})`;
     ctx.clearRect(0, 0, r.width, r.height);
-    /* halo atmosphérique */
-    const halo = ctx.createRadialGradient(cx, cy, R * .9, cx, cy, R * 1.06); halo.addColorStop(0, "rgba(255,255,255,0)"); halo.addColorStop(.6, "rgba(200,210,230,.10)"); halo.addColorStop(1, "rgba(200,210,230,0)");
-    if (!o.mini) { ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.06, 0, 7); ctx.fill(); }
-    const sg = ctx.createRadialGradient(cx - R * .38, cy - R * .42, R * .05, cx, cy, R);
-    sg.addColorStop(0, "#3d4046"); sg.addColorStop(.45, "#121316"); sg.addColorStop(1, "#000");
-    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sg; ctx.fill();
-    if (!o.mini) { ctx.beginPath(); path(grat); ctx.strokeStyle = "rgba(255,255,255,.05)"; ctx.lineWidth = .5; ctx.stroke(); }
+    /* aura blanche + anneaux d'astronome (seulement la vraie planète) */
+    if (m > .01) {
+      const au = ctx.createRadialGradient(cx, cy, R * .96, cx, cy, R * 1.6);
+      au.addColorStop(0, `rgba(235,240,255,${(.42 * m).toFixed(3)})`); au.addColorStop(.18, `rgba(210,220,245,${(.16 * m).toFixed(3)})`); au.addColorStop(1, "rgba(200,210,240,0)");
+      ctx.fillStyle = au; ctx.beginPath(); ctx.arc(cx, cy, R * 1.6, 0, 7); ctx.fill();
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(-.32);
+      ctx.strokeStyle = `rgba(255,255,255,${(.13 * m).toFixed(3)})`; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, 0, R * 1.38, R * .4, 0, 0, 7); ctx.stroke();
+      ctx.setLineDash([2, 6]); ctx.beginPath(); ctx.ellipse(0, 0, R * 1.62, R * .52, 0, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = `rgba(255,255,255,${(.08 * m).toFixed(3)})`; ctx.beginPath(); ctx.moveTo(0, -R * 1.5); ctx.lineTo(0, R * 1.5); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, R * 1.22, 0, 7); ctx.stroke();
+      const sa = t * .25; ctx.fillStyle = `rgba(255,255,255,${(.7 * m).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(Math.cos(sa) * R * 1.38, Math.sin(sa) * R * .4, 2.2, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(Math.cos(-sa * .7 + 2) * R * 1.62, Math.sin(-sa * .7 + 2) * R * .52, 1.6, 0, 7); ctx.fill();
+      ctx.restore();
+      const sg = ctx.createRadialGradient(cx - R * .38, cy - R * .42, R * .05, cx, cy, R);
+      sg.addColorStop(0, `rgba(61,64,70,${m})`); sg.addColorStop(.45, `rgba(18,19,22,${m})`); sg.addColorStop(1, `rgba(0,0,0,${m})`);
+      ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sg; ctx.fill();
+    }
+    /* face cachée vue par transparence */
+    if (m < .99 && geo) {
+      projB.rotate([st.rot[0] + 180, -st.rot[1], -st.rot[2]]);
+      ctx.beginPath(); pathB(grat); ctx.strokeStyle = rgba(.05 * (1 - m)); ctx.lineWidth = .5; ctx.stroke();
+      ctx.beginPath(); for (const f of geo.feats) pathB(f); ctx.fillStyle = rgba(.08 * (1 - m)); ctx.fill();
+    }
+    /* grille très fine */
+    ctx.beginPath(); path(grat); ctx.strokeStyle = rgba(mix(.13, .05, m)); ctx.lineWidth = .5; ctx.stroke();
+    if (m < .99) { ctx.beginPath(); path({type: "Sphere"}); ctx.strokeStyle = rgba(.16 * (1 - m)); ctx.lineWidth = .8; ctx.stroke(); }
     if (geo) for (const f of geo.feats) {
       ctx.beginPath(); path(f);
-      let a = .14; if (key.has(f.iso)) a = .34 + .22 * (.5 + .5 * Math.sin(t * 1.1 + phase[f.iso]));
-      if (st.hover === f.id) a = .8; if (st.sel === f.id) a = 1;
-      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`; ctx.fill();
-      if (!o.mini) { ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.lineWidth = .4; ctx.stroke(); }
+      let a = mix(.4, .14, m); if (key.has(f.iso)) a = mix(.62, .34, m) + mix(.2, .22, m) * (.5 + .5 * Math.sin(t * 1.1 + phase[f.iso]));
+      if (st.hover === f.id) a = .85; if (st.sel === f.id) a = 1;
+      ctx.fillStyle = rgba(a); ctx.fill();
+      ctx.strokeStyle = m > .5 ? "rgba(0,0,0,.55)" : `rgba(255,255,255,${(.35 * (1 - m)).toFixed(3)})`; ctx.lineWidth = .4; ctx.stroke();
     }
-    /* les pays clés brillent : petit point lumineux */
-    if (geo) { ctx.save(); ctx.shadowColor = "rgba(255,255,255,.9)";
+    /* petits avions qui font le tour de la planète */
+    if (geo) {
+      if (now > nextF && flights.length < (o.mini ? 5 : 8)) { spawn(now); nextF = now + 500 + Math.random() * 900; }
+      const center = [-st.rot[0], -st.rot[1]];
+      for (let i = flights.length - 1; i >= 0; i--) {
+        const fl = flights[i], k = (now - fl.t0) / fl.d; if (k >= 1.25) { flights.splice(i, 1); continue; }
+        const pts = []; for (let j = 0; j <= 16; j++) { const u = Math.max(0, Math.min(1, k - .3 + .3 * j / 16)); if (u <= 0 && j < 16) continue;
+          const ll = fl.ip(u), alt = fl.h * Math.sin(Math.PI * u), vis = d3.geoDistance(ll, center) < Math.PI / 2 + alt * .8; const p = proj(ll);
+          pts.push(vis && p ? [cx + (p[0] - cx) * (1 + alt), cy + (p[1] - cy) * (1 + alt), u] : null); }
+        for (let j = 1; j < pts.length; j++) { if (!pts[j] || !pts[j - 1]) continue; const fade = j / pts.length * (k > 1 ? Math.max(0, 1 - (k - 1) * 4) : 1);
+          ctx.strokeStyle = rgba(fade * mix(.75, .8, m)); ctx.lineWidth = o.mini ? 1.4 : 1.4; ctx.beginPath(); ctx.moveTo(pts[j - 1][0], pts[j - 1][1]); ctx.lineTo(pts[j][0], pts[j][1]); ctx.stroke(); }
+        const h = pts[pts.length - 1]; if (h && k <= 1) { ctx.save(); ctx.shadowColor = m > .5 ? "#fff" : rgba(.6); ctx.shadowBlur = 8; ctx.fillStyle = rgba(mix(.85, 1, m)); ctx.beginPath(); ctx.arc(h[0], h[1], o.mini ? 1.6 : 2.2, 0, 7); ctx.fill(); ctx.restore(); }
+      }
+    }
+    /* pays clés : point lumineux */
+    if (geo) { ctx.save(); ctx.shadowColor = m > .5 ? "rgba(255,255,255,.9)" : rgba(.5);
       for (const iso of KEY_ECO) { const f = geo.byIso[iso]; if (!f) continue; const p = proj(f.cen); if (!p || d3.geoDistance(f.cen, [-st.rot[0], -st.rot[1]]) > 1.45) continue;
-        const k = .5 + .5 * Math.sin(t * 1.6 + phase[iso]); ctx.shadowBlur = (o.mini ? 4 : 12) * k + 2; ctx.fillStyle = `rgba(255,255,255,${(.55 + .45 * k).toFixed(2)})`;
-        ctx.beginPath(); ctx.arc(p[0], p[1], o.mini ? .9 : 1.8 + k, 0, 7); ctx.fill(); }
+        const k = .5 + .5 * Math.sin(t * 1.6 + phase[iso]); ctx.shadowBlur = 10 * k + 2; ctx.fillStyle = rgba(.55 + .45 * k);
+        ctx.beginPath(); ctx.arc(p[0], p[1], o.mini ? 1.4 : 1.8 + k, 0, 7); ctx.fill(); }
       ctx.restore(); }
-    /* reflet + bord lumineux */
-    const sh = ctx.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .9); sh.addColorStop(0, "rgba(255,255,255,.16)"); sh.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill();
+    if (m > .01) { const sh = ctx.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .9); sh.addColorStop(0, `rgba(255,255,255,${(.16 * m).toFixed(3)})`); sh.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill(); }
   }
   function frame(now){
     if (st.dead) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
@@ -3303,7 +3356,7 @@ function makeGlobe(canvas, o = {}){
   if (o.interactive) {
     canvas.addEventListener("pointerdown", e => { st.touched = performance.now() + 1e9; o.onTouch && o.onTouch(); st.drag = {x: e.clientX, y: e.clientY, r: st.rot.slice(), moved: 0}; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", e => { const b = canvas.getBoundingClientRect();
-      if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (b.width * .94);
+      if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (proj.scale() * 2);
         st.rot = [st.drag.r[0] + dx * k, Math.max(-75, Math.min(75, st.drag.r[1] - dy * k)), 0]; st.anim = null; return; }
       const f = pick(e.clientX - b.left, e.clientY - b.top); st.hover = f ? f.id : null; canvas.style.cursor = f ? "pointer" : "grab"; o.onHover && o.onHover(f, e); });
     canvas.addEventListener("pointerleave", () => { st.hover = null; o.onHover && o.onHover(null); });
@@ -3327,7 +3380,7 @@ function mountMini(){
   const place = () => { const r = h.getBoundingClientRect(); h.style.setProperty("--vl", (-r.left) + "px"); };
   place(); addEventListener("resize", place);
   b.onclick = openMacro;
-  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 24}); }).catch(() => {});
+  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 24, m: 0, k: .96}); }).catch(() => {});
 }
 
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
@@ -3338,7 +3391,7 @@ async function openMacro(){
   const r0 = src.getBoundingClientRect();
   const fly = document.createElement("div"); fly.className = "globefly"; fly.innerHTML = `<div class="gf-bg"></div><canvas></canvas>`; document.body.appendChild(fly);
   const cv = fly.querySelector("canvas"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
-  const g = makeGlobe(cv, {speed: 320, rot: miniG ? miniG.st.rot : undefined});
+  const g = makeGlobe(cv, {speed: 320, rot: miniG ? miniG.st.rot : undefined, m: 0, k: .96});
   src.style.visibility = "hidden";
   flyRot = g.st.rot; $("macroView").classList.add("entering");
   setView("macro", true);
@@ -3346,7 +3399,7 @@ async function openMacro(){
   const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
   fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
   const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
-  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 16 * k; if (k < 1) requestAnimationFrame(slow); })();
+  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 16 * k; const e = k * k * (3 - 2 * k); g.st.m = Math.min(1, e * 1.25); g.st.k = .96 + (.66 - .96) * e; if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
   if (bigG) bigG.st.rot = g.st.rot.slice(); flyRot = null;
   $("macroView").classList.remove("entering");
@@ -3374,7 +3427,7 @@ function renderMacro(){
   $("mBack").onclick = () => { const mv = $("macroView"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 380); };
   loadGeo().then(() => {
     if ($("macroView").hidden || !$("bigGlobe")) return;
-    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 16, rot: flyRot || undefined,
+    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 16, m: 1, k: .66, rot: flyRot || undefined,
       onTouch: () => { const hh = $("mHint"); if (hh) { hh.style.opacity = 0; setTimeout(() => hh.remove(), 400); try { localStorage.setItem("bilan-mhint", "1"); } catch(e) {} } },
       onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2]; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
       onPick: f => selectCountry(f.iso)});
@@ -3535,7 +3588,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-23";
+const APP_VERSION = "2026-10-26-24";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
