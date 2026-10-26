@@ -1197,7 +1197,7 @@ section.view.hasglobe{--pg:clamp(220px,22vw,340px)!important;--crop:calc(var(--p
 
 /* --- v25 : barre du haut libre (sans bandeau), grande planète floue derrière, fondue vers le bas --- */
 .topnav,body.light .topnav{position:relative!important;background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-bottom:0!important;z-index:30}
-section.view.hasglobe{--pg:clamp(420px,46vw,760px)!important;--crop:calc(var(--pg) * .34)!important}
+section.view.hasglobe{--pg:clamp(336px,37vw,608px)!important;--crop:calc(var(--pg) * .34)!important}
 .miniglobe{z-index:0!important;top:calc(var(--pg) * -.2)!important;-webkit-mask-image:linear-gradient(180deg,#000 40%,rgba(0,0,0,.35) 62%,transparent 80%);mask-image:linear-gradient(180deg,#000 40%,rgba(0,0,0,.35) 62%,transparent 80%)}
 .miniglobe canvas{filter:blur(3px)!important;opacity:.42;transition:filter .45s,opacity .45s,transform .6s cubic-bezier(.2,.8,.2,1)}
 .miniglobe:hover{transform:none!important}
@@ -3403,7 +3403,7 @@ function mountMini(){
   const place = () => { const r = h.getBoundingClientRect(); h.style.setProperty("--vl", (-r.left) + "px"); };
   place(); addEventListener("resize", place);
   b.onclick = openMacro;
-  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 24, m: 0, k: .96}); }).catch(() => {});
+  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 13, m: 0, k: .96}); }).catch(() => {});
 }
 
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
@@ -3427,7 +3427,7 @@ async function openMacro(){
   const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
   fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
   const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
-  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 16 * k; const e = k * k * (3 - 2 * k); g.st.k = .96 + (.6 - .96) * e; g.st.iw = document.body.classList.contains("light") ? Math.min(1, e * 1.6) : 1; if (k < 1) requestAnimationFrame(slow); })();
+  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 9 * k; const e = k * k * (3 - 2 * k); g.st.k = .96 + (.6 - .96) * e; g.st.iw = document.body.classList.contains("light") ? Math.min(1, e * 1.6) : 1; if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
   if (bigG) { bigG.st.rot = g.st.rot.slice(); bigG.st.m = 0; bigG.st.au = 0; } flyRot = null;
   $("macroView").classList.remove("entering");
@@ -3455,7 +3455,7 @@ function renderMacro(){
   $("mBack").onclick = () => { const mv = $("macroView"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 380); };
   loadGeo().then(() => {
     if ($("macroView").hidden || !$("bigGlobe")) return;
-    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 16, m: 0, au: 0, iw: 1, k: .6, rot: flyRot || undefined,
+    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 9, m: 0, au: 0, iw: 1, k: .6, rot: flyRot || undefined,
       onTouch: () => { const hh = $("mHint"); if (hh) { hh.style.opacity = 0; setTimeout(() => hh.remove(), 400); try { localStorage.setItem("bilan-mhint", "1"); } catch(e) {} } },
       onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2]; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
       onPick: f => selectCountry(f.iso)});
@@ -3617,7 +3617,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-26";
+const APP_VERSION = "2026-10-26-27";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
