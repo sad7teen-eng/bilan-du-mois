@@ -1227,6 +1227,14 @@ section.view.hasglobe .bhero .hsub{width:max-content;max-width:100%}
 #macroView.hassel .mbody{grid-template-columns:minmax(0,1fr) 400px!important;padding:96px clamp(16px,3vw,40px) 76px 0}
 #macroView .mhint{bottom:84px}
 @media (max-width:1000px){#macroView .mbody{position:relative;inset:auto}#macroView .mhead,#macroView .mchips{position:relative;left:auto;right:auto;top:auto;bottom:auto}#macroView.hassel .mbody{padding:0}}
+
+/* --- v32 : enchaînement fluide --- */
+body.inmacro{overflow:visible!important}
+#macroView{overscroll-behavior:contain;transition:opacity .42s ease!important}
+#macroView.leaving{opacity:0}
+#macroView:not(.entering) .mframe > .mbody{animation:none!important}
+#macroView:not(.entering) .mframe > .mhead,#macroView:not(.entering) .mframe > .mchips{animation:mIn .5s .15s cubic-bezier(.2,.8,.2,1) both}
+.globefly .gf-bg{background:radial-gradient(90% 70% at 40% 45%,#15171b,#000 70%)!important}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2737,7 +2745,7 @@ function setView(v, keepScroll){
   if (!VIEWS.includes(v)) v = "tableau";
   /* la planète macro est un calque noir posé par-dessus : on garde la page du dessous affichée */
   const overlay = v === "macro";
-  document.body.classList.toggle("inmacro", overlay);
+  document.body.classList.toggle("inmacro", overlay && !$("macroView").classList.contains("entering"));
   if (overlay) { $("macroView").hidden = false; history.replaceState(null, "", "#macro"); renderMacro(); return; }
   $("macroView").hidden = true; if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
   requestAnimationFrame(() => window.placeGlobe && window.placeGlobe());
@@ -3446,23 +3454,34 @@ async function openMacro(){
   const src = $("miniGlobe"); if (!src) { setView("macro"); return; }
   try { await loadGeo(); } catch(e) { setView("macro"); return; }
   document.querySelector(".ctip")?.classList.remove("on");
-  const r0 = src.getBoundingClientRect();
+  const r0 = src.getBoundingClientRect(), mv = $("macroView");
   const fly = document.createElement("div"); fly.className = "globefly"; fly.innerHTML = `<div class="gf-bg"></div><canvas></canvas>`; document.body.appendChild(fly);
-  const cv = fly.querySelector("canvas"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
-  const g = makeGlobe(cv, {speed: 320, rot: miniG ? miniG.st.rot : undefined, m: 0, au: 0, k: .96});
+  const cv = fly.querySelector("canvas"), bg = fly.querySelector(".gf-bg"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
+  const light = document.body.classList.contains("light");
+  const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined, m: 0, au: 0, k: .96, iw: light ? 0 : 1});
   src.style.visibility = "hidden";
-  flyRot = g.st.rot; $("macroView").classList.add("entering");
+  flyRot = g.st.rot; mv.classList.add("entering");
   setView("macro", true);
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
-  fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
-  const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
-  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 9 * k; const e = k * k * (3 - 2 * k); g.st.k = .96 + (.6 - .96) * e; g.st.iw = document.body.classList.contains("light") ? Math.min(1, e * 1.6) : 1; if (k < 1) requestAnimationFrame(slow); })();
+  const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1050, B = reduced ? 10 : 420;
+  /* 1) la planète creuse vole jusqu'au centre, au-dessus du tableau */
+  const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.65,0,.2,1)", fill: "forwards"});
+  bg.animate([{opacity: 0}, {opacity: .18}], {duration: D, fill: "forwards"});
+  const t0 = performance.now();
+  (function slow(){ const k = Math.min(1, (performance.now() - t0) / D), e = k * k * (3 - 2 * k); g.st.speed = 260 * (1 - k) + 9 * k; g.st.k = .96 + (.6 - .96) * e;
+    if (k > .55 && light) g.st.iw = Math.min(1, (k - .55) / .45 * .5); if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
-  if (bigG) { bigG.st.rot = g.st.rot.slice(); bigG.st.m = 0; bigG.st.au = 0; } flyRot = null;
-  $("macroView").classList.remove("entering");
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  g.destroy(); fly.remove(); src.style.visibility = "";
+  /* 2) l'univers noir arrive autour, la planète passe au blanc */
+  const t1 = performance.now(), iw0 = g.st.iw;
+  bg.animate([{opacity: .18}, {opacity: 1}], {duration: B, fill: "forwards", easing: "ease-out"});
+  await new Promise(res => (function ph(){ const k = Math.min(1, (performance.now() - t1) / B); g.st.iw = iw0 + (1 - iw0) * k; if (k < 1) requestAnimationFrame(ph); else res(); })());
+  /* 3) on passe la main à la planète de la page (même place, même rotation), puis elle se remplit */
+  if (bigG) { bigG.st.rot = g.st.rot.slice(); bigG.st.m = 0; bigG.st.au = 0; bigG.st.iw = 1; } flyRot = null;
+  mv.classList.remove("entering"); document.body.classList.add("inmacro");
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r))));
+  if (bigG) bigG.st.rot = g.st.rot.slice();
+  fly.animate([{opacity: 1}, {opacity: 0}], {duration: 180, fill: "forwards"}).finished.then(() => { g.destroy(); fly.remove(); });
+  src.style.visibility = "";
   fillGlobe(bigG);
 }
 
@@ -3483,7 +3502,7 @@ function renderMacro(){
       </div>
       <div class="mchips" id="mChips"></div>
     </div>`;
-  $("mBack").onclick = () => { const mv = $("macroView"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 380); };
+  $("mBack").onclick = () => { const mv = $("macroView"); window.placeGlobe && window.placeGlobe(); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 420); };
   loadGeo().then(() => {
     if ($("macroView").hidden || !$("bigGlobe")) return;
     bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 9, m: 0, au: 0, iw: 1, k: .6, rot: flyRot || undefined,
@@ -3648,7 +3667,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-31";
+const APP_VERSION = "2026-10-26-32";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
