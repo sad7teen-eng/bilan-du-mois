@@ -939,6 +939,13 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 .chsel-k b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .chlist{max-height:min(560px,60vh);overflow:auto;padding-top:8px!important}
 .rt.sel{background:var(--panel-2)!important;box-shadow:inset 2px 0 0 var(--fg)}
+
+.chsrc{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;flex-basis:100%}
+.chsrc .ok{color:var(--fg)}
+.chsrc button{padding:5px 12px!important;border-radius:999px!important;font-size:12px}
+.chtok{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-basis:100%}
+.chtok input{flex:1;min-width:220px;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--fg);font:13px var(--display);padding:8px 10px}
+.chtok small{flex-basis:100%;font-size:11.5px}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2697,6 +2704,8 @@ const CH_PRESETS = {
 };
 let chartLib = null, chart = null, cSeries = null, cBars = [], cSrc = "", cTf = "1h", cSel = null, cLines = [], cBusy = false, cOldest = Infinity;
 const cCache = new Map();
+let oandaErr = "";
+const oandaTok = () => { try { return localStorage.getItem("bilan-oanda") || ""; } catch(e) { return ""; } };
 function chartPrefs(){
   if (!state.chart || typeof state.chart !== "object") state.chart = {};
   const c = state.chart; if (!c.up) Object.assign(c, {preset: "nb", ...CH_PRESETS.nb});
@@ -2715,7 +2724,18 @@ function loadLib(){
 async function fetchBars(tf, endMs){
   const key = tf + "|" + endMs; if (cCache.has(key)) return cCache.get(key);
   const q = `interval=${tf}&limit=1000${endMs ? "&endTime=" + endMs : ""}`;
-  const srcs = [["Binance · XAUUSDT", "https://fapi.binance.com/fapi/v1/klines?symbol=XAUUSDT&" + q], ["Binance · PAXG (or)", "https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&" + q]];
+  const tok = oandaTok();
+  if (tok) {
+    try {
+      const g = {"5m": "M5", "15m": "M15", "1h": "H1", "4h": "H4", "1d": "D"}[tf];
+      const r = await fetch(`https://api-fxpractice.oanda.com/v3/instruments/XAU_USD/candles?granularity=${g}&count=1000&price=B${endMs ? "&to=" + encodeURIComponent(new Date(endMs).toISOString()) : ""}`, {headers: {Authorization: "Bearer " + tok, "Accept-Datetime-Format": "UNIX"}});
+      if (r.status === 401 || r.status === 403) oandaErr = "Token OANDA refusé : vérifiez-le.";
+      else if (r.ok) { const j = await r.json(); const bars = (j.candles || []).map(k => { const t = Math.floor(+k.time); return {t, time: t + tzOff(t), open: +k.bid.o, high: +k.bid.h, low: +k.bid.l, close: +k.bid.c}; });
+        if (bars.length) { oandaErr = ""; const out = {name: "OANDA · XAUUSD", bars}; cCache.set(key, out); return out; } }
+      else oandaErr = "OANDA ne répond pas (" + r.status + ").";
+    } catch(e) { oandaErr = "OANDA injoignable depuis le navigateur."; }
+  }
+  const srcs = [["Binance · XAUUSDT (en attendant OANDA)", "https://fapi.binance.com/fapi/v1/klines?symbol=XAUUSDT&" + q], ["Binance · PAXG (en attendant OANDA)", "https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&" + q]];
   for (const [name, url] of srcs) {
     try {
       const r = await fetch(url); if (!r.ok) continue;
@@ -2762,7 +2782,7 @@ async function chartLoad(endMs, center){
   try {
     const {name, bars} = await fetchBars(cTf, endMs);
     cSrc = name; cBars = bars; cOldest = bars.length ? bars[0].t * 1000 : Infinity;
-    cSeries.setData(bars); chartMarkers(); $("chSrc").textContent = name; $("chStatus").hidden = true;
+    cSeries.setData(bars); chartMarkers(); $("chSrc").textContent = name + (oandaErr ? " · " + oandaErr : ""); $("chStatus").hidden = true;
     if (center) { const i = cBars.findIndex(b => b.time >= center); const k = i < 0 ? cBars.length - 1 : i, span = cTf === "1d" ? 60 : 80;
       chart.timeScale().setVisibleLogicalRange({from: k - span * .6, to: k + span * .4}); }
     else chart.timeScale().scrollToRealTime();
@@ -2789,6 +2809,9 @@ function renderChartPage(){
         <div class="chfoot">
           <div class="chlook"><span>Bougies</span>${Object.entries(CH_PRESETS).map(([k, p]) => `<button type="button" class="chp${c.preset === k ? " on" : ""}" data-preset="${k}"><i style="background:${p.up}"></i><i style="background:${p.down};${k === "nb" ? "box-shadow:inset 0 0 0 1px #888" : ""}"></i>${p.lab}</button>`).join("")}
             <label class="chc" title="Hausse"><input type="color" data-col="up" value="${c.up}">Hausse</label><label class="chc" title="Baisse"><input type="color" data-col="down" value="${c.down}">Baisse</label><label class="chc" title="Fond"><input type="color" data-col="bg" value="${c.bg}">Fond</label></div>
+          <div class="chsrc">${oandaTok() ? `<span class="ok">● OANDA branché</span><button type="button" data-oanda="off">Retirer</button>` : `<button type="button" class="go" data-oanda="open">Brancher OANDA</button>`}
+            <div class="chtok" id="chTok" hidden><input type="password" id="chTokIn" placeholder="Collez votre token API OANDA (compte démo gratuit)" autocomplete="off"><button type="button" data-oanda="save">Enregistrer</button>
+              <small class="muted">Sur oanda.com : ouvrez un compte démo gratuit, puis Gérer l'accès API → Générer. Le token reste sur cet appareil.</small></div></div>
           <div class="chlinks"><a href="https://www.tradingview.com/chart/?symbol=OANDA%3AXAUUSD" target="_blank" rel="noopener">Ouvrir sur TradingView ↗</a><a class="muted" href="https://www.tradingview.com/" target="_blank" rel="noopener">Graphique par TradingView</a></div>
         </div>
       </section>
@@ -2828,6 +2851,11 @@ function showChSel(t){
     <small class="muted">${whenTxt(t, new Date())}${t.time ? "" : " · heure inconnue, placé à midi"}</small>`;
 }
 $("chartView").addEventListener("click", e => {
+  const oa = e.target.closest("[data-oanda]"); if (oa) { const k = oa.dataset.oanda;
+    if (k === "open") { $("chTok").hidden = !$("chTok").hidden; if (!$("chTok").hidden) $("chTokIn").focus(); }
+    if (k === "save") { const v = $("chTokIn").value.trim(); if (!v) return; try { localStorage.setItem("bilan-oanda", v); } catch(err) {} cCache.clear(); renderChartPage(); }
+    if (k === "off") { try { localStorage.removeItem("bilan-oanda"); } catch(err) {} cCache.clear(); renderChartPage(); }
+    return; }
   const tf = e.target.closest("[data-tf]"); if (tf) { cTf = tf.dataset.tf; chartPrefs().tf = cTf; save(); renderChartPage(); return; }
   const pr = e.target.closest("[data-preset]"); if (pr) { const c = chartPrefs(); Object.assign(c, {preset: pr.dataset.preset, ...CH_PRESETS[pr.dataset.preset]}); delete c.lab; save(); applyChartLook();
     document.querySelectorAll("#chartView .chp").forEach(b => b.classList.toggle("on", b === pr)); ["up", "down", "bg"].forEach(k => { const i = document.querySelector(`#chartView [data-col=${k}]`); if (i) i.value = c[k]; }); return; }
@@ -2889,7 +2917,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-5";
+const APP_VERSION = "2026-10-26-6";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
