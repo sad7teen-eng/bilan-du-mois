@@ -1235,6 +1235,11 @@ body.inmacro{overflow:visible!important}
 #macroView:not(.entering) .mframe > .mbody{animation:none!important}
 #macroView:not(.entering) .mframe > .mhead,#macroView:not(.entering) .mframe > .mchips{animation:mIn .5s .15s cubic-bezier(.2,.8,.2,1) both}
 .globefly .gf-bg{background:radial-gradient(90% 70% at 40% 45%,#15171b,#000 70%)!important}
+
+/* --- v34 : au clic, tout le tableau s'efface avant que la planète parte --- */
+.topnav,.dock,.dash > section.view:not(#macroView) > *:not(.miniglobe),.dash > .savebar,.scene .orb{transition:opacity .26s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
+body.mfade .topnav,body.mfade .dock,body.mfade .dash > section.view:not(#macroView) > *:not(.miniglobe),body.mfade .dash > .savebar,body.mfade .scene .orb{opacity:0!important;pointer-events:none}
+body.mfade .dash > section.view:not(#macroView) > *:not(.miniglobe){transform:scale(.985)}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2747,7 +2752,7 @@ function setView(v, keepScroll){
   const overlay = v === "macro";
   document.body.classList.toggle("inmacro", overlay && !$("macroView").classList.contains("entering"));
   if (overlay) { $("macroView").hidden = false; history.replaceState(null, "", "#macro"); renderMacro(); return; }
-  $("macroView").hidden = true; if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
+  $("macroView").hidden = true; document.body.classList.remove("mfade"); if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
   requestAnimationFrame(() => window.placeGlobe && window.placeGlobe());
   ["dayModal", "certEditModal", "lightbox", "jourModal"].forEach(id => { const m = $(id); if (m && id !== "dayModal") m.hidden = true; });
   document.body.style.overflow = "";
@@ -3463,6 +3468,9 @@ async function openMacro(){
   const light = document.body.classList.contains("light");
   const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined, m: 0, au: 0, k: .96, iw: light ? 0 : 1});
   src.style.visibility = "hidden";
+  /* 0) tout le tableau s'efface d'abord, il ne reste que la planète */
+  document.body.classList.add("mfade");
+  await new Promise(r => setTimeout(r, reduced ? 0 : 260));
   flyRot = g.st.rot; mv.classList.add("entering");
   setView("macro", true);
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
@@ -3505,7 +3513,7 @@ function renderMacro(){
       </div>
       <div class="mchips" id="mChips"></div>
     </div>`;
-  $("mBack").onclick = () => { const mv = $("macroView"); window.placeGlobe && window.placeGlobe(); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 420); };
+  $("mBack").onclick = () => { const mv = $("macroView"); window.placeGlobe && window.placeGlobe(); document.body.classList.remove("mfade"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 420); };
   loadGeo().then(() => {
     if ($("macroView").hidden || !$("bigGlobe")) return;
     bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 9, m: 0, au: 0, iw: 1, k: .6, rot: flyRot || undefined,
@@ -3670,7 +3678,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-33";
+const APP_VERSION = "2026-10-26-34";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
