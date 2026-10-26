@@ -37,7 +37,7 @@
 html,body{height:100%}
 /* Light mode: dashboard and editors only; the story stays dark. */
 body.light{background:#f2f5f4;color:#121816}
-body.light .dash,body.light .modal{--bg:#f2f5f4;--panel:#ffffff;--panel-2:#f5f8f7;--line:#dce3e0;--fg:#121816;--muted:#62716c;--gain:#138a4e;--gain-dim:rgba(19,138,78,.09);--gain-edge:rgba(19,138,78,.32);--loss:#c9472a;--loss-dim:rgba(201,71,42,.09);--loss-edge:rgba(201,71,42,.32);--on-gain:#ffffff;color-scheme:light;color:var(--fg)}
+body.light .dash,body.light .modal,body.light .topnav,body.light .dock{--bg:#f2f5f4;--panel:#ffffff;--panel-2:#f5f8f7;--line:#dce3e0;--fg:#121816;--muted:#62716c;--gain:#138a4e;--gain-dim:rgba(19,138,78,.09);--gain-edge:rgba(19,138,78,.32);--loss:#c9472a;--loss-dim:rgba(201,71,42,.09);--loss-edge:rgba(201,71,42,.32);--on-gain:#ffffff;color-scheme:light;color:var(--fg)}
 body.light .modal{background:rgba(232,237,235,.78)}
 body.light .ready{box-shadow:none}
 body.light .cell:hover,body.light button:hover{border-color:#b9c5c1}
@@ -155,14 +155,11 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
   .side button svg{width:18px;height:18px;flex:none}
   .side .s-play{color:var(--gain)}
   .s-saved{font-size:11.5px;color:var(--gain);padding:6px 12px}
-  .dash{margin-left:232px;max-width:1240px;padding-left:36px;padding-right:36px}
-  .dash .tools #btnSettings,.dash .tools #btnTheme{display:none}
-  .dash > .apps,.dash > .savebar{display:none}
   .grid{grid-template-columns:minmax(0,1fr) minmax(0,1.55fr)}
   .cal .cell{aspect-ratio:auto;min-height:88px}
   .cal .cell .p{font-size:14px}
 }
-@media (min-width:1500px){.dash{margin-left:max(264px,calc(50vw - 524px));margin-right:auto}}
+
 
 /* ---------- Fiche du jour : un trade = une carte, modifiable ---------- */
 .modal{--mono:var(--display)}
@@ -634,6 +631,158 @@ body:not(.light) .rt:hover{background:#121212!important}
   .hdot{width:9px;height:9px}
   .pv,.wkv{font-size:26px}
 }
+
+/* ===== Barre du haut (remplace le menu de gauche) ===== */
+.side{display:none!important}
+.topnav{position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top,0px);background:color-mix(in srgb,var(--bg) 84%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);color:var(--fg)}
+.tn-in{max-width:1320px;margin:0 auto;padding:10px 36px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:8px}
+.tn-tabs{display:flex;gap:2px;min-width:0}
+.tn-tabs:first-child{justify-content:flex-end}
+.tn{display:inline-flex;align-items:center;gap:7px;border:0!important;background:transparent!important;color:var(--muted);font-size:13px;padding:7px 11px!important;border-radius:9px!important;white-space:nowrap}
+.tn svg{width:15px;height:15px;flex:none}
+.tn:hover{color:var(--fg)}
+.tn.on{color:var(--fg);background:var(--panel-2)!important}
+body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px #262626}
+.tn-brand{font-size:17px;font-weight:500;letter-spacing:-.02em;padding:0 16px;white-space:nowrap}
+.tn-brand b{font-weight:700}
+.tn-act{display:flex;align-items:center;gap:6px;justify-self:end}
+.tn-act button{padding:7px 11px;border-radius:999px!important;font-size:12px;white-space:nowrap}
+.tn-act svg{width:16px;height:16px;display:block}
+.dock{display:none}
+.dash{max-width:1320px!important;margin:0 auto!important;padding-top:26px!important}
+@media (min-width:901px){.dash{padding-left:36px!important;padding-right:36px!important}}
+@media (max-width:1180px) and (min-width:901px){.tn span{display:none}.tn{padding:8px 10px!important}}
+@media (max-width:900px){
+  .tn-in{grid-template-columns:1fr auto;padding:10px 16px}
+  .tn-tabs{display:none}
+  .tn-brand{padding:0;justify-self:start}
+  .dock{display:flex;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;gap:6px;padding:7px;border:1px solid var(--line);border-radius:20px;background:color-mix(in srgb,var(--panel) 85%,transparent);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 18px 50px rgba(0,0,0,.55)}
+  .dk{display:grid;place-items:center;width:52px;height:46px;padding:0!important;border-radius:14px!important;border:1px solid var(--line)!important;background:var(--panel-2)!important;color:var(--muted)}
+  .dk span{display:none}
+  .dk svg{width:20px;height:20px}
+  .dk.on{color:var(--fg);border-color:var(--muted)!important}
+  .dash{padding-top:18px!important;padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))!important}
+}
+.view{display:flex;flex-direction:column;gap:18px;min-width:0}
+.plan{top:calc(78px + env(safe-area-inset-top,0px))}
+.vhead h1{margin:0}
+.rgrid{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)!important}
+@media (max-width:900px){.rgrid{grid-template-columns:minmax(0,1fr)!important}}
+.hnum .dec{font-size:.42em;letter-spacing:-.02em;color:var(--muted);align-self:flex-end;margin-bottom:.32em;margin-left:-.18em;text-shadow:none}
+.muted{color:var(--muted)}
+
+/* Bulle d'info : le point tombe pile au centre de l'élément survolé */
+.ctip .stem{left:var(--sx,16px)!important}
+.ctip .dot{left:calc(var(--sx,16px) - 5px)!important}
+
+/* ===== Stratégie ===== */
+.sgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.scard{padding:18px!important;gap:12px!important}
+.s-id{grid-column:span 3}.s-risk{grid-column:span 3}.s-tf{grid-column:span 6}.s-entry{grid-column:span 3}.s-rules{grid-column:span 3}.s-check{grid-column:span 2}.s-resp{grid-column:span 4}.s-notes{grid-column:span 6}
+@media (max-width:900px){.sgrid{grid-template-columns:minmax(0,1fr)}.sgrid > *{grid-column:auto!important}}
+.s-name{font-size:clamp(22px,3vw,30px);font-weight:500;letter-spacing:-.03em;line-height:1.15}
+.kvs,.rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.kvs > div,.rk > div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.kvs small,.rk small,.sblk > small,.tf small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.kvs b,.rk b{font-size:15px;font-weight:500;display:block;overflow-wrap:anywhere}
+.rk b{font-size:20px;font-variant-numeric:tabular-nums}
+.sblk{display:flex;flex-direction:column}
+.stxt{margin:0;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.slist{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;line-height:1.5}
+.slist li::marker{color:var(--muted)}
+ol.slist li::marker{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg)}
+.tfs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.tfs{grid-template-columns:minmax(0,1fr)}}
+.tf{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}
+.tf > div{min-width:0;flex:1}
+.tfb{flex:none;display:grid;place-items:center;min-width:44px;height:30px;border-radius:8px;background:var(--fg);color:var(--bg);font-weight:600;font-size:12.5px}
+.sx{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--fg);font:14px/1.5 var(--display);padding:8px 10px;resize:vertical}
+.sx.big{font-size:20px;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+.chip2{text-transform:none;letter-spacing:0;text-align:left;display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 12px!important;border-radius:12px!important;font-size:12.5px;color:var(--muted)}
+.chip2 em{font-style:normal;font-size:10.5px;color:var(--muted)}
+.chip2.on{color:var(--fg);border-color:var(--fg)!important}
+.chip2:disabled{cursor:default;opacity:1}
+.chip2:not(.on):disabled{opacity:.45}
+.meter{display:flex;flex-direction:column;gap:6px}
+.mt-h{display:flex;justify-content:space-between;gap:10px;font-size:13px}
+.mt-h b{font-weight:600;font-variant-numeric:tabular-nums}
+.mt-b{height:6px;border-radius:999px;background:var(--line);overflow:hidden}
+.mt-b i{display:block;height:100%;border-radius:inherit;background:var(--fg)}
+body:not(.light) .mt-b i{background:linear-gradient(90deg,rgba(255,255,255,.4),#fff);box-shadow:0 0 10px rgba(255,255,255,.5)}
+.meter small{font-size:11px;color:var(--muted)}
+
+/* ===== Analytics ===== */
+.atabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.atabs button{border:0!important;background:none!important;border-radius:0!important;padding:10px 14px!important;font-size:13px;color:var(--muted);border-bottom:2px solid transparent!important;margin-bottom:-1px;white-space:nowrap}
+.atabs button.on{color:var(--fg);border-bottom-color:var(--fg)!important}
+.adesc{margin:-4px 0 0;font-size:12px;color:var(--muted);line-height:1.5}
+.agrid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px}
+.agrid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:1000px){.agrid2,.agrid3{grid-template-columns:minmax(0,1fr)}}
+.clk{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px;align-items:center}
+@media (max-width:560px){.clk{grid-template-columns:minmax(0,1fr)}}
+.clock{width:100%;max-width:340px;display:block;margin:0 auto;overflow:visible}
+.clock text{font-size:10px;fill:var(--muted);font-family:var(--display)}
+.clock .ck-tz{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase}
+.ck-r{fill:none;stroke:var(--line)}
+.ck-t{stroke:var(--muted);opacity:.5}
+.ck-s{fill:none;stroke:var(--fg);stroke-linecap:round}
+.cb-up{stroke:var(--fg);stroke-width:4.5;stroke-linecap:round}
+body:not(.light) .cb-up{stroke:#fff;filter:drop-shadow(0 0 4px rgba(255,255,255,.6))}
+.cb-dn{stroke:var(--loss);stroke-width:4.5;stroke-linecap:round}
+.ck-h{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round;opacity:.85}
+.ck-c{fill:var(--fg)}
+.clk-l{display:flex;flex-direction:column;gap:10px;font-size:12.5px}
+.lg{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:10px}
+.lg i{display:block;background:var(--fg);border-radius:3px}
+.lg b{font-weight:500;font-variant-numeric:tabular-nums}
+.lgsep{height:1px;background:var(--line);margin:4px 0}
+.lg2 small{display:block;font-size:11px;color:var(--muted)}
+.lg2{display:grid;grid-template-columns:1fr auto;gap:2px 10px}
+.lg2 small{grid-column:1/-1}
+.lg2 b{font-weight:600;font-variant-numeric:tabular-nums}
+.srank{display:flex;flex-direction:column;gap:4px}
+.sr{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px 14px;padding:10px 0;border-top:1px solid var(--line)}
+.sr:first-child{border-top:0}
+.srn{font-family:var(--mono-real,ui-monospace,'SF Mono',Menlo,Consolas,monospace);font-size:22px;font-weight:600;color:var(--muted);opacity:.6;font-variant-numeric:tabular-nums}
+.srm{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+.srm b{font-size:14px;font-weight:600}
+.srm > span{font-weight:600;font-variant-numeric:tabular-nums}
+.srm small{grid-column:1/-1;font-size:11.5px;color:var(--muted)}
+.sr.top{grid-template-columns:auto minmax(0,1fr);padding:4px 0 14px}
+.sr.top .srn{font-size:56px;color:var(--fg);opacity:1;letter-spacing:-.04em}
+body:not(.light) .sr.top .srn{text-shadow:0 0 24px rgba(255,255,255,.35)}
+.sr.top .srm b{font-size:17px}
+.sr.top .srm > span{font-size:17px}
+.spk{grid-column:1/-1;width:100%;height:38px;display:block}
+.spk path{fill:none;stroke:var(--fg);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.hmwrap{overflow-x:auto;padding-bottom:4px}
+.hm{display:grid;grid-template-columns:34px repeat(var(--cols),minmax(18px,1fr)) 60px;gap:4px;min-width:640px;align-items:center}
+.hm i{display:block;height:26px;border-radius:5px;background:var(--panel-2)}
+body:not(.light) .hm i{background:#111}
+.hmh{font-size:10px;color:var(--muted)}
+.hmd{font-size:11px;color:var(--muted)}
+.hmt{text-align:right;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.tile.kp{padding:14px!important;gap:6px!important}
+.kp small{font-size:11.5px;color:var(--muted)}
+.kp b{font-size:22px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sides{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.side2{display:flex;flex-direction:column;gap:8px;min-width:0}
+.side2 + .side2{border-left:1px solid var(--line);padding-left:14px}
+.side2 .wkv{font-size:24px}
+.hist{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;height:170px;align-items:end}
+.hist > div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%;min-width:0}
+.hist em{font-style:normal;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.hist i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:var(--fg);opacity:.75}
+body:not(.light) .hist i{opacity:1;background:linear-gradient(180deg,rgba(255,255,255,.75),rgba(255,255,255,.1))}
+.hist i.dn{background:var(--loss)}
+body:not(.light) .hist i.dn{background:linear-gradient(180deg,rgba(255,77,77,.85),rgba(255,77,77,.12))}
+.hist i.z{background:var(--line)!important}
+.hist span{font-size:10px;color:var(--muted);white-space:nowrap}
+:root{--hm-up:255,255,255}
+body.light{--hm-up:18,24,22}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -652,24 +801,23 @@ body:not(.light) .rt:hover{background:#121212!important}
     <span class="s-saved syncst" id="sSync"></span>
   </div>
 </aside>
+<nav class="topnav" aria-label="Pages">
+  <div class="tn-in">
+    <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
+    <div class="tn-brand">Kael<b>Journal</b></div>
+    <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button></div>
+    <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  </div>
+</nav>
+<nav class="dock" aria-label="Pages"><button type="button" class="dk" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="dk" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="dk" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="dk" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="dk" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></nav>
 <div class="dash" id="dash">
+  <section class="view" data-view="tableau">
   <header class="top">
     <div>
       <h1 id="hello"></h1>
       <div class="meta" id="meta"></div>
     </div>
-    <div class="tools">
-      <div class="monthnav">
-        <button type="button" id="prevM" aria-label="Mois précédent">‹</button>
-        <span id="monthLabel"></span>
-        <button type="button" id="nextM" aria-label="Mois suivant">›</button>
-      </div>
-      <button type="button" id="btnTheme" aria-label="Changer de thème"></button>
-      <button type="button" id="btnSettings">Réglages</button>
-    </div>
   </header>
-
-  <section class="ready" hidden><b id="readyTitle"></b><span id="readyLine"></span></section>
 
   <div class="board">
     <div class="bmain">
@@ -677,12 +825,32 @@ body:not(.light) .rt:hover{background:#121212!important}
         <div class="scope" id="scope" role="group" aria-label="Période"><button type="button" data-scope="all">Depuis le début</button><button type="button" data-scope="month">Ce mois</button></div>
         <div class="hnum" id="heroNum" data-tip-t="P&amp;L total" data-tip=""></div>
         <div class="hsub"><span id="heroSub"></span><button type="button" class="hlink" id="btnCal">Ouvrir le calendrier →</button></div>
-        <button type="button" class="primary" id="btnPlay">▶ Lancer mon mois</button>
       </section>
       <div class="perf-h"><span class="sec">Performance</span><button type="button" id="btnHide">Masquer le P&amp;L</button></div>
       <div class="perf" id="perf"></div>
       <div class="row3" id="row3"></div>
-      <div class="grid">
+    </div>
+    <aside class="plan" id="plan" aria-label="Mon plan">
+      <div id="planTop"></div>
+      <div id="planLive"></div>
+    </aside>
+  </div>
+  </section>
+
+  <section class="view" data-view="resultats" hidden>
+    <header class="top vhead">
+      <div><h1>Résultats</h1><div class="meta">Ton calendrier, tes jours et l'animation du mois.</div></div>
+      <div class="tools"><div class="monthnav">
+        <button type="button" id="prevM" aria-label="Mois précédent">‹</button>
+        <span id="monthLabel"></span>
+        <button type="button" id="nextM" aria-label="Mois suivant">›</button>
+      </div></div>
+    </header>
+    <section class="ready">
+      <div class="l"><span class="ic"></span><div><b id="readyTitle"></b><span id="readyLine"></span></div></div>
+      <button type="button" class="primary" id="btnPlay">Lancer mon mois</button>
+    </section>
+    <div class="grid rgrid">
       <section class="cal" id="calSec">
         <div class="cal-h"><h2 id="calTitle"></h2><div class="cal-nav"><span class="tot" id="calTot"></span><button type="button" id="prevW" aria-label="Précédent">‹</button><button type="button" id="nextW" aria-label="Suivant">›</button></div></div>
         <div class="wk"><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div></div>
@@ -691,18 +859,13 @@ body:not(.light) .rt:hover{background:#121212!important}
         <p class="help">Touche un jour pour saisir ses trades.</p>
       </section>
       <div class="tiles" id="tiles"></div>
-      </div>
     </div>
-    <aside class="plan" id="plan" aria-label="Mon plan">
-      <div id="planTop"></div>
-      <div id="planLive"></div>
-    </aside>
-  </div>
-  <nav class="apps" aria-label="Onglets">
-    <button type="button" class="app" id="appCerts">
-      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3h10l-3 8h-4z" stroke="var(--gain)"/><circle cx="16" cy="19" r="8" stroke="var(--gain)"/><path d="M16 14.5l1.4 2.9 3.1.4-2.3 2.2.6 3.1-2.8-1.5-2.8 1.5.6-3.1-2.3-2.2 3.1-.4z" fill="var(--gain)" stroke="none"/></svg>
-      Certificats<small id="certCount"></small></button>
-  </nav>
+    <nav class="apps" aria-label="Onglets" hidden><button type="button" class="app" id="appCerts">Certificats<small id="certCount"></small></button></nav>
+  </section>
+
+  <section class="view" data-view="strategie" id="stratView" hidden></section>
+  <section class="view" data-view="analytics" id="anaView" hidden></section>
+
   <footer class="savebar">
     <span class="st" id="saveSt"></span>
     <span class="st syncst" id="syncSt"></span>
@@ -940,11 +1103,13 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const cur = () => state.currency || "$";
 const monthName = () => `${MONTHS[state.month]} ${state.year}`;
 const mon3 = () => MONTHS[state.month].slice(0, 3);
+/* Nombres à la française : 136 071,27 € */
+const frN = (v, d) => Math.abs(v).toLocaleString("fr-FR", {minimumFractionDigits: d, maximumFractionDigits: d}).replace(/[\s\u202f]/g, "\u00a0");
 function money(v, c = cur(), signed = true){
   const s = v < 0 ? "-" : "";
-  return s + c + Math.abs(v).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  return s + frN(v, 2) + "\u00a0" + c;
 }
-const short = v => (v < 0 ? "-" : "") + cur() + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(2).replace(/\.?0+$/, "") + "K" : Math.abs(v).toFixed(Math.abs(v) % 1 ? 2 : 0));
+const short = v => (v < 0 ? "-" : "") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(2).replace(/\.?0+$/, "").replace(".", ",") + "\u00a0k" : frN(v, Math.abs(v) % 1 ? 2 : 0) + "\u00a0") + cur();
 
 function stats(trades){
   const winsT = trades.filter(t => t.pnl > 0), lossT = trades.filter(t => t.pnl < 0);
@@ -1049,7 +1214,7 @@ function renderDash(){
     if (ts.length) return `<button type="button" class="cell ${pnl < 0 ? "down" : "up"}${cls}" ${da} aria-label="${d} ${MONTHS[m]} : ${money(pnl)}"><span class="dn">${d}</span><span class="p">${compact(pnl)}</span><span class="c">${ts.length} trade${ts.length > 1 ? "s" : ""}</span></button>`;
     return `<button type="button" class="cell${cls}" ${da} aria-label="Ajouter des trades le ${d}"><span class="dn">${d}</span><span class="add">+</span><span class="c">&nbsp;</span></button>`;
   };
-  const compact = v => (v < 0 ? "−" : "+") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1).replace(/\.0$/, "") + "k" : Math.round(Math.abs(v)));
+  const compact = v => (v < 0 ? "−" : "+") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + "k" : Math.round(Math.abs(v)));
   let html = "";
   if (monthOpen) {
     $("calTitle").textContent = monthName();
@@ -1079,6 +1244,7 @@ function renderDash(){
   showSaved(true);
   renderBoard();
   const ae = document.activeElement; if (!ae || !$("planTop").contains(ae)) renderPlan();
+  try { if (view === "analytics") renderAna(); if (view === "strategie" && !(ae && $("stratView").contains(ae))) renderStrat(); } catch(e) {}
 }
 
 const mkey = (y, m) => y + "-" + m;
@@ -1641,7 +1807,7 @@ window.BSync = (() => {
     const trades = {};
     Object.entries(state.archive).forEach(([k, list]) => { if (!Array.isArray(list)) return; const [y, m] = k.split("-").map(Number); list.forEach(t => { if (t && t.id) trades[t.id] = {...t, y, m}; }); });
     const certs = {}; (state.certs || []).forEach(c => { if (c && c.id) certs[c.id] = {...c}; });
-    const settings = {}; ["greet", "name", "ready", "currency", "handle", "plan"].forEach(k => { if (state[k] !== undefined) settings[k] = state[k]; });
+    const settings = {}; ["greet", "name", "ready", "currency", "handle", "plan", "strategy"].forEach(k => { if (state[k] !== undefined) settings[k] = state[k]; });
     return {trades, certs, settings, seedSkip: [...new Set(state.seedSkip || [])].sort()};
   }
   const fill = (r, l) => {
@@ -1788,11 +1954,12 @@ let closedSecs = new Set(); try { closedSecs = new Set(JSON.parse(localStorage.g
 const isNum = v => typeof v === "number" && isFinite(v);
 const sumP = a => a.reduce((x, t) => x + t.pnl, 0);
 const pl = n => n > 1 ? "s" : "";
-const bigMoney = v => (v < 0 ? "−" : "+") + cur() + Math.round(Math.abs(v)).toLocaleString("en-US");
-const kMoney = v => (v < 0 ? "-" : "") + cur() + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(Math.abs(v) >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k" : Math.round(Math.abs(v)));
+const bigMoney = v => (v < 0 ? "−" : "+") + frN(Math.round(v), 0) + "\u00a0" + cur();
+const heroMoney = v => { const [i, d] = frN(v, 2).split(","); return (v < 0 ? "−" : "+") + i + `<span class="dec">,${d}\u00a0${cur()}</span>`; };
+const kMoney = v => (v < 0 ? "-" : "") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(Math.abs(v) >= 10000 ? 0 : 1).replace(/\.0$/, "").replace(".", ",") + "\u00a0k" : Math.round(Math.abs(v)) + "\u00a0") + cur();
 const dkey = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 const MON3 = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
-const fmtR = r => (r > 0 ? "+" : "") + (Math.round(r * 100) / 100) + "R";
+const fmtR = r => (r > 0 ? "+" : "") + String(Math.round(r * 100) / 100).replace(".", ",") + "R";
 const isGold = s => /XAU|GOLD|\bOR\b/i.test(s || "");
 const GOLD_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 18.5l2-5h6l2 5z" fill="#fff3c2" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M10.5 18.5l2-5h6l2 5z" fill="#ffe08a" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 13.5l2-5h6l2 5z" fill="#fff8dc" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/></svg>`;
 
@@ -1816,7 +1983,7 @@ function bstats(L){
     disc: lr.length ? lr.filter(t => t.r >= -1.15).length / lr.length : 1,
     green: days.size ? [...days.values()].filter(v => v > 0).length / days.size : 0};
 }
-const trend = (d, unit, digits) => (!isFinite(d) || Math.abs(d) < Math.pow(10, -digits)) ? "" : `<span class="trend ${d < 0 ? "dn" : ""}">${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(digits)}${unit} <i>30j</i></span>`;
+const trend = (d, unit, digits) => (!isFinite(d) || Math.abs(d) < Math.pow(10, -digits)) ? "" : `<span class="trend ${d < 0 ? "dn" : ""}">${d < 0 ? "↘" : "↗"} ${Math.abs(d).toFixed(digits).replace(".", ",")}${unit} <i>30j</i></span>`;
 const info = (t, d) => `<span class="inf" data-tip-t="${t}" data-tip="${d}">i</span>`;
 const whenTxt = (t, now) => {
   const k = dkey(t.at), y = new Date(now); y.setDate(y.getDate() - 1);
@@ -1853,7 +2020,7 @@ function bindCurve(L){
     const xp = i / (pts.length - 1) * 100, yp = (1 - (pts[i] - lo) / (hi - lo)) * 100;
     xl.style.left = dot.style.left = xp + "%"; dot.style.top = yp + "%";
     const t = L[i - 1];
-    tip.innerHTML = i ? `${t.day} ${MON3[t.m]} · ${t.side || ""} ${isNum(t.r) ? fmtR(t.r) : ""}<b class="mv">${bigMoney(pts[i])}</b><span class="${t.pnl < 0 ? "r" : ""}" style="color:${t.pnl < 0 ? "#ff4d4d" : "#cfcfcf"}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)} sur ce trade</span>` : `Départ<b>${cur()}0</b>`;
+    tip.innerHTML = i ? `${t.day} ${MON3[t.m]} · ${t.side || ""} ${isNum(t.r) ? fmtR(t.r) : ""}<b class="mv">${bigMoney(pts[i])}</b><span class="${t.pnl < 0 ? "r" : ""}" style="color:${t.pnl < 0 ? "#ff4d4d" : "#cfcfcf"}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)} sur ce trade</span>` : `Départ<b>0\u00a0${cur()}</b>`;
     const half = (tip.offsetWidth || 120) / 2, px = xp / 100 * r.width;
     tip.style.left = Math.max(half - 30, Math.min(r.width - half + 30, px)) + "px";
     xl.hidden = dot.hidden = tip.hidden = false;
@@ -1885,20 +2052,20 @@ function renderBoard(){
   document.querySelectorAll("#scope button").forEach(x => { x.classList.toggle("on", x.dataset.scope === scope); if (x.dataset.scope === "month") x.textContent = monthName(); });
 
   const wk7 = sumP(all.filter(t => t.at >= new Date(now - 7 * 864e5)));
-  $("heroNum").innerHTML = `<span class="hdot"></span><span class="mv${s.net < 0 ? " r" : ""}" id="heroVal">${bigMoney(s.net)}</span>`;
+  $("heroNum").innerHTML = `<span class="hdot"></span><span class="mv${s.net < 0 ? " r" : ""}" id="heroVal">${heroMoney(s.net)}</span>`;
   $("heroNum").dataset.tip = `${s.wins} gagnant${pl(s.wins)}, ${s.losses} perdant${pl(s.losses)}`;
   $("heroSub").innerHTML = `<span class="trend${wk7 < 0 ? " dn" : ""}">${wk7 < 0 ? "↘" : "↗"} <b class="mv">${bigMoney(wk7)}</b>&nbsp;sur 7 jours</span><span><b>${s.wins}G</b> / <b>${s.losses}P</b></span>`;
   if (!boardDrawn && !reduced && s.net) {
     const el = $("heroVal"), t0 = performance.now(), D = 1300;
-    const step = t => { const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 4); el.textContent = bigMoney(s.net * e); if (k < 1) requestAnimationFrame(step); };
+    const step = t => { const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 4); el.innerHTML = heroMoney(s.net * e); if (k < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step);
   }
 
-  const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2);
+  const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ",");
   $("perf").innerHTML = `
-    <div class="tile pc"><div class="pl">Taux de réussite ${info("Taux de réussite", "Gagnants sur trades gagnants + perdants")}</div><div class="pv">${s.wr.toFixed(1)}%</div><div class="pf"><span>${s.n} trade${pl(s.n)}</span>${has30 ? trend(s.wr - b.wr, "%", 1) : ""}</div></div>
-    <div class="tile pc"><div class="pl">RR moyen gagnant ${info("RR moyen gagnant", "Moyenne des R de tes trades gagnants")}</div><div class="pv">${s.avgR == null ? "—" : s.avgR.toFixed(2) + "R"}</div><div class="pf"><span>Profit factor ${pfTxt}</span>${has30 && s.avgR != null && b.avgR != null ? trend(s.avgR - b.avgR, "R", 2) : ""}</div></div>
-    <div class="tile pc"><div class="pl">Gain moy. / perte moy. ${info("Gain moyen / perte moyenne", s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte")}</div><div class="pv mv">${cur()}${Math.round(s.avgW).toLocaleString("en-US")}</div><div class="pf"><span>Perte moy. : <b class="mv">${cur()}${Math.round(s.avgL).toLocaleString("en-US")}</b></span>${s.avgL ? `<span class="trend">× ${(s.avgW / s.avgL).toFixed(2)}</span>` : ""}</div></div>`;
+    <div class="tile pc"><div class="pl">Taux de réussite ${info("Taux de réussite", "Gagnants sur trades gagnants + perdants")}</div><div class="pv">${s.wr.toFixed(1).replace(".", ",")}\u00a0%</div><div class="pf"><span>${s.n} trade${pl(s.n)}</span>${has30 ? trend(s.wr - b.wr, "%", 1) : ""}</div></div>
+    <div class="tile pc"><div class="pl">RR moyen gagnant ${info("RR moyen gagnant", "Moyenne des R de tes trades gagnants")}</div><div class="pv">${s.avgR == null ? "—" : s.avgR.toFixed(2).replace(".", ",") + "R"}</div><div class="pf"><span>Profit factor ${pfTxt}</span>${has30 && s.avgR != null && b.avgR != null ? trend(s.avgR - b.avgR, "R", 2) : ""}</div></div>
+    <div class="tile pc"><div class="pl">Gain moy. / perte moy. ${info("Gain moyen / perte moyenne", s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte")}</div><div class="pv mv">${frN(Math.round(s.avgW), 0)}\u00a0${cur()}</div><div class="pf"><span>Perte moy. : <b class="mv">${frN(Math.round(s.avgL), 0)}\u00a0${cur()}</b></span>${s.avgL ? `<span class="trend">× ${(s.avgW / s.avgL).toFixed(2).replace(".", ",")}</span>` : ""}</div></div>`;
 
   const mon = mondayOf(now), wT = all.filter(t => t.at >= mon), ws = bstats(wT);
   const dayP = [0, 1, 2, 3, 4].map(i => { const d = new Date(mon); d.setDate(d.getDate() + i); const k = dkey(d); return {k, p: sumP(wT.filter(t => dkey(t.at) === k)), today: k === dkey(now)}; });
@@ -1928,7 +2095,7 @@ function renderBoard(){
       <div class="pbody rts">${recent.length ? recent.map(t => `<button type="button" class="rt" data-act="openT" data-y="${t.y}" data-m="${t.m}" data-d="${t.day}">
         <span class="arr${t.side === "Short" ? " s" : ""}">${t.side === "Short" ? "↘" : "↗"}</span>
         <span class="tico ${isGold(t.sym) ? "gold" : "oth"}">${isGold(t.sym) ? GOLD_SVG : esc((t.sym || "?").slice(0, 3))}</span>
-        <span class="rt-m"><b>${esc(t.sym || "XAUUSD")}</b><small>${esc(t.side || "")}${isNum(t.r) ? " · " + fmtR(t.r) : ""}${t.lots ? " · " + t.lots + " lots" : ""}</small></span>
+        <span class="rt-m"><b>${esc(t.sym || "XAUUSD")}</b><small>${esc(t.side || "")}${isNum(t.r) ? " · " + fmtR(t.r) : ""}${t.lots ? " · " + String(t.lots).replace(".", ",") + " lots" : ""}</small></span>
         <span class="rt-v"><b class="mv ${t.pnl < 0 ? "r" : ""}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)}</b><small>${whenTxt(t, now)}</small></span></button>`).join("") : `<p class="pempty">Tes trades apparaîtront ici.</p>`}</div></details>`;
   boardDrawn = true;
 }
@@ -2006,8 +2173,246 @@ $("btnHide").onclick = () => {
 if (document.body.classList.contains("hidepnl")) $("btnHide").textContent = "Afficher le P&L";
 $("btnCal").onclick = () => $("calSec").scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
 
+
+/* ===== Pages : navigation du haut (Tableau, Résultats, Certificats, Stratégie, Analytics) ===== */
+const VIEWS = ["tableau", "resultats", "strategie", "analytics"];
+let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
+function setView(v){
+  if (v === "certs") { openCerts(); return; }
+  if (!VIEWS.includes(v)) v = "tableau";
+  view = v;
+  document.querySelectorAll("section.view").forEach(x => { x.hidden = x.dataset.view !== v; });
+  document.querySelectorAll(".tn[data-view],.dk[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  try { history.replaceState(null, "", "#" + v); } catch(e) {}
+  if (v === "strategie") renderStrat();
+  if (v === "analytics") renderAna();
+  window.scrollTo(0, 0);
+}
+document.addEventListener("click", e => { const b = e.target.closest(".tn[data-view],.dk[data-view]"); if (b) setView(b.dataset.view); });
+addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v !== view && VIEWS.includes(v)) setView(v); });
+$("btnCal").onclick = () => setView("resultats");
+
+/* ===== Stratégie : la stratégie complète, écrite une fois, qui sert à juger chaque trade ===== */
+let stratEdit = false;
+function strat(){
+  if (!state.strategy || typeof state.strategy !== "object") state.strategy = {};
+  const S = state.strategy, D = {
+    name: "Shift M15 dans le sens du H4", market: "XAUUSD", method: "Smart Money / ICT", style: "Intraday",
+    tfBias: "Biais du jour. H4 haussier → pas de ventes.",
+    tfZones: "Liquidités et zones d'intérêt où le prix peut réagir.",
+    tfEntry: "Zone précise (order block, Fibo 50 %) puis shift validé par une clôture de corps.",
+    entry: "Le M15 se désaligne contre le biais H4\nLe prix entre dans une zone d'intérêt H1 / M15\nShift M15 (cassure du dernier sommet ou creux) validé par une clôture de corps\nEntrée sur l'order block ; sans zone claire, Fibo sur la jambe du shift et entrée au 50 % sur le retest",
+    risk: "", rrMin: "2", rrTarget: "3", maxTrades: "1",
+    stop: "Au-delà de la mèche qui a pris la liquidité.",
+    tp: "TP1 sur la liquidité proche, TP2 sur le dernier plus bas / plus haut.",
+    sessions: ["Londres", "NY AM"],
+    rules: "Un seul trade par session, gagnant, perdant ou break-even\nPas de trade pendant les annonces, sauf décisions de taux\nPas de trade la nuit\nPas de trade sans setup clair\nMarché compliqué : je respecte le biais H4, même si mon intuition dit autre chose",
+    exception: "Après une grosse expansion, petit short autorisé contre un H4 haussier, seulement vers une zone d'intérêt cohérente (H1) et avec un shift M15 validé. Le trade reste petit.",
+    notes: ""
+  };
+  Object.keys(D).forEach(k => { if (S[k] == null) S[k] = Array.isArray(D[k]) ? D[k].slice() : D[k]; });
+  return S;
+}
+const lines = t => String(t || "").split("\n").map(x => x.trim()).filter(Boolean);
+function renderStrat(){
+  const S = strat(), p = plan(), E = stratEdit, all = allTrades();
+  const inp = (k, ph, w) => E ? `<input class="sx" data-sk="${k}" value="${esc(S[k])}" placeholder="${ph || ""}"${w ? ` style="max-width:${w}"` : ""}>` : (S[k] ? esc(S[k]) : `<span class="muted">—</span>`);
+  const area = (k, ph, list, num) => E ? `<textarea class="sx" data-sk="${k}" rows="${Math.max(3, lines(S[k]).length + 1)}" placeholder="${ph}">${esc(S[k])}</textarea>`
+    : list ? (lines(S[k]).length ? `<${num ? "ol" : "ul"} class="slist">${lines(S[k]).map(x => `<li>${esc(x)}</li>`).join("")}</${num ? "ol" : "ul"}>` : `<p class="muted">—</p>`)
+    : (S[k] ? `<p class="stxt">${esc(S[k])}</p>` : `<p class="muted">—</p>`);
+  /* Respect de la stratégie, calculé sur tes trades */
+  const rrMin = num(S.rrMin), maxT = parseInt(S.maxTrades, 10);
+  const wR = all.filter(t => t.pnl > 0 && isNum(t.r)), okRR = isFinite(rrMin) && wR.length ? wR.filter(t => t.r >= rrMin - 1e-9).length / wR.length : null;
+  const timed = all.filter(t => t.time), inSes = timed.length ? timed.filter(t => S.sessions.includes(sessionOf(t))).length / timed.length : null;
+  const per = new Map(); all.forEach(t => { const k = dkey(t.at) + "|" + (t.time ? sessionOf(t) : "?"); per.set(k, (per.get(k) || 0) + 1); });
+  const okMax = isFinite(maxT) && per.size ? [...per.values()].filter(n => n <= maxT).length / per.size : null;
+  const lR = all.filter(t => t.pnl < 0 && isNum(t.r)), okStop = lR.length ? lR.filter(t => t.r >= -1.15).length / lR.length : null;
+  const meter = (lab, v, note) => `<div class="meter"><div class="mt-h"><span>${lab}</span><b>${v == null ? "—" : Math.round(v * 100) + " %"}</b></div><div class="mt-b"><i style="width:${v == null ? 0 : (v * 100).toFixed(1)}%"></i></div><small>${note}</small></div>`;
+  $("stratView").innerHTML = `
+    <header class="top vhead"><div><h1>Stratégie</h1><div class="meta">Ta méthode écrite noir sur blanc. Chaque trade est jugé contre elle.</div></div>
+      <div class="tools"><button type="button" class="${E ? "go" : ""}" id="stratEditB">${E ? "Terminé" : "Modifier la stratégie"}</button></div></header>
+    <div class="sgrid">
+      <section class="tile scard s-id">
+        <span class="lab2">Stratégie</span>
+        <div class="s-name">${E ? `<input class="sx big" data-sk="name" value="${esc(S.name)}">` : esc(S.name)}</div>
+        <div class="kvs">
+          <div><small>Marché</small><b>${inp("market", "XAUUSD")}</b></div>
+          <div><small>Méthode</small><b>${inp("method", "Smart Money / ICT")}</b></div>
+          <div><small>Style</small><b>${inp("style", "Intraday")}</b></div>
+        </div>
+      </section>
+      <section class="tile scard s-risk">
+        <span class="lab2">Gestion du risque</span>
+        <div class="rk">
+          <div><small>Risque / trade</small><b>${E ? `<input class="sx" data-sk="risk" value="${esc(S.risk)}" placeholder="1">` : (S.risk ? esc(S.risk) + " %" : "—")}</b></div>
+          <div><small>RR minimum</small><b>${E ? `<input class="sx" data-sk="rrMin" value="${esc(S.rrMin)}">` : (S.rrMin ? esc(S.rrMin) + "R" : "—")}</b></div>
+          <div><small>RR visé</small><b>${E ? `<input class="sx" data-sk="rrTarget" value="${esc(S.rrTarget)}">` : (S.rrTarget ? esc(S.rrTarget) + "R" : "—")}</b></div>
+          <div><small>Trades / session</small><b>${E ? `<input class="sx" data-sk="maxTrades" value="${esc(S.maxTrades)}">` : (S.maxTrades ? esc(S.maxTrades) + " max" : "—")}</b></div>
+        </div>
+        <div class="sblk"><small>Stop</small>${area("stop", "Où se place ton stop")}</div>
+        <div class="sblk"><small>Prise de profit</small>${area("tp", "Où tu sors")}</div>
+      </section>
+      <section class="tile scard s-tf">
+        <span class="lab2">Unités de temps</span>
+        <div class="tfs">
+          <div class="tf"><span class="tfb">H4</span><div><small>Biais</small>${area("tfBias", "Rôle du H4")}</div></div>
+          <div class="tf"><span class="tfb">H1</span><div><small>Zones</small>${area("tfZones", "Rôle du H1")}</div></div>
+          <div class="tf"><span class="tfb">M15</span><div><small>Exécution</small>${area("tfEntry", "Rôle du M15")}</div></div>
+        </div>
+      </section>
+      <section class="tile scard s-entry">
+        <span class="lab2">Déroulé de l'entrée</span>
+        ${area("entry", "Une étape par ligne", true, true)}
+        <div class="sblk"><small>Sessions autorisées</small><div class="chips">${SESS.map(x => `<button type="button" class="chip2${S.sessions.includes(x.n) ? " on" : ""}" data-sess="${x.n}" ${E ? "" : "disabled"}>${x.n}<em>${x.lab}</em></button>`).join("")}</div></div>
+      </section>
+      <section class="tile scard s-rules">
+        <span class="lab2">Règles</span>
+        ${area("rules", "Une règle par ligne", true)}
+        <div class="sblk"><small>Exception autorisée</small>${area("exception", "Quand tu peux sortir du cadre")}</div>
+      </section>
+      <section class="tile scard s-check">
+        <div class="c3h"><span class="lab2">Checklist avant d'entrer</span><button type="button" class="plink" id="stratCheck">Modifier dans le plan →</button></div>
+        <ul class="slist ck2">${p.checklist.filter(x => x.trim()).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+        <small class="muted">La même checklist s'affiche chaque jour dans le panneau du Tableau.</small>
+      </section>
+      <section class="tile scard s-resp">
+        <span class="lab2">Respect de la stratégie <em>sur ${all.length} trade${pl(all.length)}</em></span>
+        ${meter("Gains au-dessus du RR minimum", okRR, isFinite(rrMin) ? `Trades gagnants à ${esc(S.rrMin)}R ou plus` : "Indique ton RR minimum")}
+        ${meter("Pertes limitées à 1R", okStop, "Ton stop est respecté, sans élargir")}
+        ${meter("Trades dans tes sessions", inSes, timed.length < all.length ? `${all.length - timed.length} trade${pl(all.length - timed.length)} sans heure non comptés` : "Selon l'heure de chaque trade")}
+        ${meter("Max " + (isFinite(maxT) ? maxT : "?") + " trade par session", okMax, "Sessions où tu t'es arrêté à temps")}
+      </section>
+      <section class="tile scard s-notes">
+        <span class="lab2">Notes libres</span>
+        ${area("notes", "Ce que tu ajustes au fil des analyses, ce que tu observes…")}
+      </section>
+    </div>`;
+  $("stratEditB").onclick = () => { stratEdit = !stratEdit; renderStrat(); };
+  $("stratCheck").onclick = () => { checkEdit = true; closedSecs.delete("check"); renderPlan(); setView("tableau"); setTimeout(() => $("plan").scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"}), 60); };
+}
+$("stratView").addEventListener("input", e => { const k = e.target.dataset.sk; if (!k) return; strat()[k] = e.target.value; save(); });
+$("stratView").addEventListener("click", e => {
+  const b = e.target.closest("[data-sess]"); if (!b || !stratEdit) return;
+  const S = strat(), n = b.dataset.sess, i = S.sessions.indexOf(n);
+  if (i >= 0) S.sessions.splice(i, 1); else S.sessions.push(n);
+  save(); renderStrat();
+});
+
+/* ===== Analytics ===== */
+const SESS = [
+  {n: "Asie", a: 60, b: 360, lab: "01:00 – 06:00", w: 3, o: .35},
+  {n: "Londres", a: 540, b: 720, lab: "09:00 – 12:00", w: 3, o: .6},
+  {n: "NY AM", a: 870, b: 1080, lab: "14:30 – 18:00", w: 5, o: 1},
+  {n: "NY PM", a: 1170, b: 1320, lab: "19:30 – 22:00", w: 3, o: .5}
+];
+const minOf = t => { const [h, m] = String(t.time || "").split(":").map(Number); return (h || 0) * 60 + (m || 0); };
+const sessionOf = t => { const x = minOf(t), s = SESS.find(s => x >= s.a && x < s.b); return s ? s.n : "Hors session"; };
+let anaTab = "time"; try { anaTab = localStorage.getItem("bilan-ana") || "time"; } catch(e) {}
+const pct = v => Math.round(v) + " %";
+const frR = v => (v > 0 ? "+" : "") + v.toFixed(2).replace(".", ",") + "R";
+
+function clockSVG(T){
+  const C = 160, slots = Array.from({length: 48}, () => 0);
+  T.forEach(t => { slots[Math.floor(minOf(t) / 30) % 48] += t.pnl; });
+  const mx = Math.max(1, ...slots.map(Math.abs));
+  const ang = m => (m / 1440) * 2 * Math.PI - Math.PI / 2, P = (m, r) => [C + Math.cos(ang(m)) * r, C + Math.sin(ang(m)) * r];
+  const arc = (a, b, r) => { const [x1, y1] = P(a, r), [x2, y2] = P(b, r); return `M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 ${b - a > 720 ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`; };
+  const now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
+  const bars = slots.map((v, i) => { if (!v) return ""; const m = i * 30 + 15, k = Math.abs(v) / mx;
+    const [a, b] = v > 0 ? [P(m, 86), P(m, 86 + 44 * k)] : [P(m, 78), P(m, 78 - 30 * k)];
+    return `<line class="${v > 0 ? "cb-up" : "cb-dn"}" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"><title>${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"} · ${money(v)}</title></line>`; }).join("");
+  const hrs = [0, 3, 6, 9, 12, 15, 18, 21].map(h => { const [x, y] = P(h * 60, 60); return `<text x="${x.toFixed(1)}" y="${(y + 3.5).toFixed(1)}" text-anchor="middle">${String(h).padStart(2, "0")}</text>`; }).join("");
+  const ticks = Array.from({length: 24}, (_, h) => { const [a, b] = [P(h * 60, 80), P(h * 60, h % 3 ? 83 : 85)]; return `<line class="ck-t" x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`; }).join("");
+  const [hx, hy] = P(nm, 40);
+  return `<svg class="clock" viewBox="0 0 320 320" aria-label="Horloge des sessions">
+    <circle class="ck-r" cx="${C}" cy="${C}" r="82"/>${ticks}${hrs}
+    ${SESS.map(s => `<path class="ck-s" d="${arc(s.a, s.b, 146)}" style="stroke-width:${s.w};opacity:${s.o}"><title>${s.n} · ${s.lab}</title></path>`).join("")}
+    ${bars}
+    <line class="ck-h" x1="${C}" y1="${C}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}"/><circle class="ck-c" cx="${C}" cy="${C}" r="3.5"/></svg>`;
+}
+function sparkline(vals){
+  if (vals.length < 2) return "";
+  const W = 160, H = 34, lo = Math.min(0, ...vals), hi = Math.max(0, ...vals), sp = (hi - lo) || 1;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * W, H - 3 - (v - lo) / sp * (H - 6)]);
+  return `<svg class="spk" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${smoothPath(pts)}"/></svg>`;
+}
+function renderAna(){
+  const all = allTrades(), L = scope === "month" ? all.filter(t => t.y === state.year && t.m === state.month) : all;
+  const T = L.filter(t => t.time), s = bstats(L);
+  const head = `<header class="top vhead"><div><h1>Analytics</h1><div class="meta">${L.length} trade${pl(L.length)} analysé${pl(L.length)} · heures de Paris</div></div>
+    <div class="tools"><div class="scope" id="aScope"><button type="button" data-ascope="all" class="${scope === "all" ? "on" : ""}">Depuis le début</button><button type="button" data-ascope="month" class="${scope === "month" ? "on" : ""}">${esc(monthName())}</button></div></div></header>
+    <div class="atabs">${[["overview", "Vue d'ensemble"], ["time", "Horaires"]].map(([k, l]) => `<button type="button" data-atab="${k}" class="${anaTab === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  let body = "";
+  if (!L.length) body = `<p class="muted">Aucun trade sur cette période.</p>`;
+  else if (anaTab === "time") {
+    const slots = Array.from({length: 48}, () => ({p: 0, n: 0}));
+    T.forEach(t => { const x = slots[Math.floor(minOf(t) / 30) % 48]; x.p += t.pnl; x.n++; });
+    const used = slots.map((x, i) => ({...x, i})).filter(x => x.n);
+    const best = used.length ? used.reduce((a, b) => b.p > a.p ? b : a) : null, worst = used.length ? used.reduce((a, b) => b.p < a.p ? b : a) : null;
+    const hh = i => `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"} – ${String(Math.floor((i + 1) / 2) % 24).padStart(2, "0")}:${(i + 1) % 2 ? "30" : "00"}`;
+    const ses = [...SESS.map(x => x.n), "Hors session"].map(n => { const ts = T.filter(t => sessionOf(t) === n), st = bstats(ts); let c = 0; return {n, st, cur: [0, ...ts.map(t => c += t.pnl)], lab: (SESS.find(x => x.n === n) || {}).lab || ""}; }).filter(x => x.st.n).sort((a, b) => b.st.net - a.st.net);
+    const days = [1, 2, 3, 4, 5, 6, 0].filter(d => d >= 1 && d <= 5 || T.some(t => t.at.getDay() === d));
+    const grid = days.map(d => { const row = Array.from({length: 24}, () => 0); T.filter(t => t.at.getDay() === d).forEach(t => { row[Math.floor(minOf(t) / 60) % 24] += t.pnl; }); return {d, row, tot: row.reduce((a, b) => a + b, 0)}; });
+    const hmx = Math.max(1, ...grid.flatMap(g => g.row.map(Math.abs)));
+    const cellBg = v => !v ? "" : v > 0 ? `background:rgba(var(--hm-up),${(.18 + .72 * v / hmx).toFixed(2)})` : `background:rgba(255,77,77,${(.2 + .7 * -v / hmx).toFixed(2)})`;
+    body = `<div class="agrid2">
+      <section class="tile c3"><div class="c3h"><span class="lab2">Horloge des sessions</span></div><p class="adesc">Chaque demi-heure de la journée. Une barre vers l'extérieur a fait gagner, vers l'intérieur a fait perdre. Les sessions sont sur le bord.</p>
+        <div class="clk">${clockSVG(T)}<div class="clk-l">
+          ${SESS.map(x => `<div class="lg"><i style="height:${x.w - 1}px;opacity:${x.o}"></i><span>${x.n}</span><b>${x.lab}</b></div>`).join("")}
+          <div class="lgsep"></div>
+          ${best ? `<div class="lg2"><small>Meilleure demi-heure</small><b>${hh(best.i)}</b><b class="mv">${best.p > 0 ? "+" : ""}${money(best.p)}</b></div>` : ""}
+          ${worst && worst !== best ? `<div class="lg2"><small>Pire demi-heure</small><b>${hh(worst.i)}</b><b class="mv ${worst.p < 0 ? "r" : ""}">${worst.p > 0 ? "+" : ""}${money(worst.p)}</b></div>` : ""}
+        </div></div>${T.length < L.length ? `<small class="muted">${L.length - T.length} trade${pl(L.length - T.length)} sans heure ne sont pas comptés.</small>` : ""}</section>
+      <section class="tile c3"><div class="c3h"><span class="lab2">Sessions, classées</span></div><p class="adesc">La 01 est celle qui t'a fait gagner le plus.</p>
+        <div class="srank">${ses.map((x, k) => `<div class="sr${k ? "" : " top"}"><span class="srn">${String(k + 1).padStart(2, "0")}</span>
+          <div class="srm"><b>${x.n}</b>${k ? "" : `<small>${x.lab}</small>`}<span class="mv ${x.st.net < 0 ? "r" : ""}">${x.st.net > 0 ? "+" : ""}${money(x.st.net)}</span>
+          ${k ? `<small>${x.st.n} trade${pl(x.st.n)} · ${pct(x.st.wr)}</small>` : `<small>${pct(x.st.wr)} de réussite · ${x.st.n} trade${pl(x.st.n)}${x.st.avgR != null ? " · " + x.st.avgR.toFixed(2).replace(".", ",") + "R moy." : ""}</small>`}</div>
+          ${k ? "" : sparkline(x.cur)}</div>`).join("")}</div></section>
+    </div>
+    <section class="tile c3"><div class="c3h"><span class="lab2">Heure × jour de la semaine</span><small>Total</small></div>
+      <div class="hmwrap"><div class="hm" style="--cols:24">
+        <span></span>${Array.from({length: 24}, (_, h) => `<span class="hmh">${h % 3 ? "" : String(h).padStart(2, "0")}</span>`).join("")}<span></span>
+        ${grid.map(g => `<span class="hmd">${WD[g.d]}</span>${g.row.map((v, h) => `<i style="${cellBg(v)}" ${v ? `data-tip-t="${WDL[g.d]} ${String(h).padStart(2, "0")}h" data-tip="${money(v)}"` : ""}></i>`).join("")}<b class="hmt mv ${g.tot < 0 ? "r" : ""}">${g.tot ? (g.tot > 0 ? "+" : "") + kMoney(g.tot) : "—"}</b>`).join("")}
+      </div></div></section>`;
+  } else {
+    const longs = bstats(L.filter(t => t.side !== "Short")), shorts = bstats(L.filter(t => t.side === "Short"));
+    const rT = L.filter(t => isNum(t.r)), exp = rT.length ? rT.reduce((a, t) => a + t.r, 0) / rT.length : null;
+    let run = 0, bestRun = 0; L.forEach(t => { run = t.pnl > 0 ? run + 1 : 0; bestRun = Math.max(bestRun, run); });
+    const bt = L.reduce((a, t) => t.pnl > a.pnl ? t : a, L[0]), wt = L.reduce((a, t) => t.pnl < a.pnl ? t : a, L[0]);
+    const B = [["≤ -1R", r => r <= -1], ["-1 à 0", r => r > -1 && r < 0], ["0 à 1R", r => r >= 0 && r < 1], ["1 à 2R", r => r >= 1 && r < 2], ["2 à 3R", r => r >= 2 && r < 3], ["≥ 3R", r => r >= 3]].map(([l, f], i) => ({l, n: rT.filter(t => f(t.r)).length, neg: i < 2}));
+    const bmx = Math.max(1, ...B.map(x => x.n));
+    const months = []; L.forEach(t => { const k = t.y + "-" + t.m; let x = months.find(m => m.k === k); if (!x) months.push(x = {k, y: t.y, m: t.m, p: 0}); x.p += t.pnl; });
+    const mmx = Math.max(1, ...months.map(x => Math.abs(x.p)));
+    const side = (lab, st, ar) => `<div class="side2"><div class="c3h"><b>${ar} ${lab}</b><small>${st.n} trade${pl(st.n)}</small></div><div class="wkv mv ${st.net < 0 ? "r" : ""}">${st.n ? bigMoney(st.net) : "—"}</div><div class="kv"><span>Réussite</span><b>${st.wins + st.losses ? pct(st.wr) : "—"}</b></div><div class="kv"><span>RR moyen gagnant</span><b>${st.avgR != null ? st.avgR.toFixed(2).replace(".", ",") + "R" : "—"}</b></div></div>`;
+    body = `<div class="kpis">
+        <div class="tile kp"><small>Trades</small><b>${s.n}</b></div>
+        <div class="tile kp"><small>Réussite</small><b>${s.wr.toFixed(1).replace(".", ",")} %</b></div>
+        <div class="tile kp"><small>Profit factor</small><b>${s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ",")}</b></div>
+        <div class="tile kp"><small>Espérance / trade</small><b>${exp == null ? "—" : frR(exp)}</b></div>
+        <div class="tile kp"><small>Meilleur trade</small><b class="mv">${bigMoney(bt.pnl)}</b></div>
+        <div class="tile kp"><small>Pire trade</small><b class="mv ${wt.pnl < 0 ? "r" : ""}">${bigMoney(wt.pnl)}</b></div>
+        <div class="tile kp"><small>Série gagnante</small><b>${bestRun}</b></div>
+      </div>
+      <div class="agrid3">
+        <section class="tile c3"><div class="c3h"><span class="lab2">Long ou short</span></div><div class="sides">${side("Long", longs, "↗")}${side("Short", shorts, "↘")}</div></section>
+        <section class="tile c3"><div class="c3h"><span class="lab2">Distribution des R</span><small>${rT.length} trade${pl(rT.length)}</small></div>
+          <div class="hist">${B.map(x => `<div data-tip-t="${x.l}" data-tip="${x.n} trade${pl(x.n)}"><em>${x.n || ""}</em><i class="${x.neg ? "dn" : ""}${x.n ? "" : " z"}" style="height:${x.n ? Math.max(6, x.n / bmx * 100) : 3}%"></i><span>${x.l}</span></div>`).join("")}</div></section>
+        <section class="tile c3"><div class="c3h"><span class="lab2">Résultat par mois</span></div>
+          <div class="hist mon">${months.map(x => `<div data-tip-t="${MONTHS[x.m]} ${x.y}" data-tip="${money(x.p)}"><em class="mv">${kMoney(x.p)}</em><i class="${x.p < 0 ? "dn" : ""}" style="height:${Math.max(6, Math.abs(x.p) / mmx * 100)}%"></i><span>${MON3[x.m]}</span></div>`).join("")}</div></section>
+      </div>
+      <section class="tile c3"><div class="c3h"><span class="lab2">Tes jours</span></div>${(() => { const ws = weekdayStats(scope !== "month"); return ws.best ? weekdayHTML(ws, true) : `<span class="note">Pas encore assez de trades.</span>`; })()}</section>`;
+  }
+  $("anaView").innerHTML = head + body;
+}
+$("anaView").addEventListener("click", e => {
+  const t = e.target.closest("[data-atab]"); if (t) { anaTab = t.dataset.atab; try { localStorage.setItem("bilan-ana", anaTab); } catch(err) {} renderAna(); return; }
+  const sc = e.target.closest("[data-ascope]"); if (sc) { scope = sc.dataset.ascope; try { localStorage.setItem("bilan-scope", scope); } catch(err) {} boardDrawn = false; renderBoard(); renderAna(); }
+});
+
+
 applySeed(); save();
 renderDash();
+setView(view);
 
 
 /* ===== Animations à la souris : halo qui suit le curseur + bulles d'info ===== */
@@ -2027,8 +2432,9 @@ renderDash();
       tip.querySelector("small").textContent = t.dataset.tipT || "";
       tip.querySelector("b").textContent = t.dataset.tip;
       const r = t.getBoundingClientRect(), h = tip.offsetHeight || 52;
-      tip.style.left = Math.max(8, r.left + 4) + "px";
-      tip.style.top = Math.max(8, r.top - h - 30) + "px";
+      const cx = r.left + r.width / 2, w = tip.offsetWidth || 160, lx = Math.max(8, Math.min(innerWidth - w - 8, cx - 16));
+      tip.style.left = lx + "px"; tip.style.setProperty("--sx", (cx - lx - .5) + "px");
+      tip.style.top = Math.max(8, (r.height < 34 ? r.top + r.height / 2 : r.top) - h - 30) + "px";
       tip.classList.remove("on"); void tip.offsetWidth; tip.classList.add("on");
     }
   }, {passive: true});
@@ -2036,7 +2442,7 @@ renderDash();
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-1";
+const APP_VERSION = "2026-10-26-2";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
