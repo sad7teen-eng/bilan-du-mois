@@ -1143,6 +1143,29 @@ body:not(.light) .miniglobe::after{box-shadow:0 0 0 1px rgba(255,255,255,.12),0 
 .mchips button img{width:20px;height:14px;object-fit:cover;border-radius:3px}
 .mchips button.on,.mchips button:hover{background:#fff!important;color:#000!important}
 @media (max-width:640px){.mframe{padding:16px;border-radius:20px}.msearch input{width:100%}.msearch{flex-basis:100%}.mpanel{max-height:none}}
+
+/* --- grosse planète à gauche, rognée par le bord --- */
+html{overflow-x:clip}
+section.view.hasglobe{position:relative;--pg:clamp(220px,28vw,420px);--crop:calc(var(--pg) * .4)}
+.miniglobe{position:absolute!important;z-index:3;left:calc(var(--vl,-36px) - var(--crop));top:-34px;width:var(--pg)!important;height:var(--pg)!important}
+.miniglobe::after{display:none!important}
+.miniglobe:hover{transform:scale(1.03)!important}
+.miniglobe canvas{filter:drop-shadow(0 30px 60px rgba(0,0,0,.35))}
+section.view.hasglobe > .top{padding-left:max(0px,calc(var(--vl,-36px) - var(--crop) + var(--pg) + 18px));min-height:calc(var(--pg) * .52);align-items:center}
+@media (max-width:640px){section.view.hasglobe{--pg:200px;--crop:90px}}
+/* --- page macro : univers noir plein écran par-dessus le journal --- */
+#macroView{position:fixed;inset:0;z-index:62;background:#000;overflow:auto;padding:0!important;display:block}
+#macroView[hidden]{display:none!important}
+#macroView.leaving{opacity:0}
+body.inmacro{overflow:hidden}
+body.inmacro .topnav,body.inmacro .dock{visibility:hidden}
+#macroView .mframe{border-radius:0;border:0;box-shadow:none;min-height:100dvh;padding:calc(18px + env(safe-area-inset-top,0px)) clamp(16px,3vw,40px) calc(18px + env(safe-area-inset-bottom,0px));background:radial-gradient(90% 70% at 40% 45%,#15171b,#000 70%)}
+.mstars2{position:absolute;inset:0;pointer-events:none;opacity:.35;background-image:radial-gradient(1px 1px at 8% 30%,#fff,transparent),radial-gradient(1px 1px at 66% 22%,#fff,transparent),radial-gradient(1px 1px at 48% 88%,#ddd,transparent),radial-gradient(1px 1px at 94% 40%,#fff,transparent),radial-gradient(1px 1px at 28% 70%,#ccc,transparent),radial-gradient(1px 1px at 80% 80%,#eee,transparent),radial-gradient(1px 1px at 16% 6%,#fff,transparent)}
+#macroView .mbody{min-height:calc(100dvh - 170px)}
+#macroView #bigGlobe{width:min(100%,74vh,760px)}
+#macroView .mpanel{max-height:calc(100dvh - 190px)}
+.mhint{transition:opacity .4s}
+.msrcb{font-style:normal;font-weight:600;color:#fff;letter-spacing:.02em}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2649,8 +2672,13 @@ $("btnCal").onclick = () => $("calSec").scrollIntoView({behavior: reduced ? "aut
 /* ===== Pages : navigation du haut (Tableau, Résultats, Certificats, Stratégie, Analytics) ===== */
 const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graphique", "macro"];
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
-function setView(v){
+function setView(v, keepScroll){
   if (!VIEWS.includes(v)) v = "tableau";
+  /* la planète macro est un calque noir posé par-dessus : on garde la page du dessous affichée */
+  const overlay = v === "macro";
+  document.body.classList.toggle("inmacro", overlay);
+  if (overlay) { $("macroView").hidden = false; history.replaceState(null, "", "#macro"); renderMacro(); return; }
+  $("macroView").hidden = true; if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
   ["dayModal", "certEditModal", "lightbox", "jourModal"].forEach(id => { const m = $(id); if (m && id !== "dayModal") m.hidden = true; });
   document.body.style.overflow = "";
   view = v;
@@ -2661,9 +2689,8 @@ function setView(v){
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
-  if (v === "macro") renderMacro(); else if (typeof bigG !== "undefined" && bigG) { bigG.destroy(); bigG = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
-  window.scrollTo(0, 0);
+  if (!keepScroll) window.scrollTo(0, 0);
 }
 document.addEventListener("click", e => { const b = e.target.closest(".tn[data-view],.dk[data-view]"); if (b) setView(b.dataset.view); });
 addEventListener("hashchange", () => { const v = location.hash.slice(1); if (v !== view && VIEWS.includes(v)) setView(v); });
@@ -3212,18 +3239,18 @@ const rateOf = iso => RATES[iso] || (EZ.has(iso) ? RATES.EZ : null);
 /* Une planète dessinée au canvas, projection orthographique */
 function makeGlobe(canvas, o = {}){
   const ctx = canvas.getContext("2d"), proj = d3.geoOrthographic().clipAngle(90).precision(.4), path = d3.geoPath(proj, ctx), grat = d3.geoGraticule10();
-  const st = {rot: o.rot ? o.rot.slice() : [-20, -18, 0], speed: o.speed ?? 8, sel: null, hover: null, drag: null, anim: null, w: 0, dead: false};
+  const st = {rot: o.rot ? o.rot.slice() : [-20, -18, 0], speed: o.speed ?? 8, sel: null, hover: null, drag: null, anim: null, w: 0, dead: false, touched: -1e9};
   const key = new Set(KEY_ECO), phase = {}; KEY_ECO.forEach((k, i) => phase[k] = i * 1.7);
   let last = performance.now(), raf = 0;
   function fit(){ const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
     if (Math.abs(r.width - st.w) > .5 || canvas.width !== Math.round(r.width * dpr)) { st.w = r.width; canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
-    proj.scale(r.width / 2 * .94).translate([r.width / 2, r.height / 2]); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
+    proj.scale(r.width / 2 * (o.mini ? 1 : .94)).translate([r.width / 2, r.height / 2]); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
   function draw(now){
     const r = fit(), R = proj.scale(), [cx, cy] = proj.translate(), t = now / 1000;
     ctx.clearRect(0, 0, r.width, r.height);
     /* halo atmosphérique */
     const halo = ctx.createRadialGradient(cx, cy, R * .9, cx, cy, R * 1.06); halo.addColorStop(0, "rgba(255,255,255,0)"); halo.addColorStop(.6, "rgba(200,210,230,.10)"); halo.addColorStop(1, "rgba(200,210,230,0)");
-    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.06, 0, 7); ctx.fill();
+    if (!o.mini) { ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx, cy, R * 1.06, 0, 7); ctx.fill(); }
     const sg = ctx.createRadialGradient(cx - R * .38, cy - R * .42, R * .05, cx, cy, R);
     sg.addColorStop(0, "#3d4046"); sg.addColorStop(.45, "#121316"); sg.addColorStop(1, "#000");
     ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sg; ctx.fill();
@@ -3243,29 +3270,29 @@ function makeGlobe(canvas, o = {}){
       ctx.restore(); }
     /* reflet + bord lumineux */
     const sh = ctx.createRadialGradient(cx - R * .45, cy - R * .5, 0, cx - R * .45, cy - R * .5, R * .9); sh.addColorStop(0, "rgba(255,255,255,.16)"); sh.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill(); ctx.strokeStyle = "rgba(255,255,255,.22)"; ctx.lineWidth = 1; ctx.stroke();
+    ctx.beginPath(); path({type: "Sphere"}); ctx.fillStyle = sh; ctx.fill();
   }
   function frame(now){
     if (st.dead) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
     if (st.anim) { const k = Math.min(1, (now - st.anim.t0) / st.anim.d), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; st.rot = st.anim.i(e); if (k >= 1) st.anim = null; }
-    else if (!st.drag && !st.sel) st.rot[0] += st.speed * dt;
+    else if (!st.drag && now - st.touched > 2500) { const k = Math.min(1, (now - st.touched - 2500) / 1200); st.rot[0] += st.speed * dt * k; st.rot[1] += (-18 - st.rot[1]) * dt * .4 * k; }
     proj.rotate(st.rot); draw(now); raf = requestAnimationFrame(frame);
   }
   const pick = (x, y) => { if (!geo) return null; const ll = proj.invert([x, y]); if (!ll || d3.geoDistance(ll, [-st.rot[0], -st.rot[1]]) > Math.PI / 2) return null;
     for (const f of geo.feats) if (d3.geoContains(f, ll)) return f; return null; };
   if (o.interactive) {
-    canvas.addEventListener("pointerdown", e => { st.drag = {x: e.clientX, y: e.clientY, r: st.rot.slice(), moved: 0}; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointerdown", e => { st.touched = performance.now() + 1e9; o.onTouch && o.onTouch(); st.drag = {x: e.clientX, y: e.clientY, r: st.rot.slice(), moved: 0}; canvas.setPointerCapture(e.pointerId); });
     canvas.addEventListener("pointermove", e => { const b = canvas.getBoundingClientRect();
       if (st.drag) { const dx = e.clientX - st.drag.x, dy = e.clientY - st.drag.y; st.drag.moved = Math.max(st.drag.moved, Math.abs(dx) + Math.abs(dy)); const k = 180 / (b.width * .94);
         st.rot = [st.drag.r[0] + dx * k, Math.max(-75, Math.min(75, st.drag.r[1] - dy * k)), 0]; st.anim = null; return; }
       const f = pick(e.clientX - b.left, e.clientY - b.top); st.hover = f ? f.id : null; canvas.style.cursor = f ? "pointer" : "grab"; o.onHover && o.onHover(f, e); });
     canvas.addEventListener("pointerleave", () => { st.hover = null; o.onHover && o.onHover(null); });
-    canvas.addEventListener("pointerup", e => { const d = st.drag; st.drag = null; if (d && d.moved < 6) { const b = canvas.getBoundingClientRect(), f = pick(e.clientX - b.left, e.clientY - b.top); if (f) o.onPick && o.onPick(f); } });
+    canvas.addEventListener("pointerup", e => { st.touched = performance.now(); const d = st.drag; st.drag = null; if (d && d.moved < 6) { const b = canvas.getBoundingClientRect(), f = pick(e.clientX - b.left, e.clientY - b.top); if (f) o.onPick && o.onPick(f); } });
   } else if (o.onClick) canvas.addEventListener("click", o.onClick);
   raf = requestAnimationFrame(frame);
   return {
     st, focus(f){ st.sel = f ? f.id : null; if (!f) return; const to = [-f.cen[0], -f.cen[1] * .8, 0], from = st.rot.slice(); while (to[0] - from[0] > 180) to[0] -= 360; while (from[0] - to[0] > 180) to[0] += 360;
-      st.anim = {t0: performance.now(), d: 1100, i: d3.interpolate(from, to)}; },
+      st.anim = {t0: performance.now(), d: 1100, i: d3.interpolate(from, to)}; st.touched = performance.now() + 1100; },
     release(){ st.sel = null; }, destroy(){ st.dead = true; cancelAnimationFrame(raf); }
   };
 }
@@ -3273,12 +3300,14 @@ function makeGlobe(canvas, o = {}){
 /* --- petite planète à côté de « Bonsoir, Kael » --- */
 let miniG = null, bigG = null;
 function mountMini(){
-  const h = document.querySelector('section.view[data-view="tableau"] .top'); if (!h || $("miniGlobe")) return;
+  const h = document.querySelector('section.view[data-view="tableau"]'); if (!h || $("miniGlobe")) return;
   const b = document.createElement("button"); b.type = "button"; b.id = "miniGlobe"; b.className = "miniglobe"; b.setAttribute("aria-label", "Ouvrir la planète macro");
   b.setAttribute("data-tip-t", "Planète macro"); b.setAttribute("data-tip", "Taux, inflation, PIB et actu de chaque pays");
-  b.innerHTML = `<canvas></canvas>`; h.insertBefore(b, h.firstChild);
+  b.innerHTML = `<canvas></canvas>`; h.insertBefore(b, h.firstChild); h.classList.add("hasglobe");
+  const place = () => { const r = h.getBoundingClientRect(); h.style.setProperty("--vl", (-r.left) + "px"); };
+  place(); addEventListener("resize", place);
   b.onclick = openMacro;
-  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 14}); }).catch(() => {});
+  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 9}); }).catch(() => {});
 }
 
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
@@ -3291,38 +3320,41 @@ async function openMacro(){
   const cv = fly.querySelector("canvas"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
   const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined});
   src.style.visibility = "hidden";
-  setView("macro"); $("macroView").classList.add("entering");
+  flyRot = g.st.rot; $("macroView").classList.add("entering");
+  setView("macro", true);
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
   fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
   const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
   const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 260 * (1 - k) + 6 * k; if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
-  if (bigG) bigG.st.rot = g.st.rot.slice();
+  if (bigG) bigG.st.rot = g.st.rot.slice(); flyRot = null;
   $("macroView").classList.remove("entering");
   fly.animate([{opacity: 1}, {opacity: 0}], {duration: 380, fill: "forwards"}).finished.then(() => { g.destroy(); fly.remove(); });
   src.style.visibility = "";
 }
 
 /* --- la page macro --- */
-let macroSel = null;
+let macroSel = null, flyRot = null;
 function renderMacro(){
   if (bigG) { bigG.destroy(); bigG = null; }
   $("macroView").innerHTML = `<div class="mframe">
+      <div class="mstars2" aria-hidden="true"></div>
       <div class="mstars" aria-hidden="true"></div>
       <header class="mhead"><button type="button" class="mback" id="mBack">‹ Tableau</button>
         <div class="mtitle"><h1>Planète macro</h1><p>Touchez un pays : taux directeur, inflation, PIB, devise et l'actu éco du moment.</p></div>
         <label class="msearch"><input id="mSearch" list="mList" placeholder="Chercher un pays…" autocomplete="off"><datalist id="mList"></datalist></label></header>
       <div class="mbody">
-        <div class="mglobe"><canvas id="bigGlobe"></canvas><div class="mtip" id="mTip" hidden></div><p class="mhint">Glissez pour tourner · touchez un pays</p></div>
+        <div class="mglobe"><canvas id="bigGlobe"></canvas><div class="mtip" id="mTip" hidden></div>${(() => { try { return localStorage.getItem("bilan-mhint") ? "" : `<p class="mhint" id="mHint">Glissez pour tourner · touchez un pays</p>`; } catch(e) { return ""; } })()}</div>
         <aside class="mpanel" id="mPanel"></aside>
       </div>
       <div class="mchips" id="mChips"></div>
     </div>`;
-  $("mBack").onclick = () => setView("tableau");
+  $("mBack").onclick = () => { const mv = $("macroView"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 380); };
   loadGeo().then(() => {
-    if (view !== "macro") return;
-    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 6,
+    if ($("macroView").hidden || !$("bigGlobe")) return;
+    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 6, rot: flyRot || undefined,
+      onTouch: () => { const hh = $("mHint"); if (hh) { hh.style.opacity = 0; setTimeout(() => hh.remove(), 400); try { localStorage.setItem("bilan-mhint", "1"); } catch(e) {} } },
       onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2]; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
       onPick: f => selectCountry(f.iso)});
     $("mList").innerHTML = geo.feats.slice().sort((a, b) => a.c[2].localeCompare(b.c[2], "fr")).map(f => `<option value="${esc(f.c[2])}">`).join("");
@@ -3342,18 +3374,24 @@ async function wb(iso3, ind){
   const r = await fetch(`https://api.worldbank.org/v2/country/${iso3}/indicator/${ind}?format=json&mrnev=1`).then(r => r.json());
   const v = r && r[1] && r[1][0]; return wbCache[k] = v && v.value != null ? {v: v.value, y: v.date} : null;
 }
+const PRIO_SRC = ["bloomberg.com", "wsj.com", "baha.com", "reuters.com", "ft.com", "cnbc.com", "lesechos.fr", "boursorama.com"];
+const SRC_NAME = {"bloomberg.com": "Bloomberg", "wsj.com": "Wall Street Journal", "baha.com": "BAHA", "reuters.com": "Reuters", "ft.com": "Financial Times", "cnbc.com": "CNBC", "lesechos.fr": "Les Echos", "boursorama.com": "Boursorama"};
+async function gdelt(q){ try { const u = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(q)}&mode=ArtList&maxrecords=25&format=json&sort=DateDesc&timespan=7d`; const j = JSON.parse(await fetch(u).then(r => r.text())); return j.articles || []; } catch(e) { return []; } }
 async function news(f){
   const k = f.iso; if (newsCache[k]) return newsCache[k];
   const name = EN_FIX[f.iso] || f.c[3];
+  /* d'abord les grands médias financiers (Bloomberg, WSJ, BAHA…), puis le reste */
+  const top = await gdelt(`"${name}" (${PRIO_SRC.map(d => "domainis:" + d).join(" OR ")})`);
+  if (top.length >= 6) return newsCache[k] = top;
   const base = `"${name}" (economy OR inflation OR "central bank" OR "interest rate" OR recession OR tariffs OR sanctions OR war OR markets OR currency)`;
   for (const lang of ["french", "english"]) {
     try {
       const u = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(base + " sourcelang:" + lang)}&mode=ArtList&maxrecords=10&format=json&sort=DateDesc&timespan=7d`;
       const txt = await fetch(u).then(r => r.text()); const j = JSON.parse(txt);
-      if (j.articles && j.articles.length) return newsCache[k] = j.articles;
+      if (j.articles && j.articles.length) { const seen = new Set(top.map(a => a.url)); return newsCache[k] = top.concat(j.articles.filter(a => !seen.has(a.url))); }
     } catch(e) {}
   }
-  return newsCache[k] = [];
+  return newsCache[k] = top;
 }
 const agoFr = s => { const d = new Date(s.replace(/^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)Z$/, "$1-$2-$3T$4:$5:$6Z")), m = Math.round((Date.now() - d) / 60000);
   return m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`; };
@@ -3374,14 +3412,14 @@ async function selectCountry(iso){
     </div>
     <div class="mp-h"><span class="mlab">Actu éco & géopolitique · 7 jours</span></div>
     <div class="mnews" id="mNews"><p class="mmuted">Chargement des articles…</p></div>
-    <p class="mmuted msrc">Sources : Banque mondiale (chiffres annuels), GDELT (articles), banques centrales.</p></div>`;
+    <p class="mmuted msrc">Sources : Banque mondiale (chiffres annuels) · articles Bloomberg, Wall Street Journal, BAHA, Reuters… repérés via GDELT · banques centrales.</p></div>`;
   $("mClose").onclick = () => { macroSel = null; bigG && bigG.release(); document.querySelectorAll("#mChips button").forEach(b => b.classList.remove("on")); drawOverview(); };
   const put = (id, val, y, fmt) => { const el = $(id); if (!el || macroSel !== iso) return; el.querySelector("b").classList.remove("sk"); el.querySelector("b").textContent = val == null ? "—" : fmt(val); if (y) el.insertAdjacentHTML("beforeend", `<em>en ${y}</em>`); };
   const pc = v => (v > 0 ? "+" : "") + v.toFixed(1).replace(".", ",") + " %";
   [["mkInf", "FP.CPI.TOTL.ZG", pc], ["mkGdp", "NY.GDP.MKTP.CD", bigNum], ["mkGr", "NY.GDP.MKTP.KD.ZG", pc], ["mkUn", "SL.UEM.TOTL.ZS", v => v.toFixed(1).replace(".", ",") + " %"]]
     .forEach(([id, ind, fmt]) => wb(c[1], ind).then(r => put(id, r && r.v, r && r.y, fmt)).catch(() => put(id, null, null, fmt)));
   news(f).then(a => { if (macroSel !== iso || !$("mNews")) return;
-    $("mNews").innerHTML = a.length ? a.slice(0, 8).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener" class="mn">${x.socialimage ? `<img src="${esc(x.socialimage)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(x.title)}</b><small>${esc(x.domain)} · ${agoFr(x.seendate)}</small></span></a>`).join("")
+    $("mNews").innerHTML = a.length ? a.slice(0, 8).map(x => `<a href="${esc(x.url)}" target="_blank" rel="noopener" class="mn">${x.socialimage ? `<img src="${esc(x.socialimage)}" alt="" loading="lazy" onerror="this.remove()">` : ""}<span><b>${esc(x.title)}</b><small>${SRC_NAME[String(x.domain).replace(/^www\./, "")] ? `<em class="msrcb">${SRC_NAME[String(x.domain).replace(/^www\./, "")]}</em>` : esc(x.domain)} · ${agoFr(x.seendate)}</small></span></a>`).join("")
       : `<p class="mmuted">Pas d'article trouvé cette semaine (ou la source ne répond pas).</p>`; });
 }
 $("macroView").addEventListener("click", e => { const b = e.target.closest("[data-iso]"); if (b) selectCountry(b.dataset.iso); });
@@ -3472,7 +3510,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-21";
+const APP_VERSION = "2026-10-26-22";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
