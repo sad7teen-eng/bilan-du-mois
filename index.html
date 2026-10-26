@@ -1240,6 +1240,12 @@ body.inmacro{overflow:visible!important}
 .topnav,.dock,.dash > section.view:not(#macroView) > *:not(.miniglobe),.dash > .savebar,.scene .orb{transition:opacity .26s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
 body.mfade .topnav,body.mfade .dock,body.mfade .dash > section.view:not(#macroView) > *:not(.miniglobe),body.mfade .dash > .savebar,body.mfade .scene .orb{opacity:0!important;pointer-events:none}
 body.mfade .dash > section.view:not(#macroView) > *:not(.miniglobe){transform:scale(.985)}
+
+/* --- v35 : le tableau s'efface en dézoom fluide --- */
+.dash > section.view:not(#macroView) > *:not(.miniglobe){transition:opacity .34s cubic-bezier(.4,0,.2,1),transform .42s cubic-bezier(.4,0,.2,1)!important;transform-origin:50% 30%}
+body.mfade .dash > section.view:not(#macroView) > *:not(.miniglobe){transform:scale(.92) translateY(14px)!important}
+body.mfade .dash > section.view:not(#macroView) > .board{transition-delay:.04s!important}
+body.mfade .topnav{transform:translateY(-10px)}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3455,7 +3461,7 @@ function mountMini(){
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
 /* la planète se remplit, puis l'aura s'allume */
 function fillGlobe(G){
-  if (!G) return; const t0 = performance.now(), F = reduced ? 1 : 900, AU = reduced ? 1 : 1100;
+  if (!G) return; const t0 = performance.now(), F = reduced ? 1 : 480, AU = reduced ? 1 : 1400;
   (function step(){ const k = (performance.now() - t0); G.st.m = Math.min(1, k / F); const a = Math.max(0, Math.min(1, (k - F * .9) / AU)); G.st.au = a * a * (3 - 2 * a); if (k < F * .9 + AU && !G.st.dead) requestAnimationFrame(step); })();
 }
 async function openMacro(){
@@ -3466,20 +3472,20 @@ async function openMacro(){
   const fly = document.createElement("div"); fly.className = "globefly"; fly.innerHTML = `<div class="gf-bg"></div><canvas></canvas>`; document.body.appendChild(fly);
   const cv = fly.querySelector("canvas"), bg = fly.querySelector(".gf-bg"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
   const light = document.body.classList.contains("light");
-  const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined, m: 0, au: 0, k: .96, iw: light ? 0 : 1});
+  const g = makeGlobe(cv, {speed: 9, rot: miniG ? miniG.st.rot : undefined, m: 0, au: 0, k: .96, iw: light ? 0 : 1});
   src.style.visibility = "hidden";
   /* 0) tout le tableau s'efface d'abord, il ne reste que la planète */
   document.body.classList.add("mfade");
-  await new Promise(r => setTimeout(r, reduced ? 0 : 260));
+  await new Promise(r => setTimeout(r, reduced ? 0 : 140));
   flyRot = g.st.rot; mv.classList.add("entering");
   setView("macro", true);
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1050, B = reduced ? 10 : 420;
+  const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 680, B = reduced ? 10 : 280;
   /* 1) la planète creuse vole jusqu'au centre, au-dessus du tableau */
   const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.65,0,.2,1)", fill: "forwards"});
   bg.animate([{opacity: 0}, {opacity: .18}], {duration: D, fill: "forwards"});
   const t0 = performance.now();
-  (function slow(){ const k = Math.min(1, (performance.now() - t0) / D), e = k * k * (3 - 2 * k); g.st.speed = 260 * (1 - k) + 9 * k; g.st.k = .96 + (.6 - .96) * e;
+  (function slow(){ const k = Math.min(1, (performance.now() - t0) / D), e = k * k * (3 - 2 * k); g.st.k = .96 + (.6 - .96) * e;
     if (k > .55 && light) g.st.iw = Math.min(1, (k - .55) / .45 * .5); if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
   /* 2) l'univers noir arrive autour, la planète passe au blanc */
@@ -3678,7 +3684,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-34";
+const APP_VERSION = "2026-10-26-35";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
