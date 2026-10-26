@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-26T08:29:49.000Z",
+ "updatedAt": "2026-10-26T09:06:37.000Z",
  "cols": [
   {
    "id": "perso",
@@ -132,7 +132,7 @@
      "id": "w44-14",
      "t": "Appeler le garage : pose des pneus (arrivée vendredi)",
      "w": "2026-10-26",
-     "done": false
+     "done": true
     }
    ]
   },
