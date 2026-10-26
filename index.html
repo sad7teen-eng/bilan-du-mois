@@ -36,9 +36,9 @@
 }
 html,body{height:100%}
 /* Light mode: dashboard and editors only; the story stays dark. */
-body.light{background:#f2f5f4;color:#121816}
-body.light .dash,body.light .modal,body.light .topnav,body.light .dock{--bg:#f2f5f4;--panel:#ffffff;--panel-2:#f5f8f7;--line:#dce3e0;--fg:#121816;--muted:#62716c;--gain:#138a4e;--gain-dim:rgba(19,138,78,.09);--gain-edge:rgba(19,138,78,.32);--loss:#c9472a;--loss-dim:rgba(201,71,42,.09);--loss-edge:rgba(201,71,42,.32);--on-gain:#ffffff;color-scheme:light;color:var(--fg)}
-body.light .modal{background:rgba(232,237,235,.78)}
+body.light{background:#eceef1;color:#0b0b0c}
+body.light .dash,body.light .modal,body.light .topnav,body.light .dock{--bg:#f4f5f7;--panel:rgba(255,255,255,.52);--panel-2:rgba(255,255,255,.68);--line:rgba(10,12,16,.09);--fg:#0b0b0c;--muted:#6a6e75;--gain:#0b0b0c;--gain-dim:rgba(0,0,0,.05);--gain-edge:rgba(0,0,0,.22);--loss:#e5484d;--loss-dim:rgba(229,72,77,.09);--loss-edge:rgba(229,72,77,.32);--on-gain:#ffffff;color-scheme:light;color:var(--fg)}
+body.light .modal{background:rgba(236,238,242,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
 body.light .ready{box-shadow:none}
 body.light .cell:hover,body.light button:hover{border-color:#b9c5c1}
 body.light .cell .add{color:#b4c0bc}
@@ -952,6 +952,120 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 .story{z-index:60!important}
 
 .brush{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:70}
+
+/* ===================== Version claire « verre » : tableau en avant, planète floue derrière ===================== */
+.scene{display:none}
+body.light .scene{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#fbfbfc 0%,#eef0f3 55%,#e4e7eb 100%)}
+.orb{position:absolute;border-radius:50%;will-change:transform}
+.orb i{position:absolute;inset:0;border-radius:50%}
+.orb.o1{width:min(62vmax,900px);aspect-ratio:1;left:50%;margin-left:min(-31vmax,-450px);top:8vh}
+.orb.o1 i{background:radial-gradient(circle at 36% 32%,#6b6e74 0%,#2b2d31 26%,#121315 52%,rgba(0,0,0,.85) 66%,transparent 72%);filter:blur(56px);opacity:.5}
+.orb.o1::after{content:"";position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.35),transparent 30%);filter:blur(30px)}
+.orb.o2{width:min(34vmax,520px);aspect-ratio:1;left:-10vmax;bottom:-12vmax}
+.orb.o2 i{background:radial-gradient(circle at 60% 35%,#3a3c41,#0d0d0f 55%,transparent 72%);filter:blur(70px);opacity:.35}
+.floor{position:absolute;left:50%;bottom:-30vh;width:140vw;height:60vh;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(0,0,0,.08),transparent);filter:blur(20px)}
+body.light .dash,body.light .topnav,body.light .dock{position:relative;z-index:1}
+body.light .topnav{position:sticky;z-index:30}
+body.light .dock{position:fixed}
+
+/* Cartes en verre */
+body.light .tile,body.light .cal,body.light .plan,body.light .chcard,body.light .chside,body.light .ready,body.light .crow,body.light .jc,body.light .jsheet,body.light .sheet,body.light .ckread,body.light .kvs > div,body.light .rk > div,body.light .tf,body.light .ch-kpis > div{
+  background:linear-gradient(160deg,rgba(255,255,255,.82),rgba(255,255,255,.6))!important;
+  -webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);
+  border:1px solid rgba(255,255,255,.75)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(0,0,0,.04),0 18px 44px rgba(16,18,24,.10)}
+body.light .tile,body.light .cal,body.light .plan,body.light .chcard,body.light .chside{border-radius:20px}
+body.light .topnav{background:rgba(250,250,252,.55);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-bottom-color:rgba(255,255,255,.6)}
+body.light .tn.on{background:rgba(255,255,255,.85)!important;box-shadow:0 2px 10px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.05)}
+body.light .dock{background:rgba(255,255,255,.55)}
+body.light .scope{background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-color:rgba(255,255,255,.8)}
+body.light .scope button.on{background:#fff!important;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+body.light button{background:rgba(255,255,255,.6);border-color:rgba(0,0,0,.08)}
+body.light button.go,body.light button.primary{background:#0b0b0c;color:#fff;border-color:#0b0b0c}
+body.light .psec + .psec{border-top-color:rgba(0,0,0,.07)}
+body.light .bhero{border-bottom-color:rgba(0,0,0,.07)}
+@media (hover:hover){
+  body.light .tile,body.light .cal{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}
+  body.light .tile:hover{transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 26px 60px rgba(16,18,24,.16)}
+}
+
+/* Chiffres noirs avec un fondu sombre dessous */
+body.light .hnum,body.light .pv,body.light .scn,body.light .ch-num,body.light .di-v,body.light .wkv,body.light .sessv,body.light .s-name,body.light .dl-n,body.light .vhead h1,body.light .top h1{color:#0b0b0c;text-shadow:0 14px 34px rgba(0,0,0,.22),0 3px 8px rgba(0,0,0,.10)}
+body.light .hnum .r,body.light .r{color:#e5484d}
+body.light .hnum .dec{color:#5d6168;text-shadow:0 10px 26px rgba(0,0,0,.16)}
+body.light .top h1 .name{color:#0b0b0c}
+body.light .cv-line{filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+body.light .tico.gold{box-shadow:0 4px 12px rgba(160,112,26,.35)}
+
+/* ===== Calendrier : cases cliquables ===== */
+.wk,.days{grid-template-columns:repeat(7,minmax(0,1fr)) minmax(0,1.05fr)!important}
+.cell{aspect-ratio:auto!important;min-height:86px;align-items:stretch!important;justify-content:flex-end!important;padding:8px 9px 10px!important;gap:4px!important;overflow:hidden;text-align:left}
+.cell .dn{top:7px!important;right:9px;left:auto!important;font-size:11px}
+.cell .p{margin:0!important;font-size:15px!important;font-weight:600;align-self:center;margin-bottom:auto!important;margin-top:auto!important}
+.cell .ps{display:none}
+.cell .cf{display:flex;justify-content:space-between;gap:4px;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.cell .cbar{position:absolute;left:0;bottom:0;height:3px;border-radius:0 3px 3px 0;background:var(--fg);opacity:.85}
+.cell.down .cbar{background:var(--loss)}
+.cell.empty .add{align-self:center;margin:auto 0!important;opacity:0;transition:opacity .2s}
+.cell.empty:hover .add{opacity:1}
+.cell.we:not(.up):not(.down){opacity:.45}
+.cell.wkc{cursor:default;background:transparent!important;border:1px dashed var(--line)!important}
+.cell.wkc .dn{left:9px!important;right:auto;letter-spacing:.06em}
+.cell.wkc .c{align-self:center;margin:auto 0}
+.cell.wkc:hover{transform:none!important}
+body.light .cell{background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.7);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+body.light .cell.up{background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(255,255,255,.62));border-color:rgba(255,255,255,.95);box-shadow:0 10px 24px rgba(16,18,24,.10)}
+body.light .cell .p{font-size:16px!important;font-weight:650}
+body.light .cell.up .p{color:#0b0b0c!important}
+body.light .cell.down .p{color:#e5484d!important}
+body.light .cell.down{background:linear-gradient(160deg,rgba(255,236,236,.95),rgba(255,255,255,.6));border-color:rgba(229,72,77,.25);box-shadow:0 10px 24px rgba(229,72,77,.10)}
+body.light .cell.today{border-color:#0b0b0c!important}
+body.light .cell:not(.blank):not(.wkc):hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(16,18,24,.16)}
+@media (max-width:760px){
+  .cell{min-height:58px;padding:5px!important}
+  .cell .pf{display:none}.cell .ps{display:inline}
+  .cell .p,body.light .cell .p{font-size:10.5px!important;letter-spacing:-.03em}
+  .cell{padding:4px 2px!important;border-radius:9px!important}
+  .cell .cf{display:none}
+  .cell .dn{font-size:9px;top:4px!important;right:5px}
+  .wk div{font-size:9px}
+}
+
+/* ===== Journal du jour ===== */
+#jourModal{align-items:center}
+.jsheet{width:min(1180px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--panel);border:1px solid var(--line)}
+body:not(.light) .jsheet{background:#0a0a0a;border-color:#222}
+.jh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.jh h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-.02em}
+.jh .sum{font-size:13px;color:var(--muted);margin-top:3px}
+.jacts{display:flex;gap:8px}
+.jacts button{border-radius:999px!important;padding:8px 14px!important}
+.jcards{display:grid;grid-auto-flow:column;grid-auto-columns:min(440px,86vw);gap:14px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory}
+.jc{scroll-snap-align:start;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);background:var(--panel-2);min-width:0}
+body:not(.light) .jc{background:linear-gradient(180deg,#111,#0a0a0a);border-color:#222}
+.jc-h{display:flex;align-items:center;gap:9px}
+.jc-h .grow{flex:1}
+.jg{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--fg);color:var(--bg)}
+.jsym{font-size:15px;font-weight:700}
+.jside{font-size:10.5px;font-weight:600;letter-spacing:.08em;padding:3px 8px;border-radius:999px;border:1px solid var(--line)}
+.jside.s{color:var(--loss);border-color:var(--loss-edge)}
+.jres{text-align:right;line-height:1.15}
+.jres b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.jres small{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.jtags,.jtags2{display:flex;flex-wrap:wrap;gap:6px}
+.jtags span{font-size:11.5px;padding:4px 9px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.jtags2 span{font-size:11.5px;padding:4px 10px;border-radius:8px;background:var(--fg);color:var(--bg);font-weight:500}
+.jshots{display:grid;grid-template-columns:1fr;gap:6px;border-radius:12px;overflow:hidden}
+.jshots.two{grid-template-columns:1.6fr 1fr}
+.jshots.none{display:grid;place-items:center;height:120px;border:1px dashed var(--line);color:var(--muted);font-size:12px}
+.jshot{position:relative;padding:0!important;border:0!important;border-radius:10px!important;overflow:hidden;background:#000!important;aspect-ratio:16/10;cursor:zoom-in}
+.jshot img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.jshot:hover img{transform:scale(1.04)}
+.jshot .zoom{position:absolute;right:8px;top:6px;color:#fff;font-size:16px;text-shadow:0 1px 4px rgba(0,0,0,.6);opacity:0;transition:opacity .2s}
+.jshot:hover .zoom{opacity:1}
+.jnote{margin:0;font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.jc-a{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.jc-a button{border-radius:999px!important;padding:6px 12px!important;font-size:12px}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -970,6 +1084,7 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
     <span class="s-saved syncst" id="sSync"></span>
   </div>
 </aside>
+<div class="scene" aria-hidden="true"><div class="orb o1"><i></i></div><div class="orb o2"><i></i></div><div class="floor"></div></div>
 <nav class="topnav" aria-label="Pages">
   <div class="tn-in">
     <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
@@ -1022,7 +1137,7 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
     <div class="grid rgrid">
       <section class="cal" id="calSec">
         <div class="cal-h"><h2 id="calTitle"></h2><div class="cal-nav"><span class="tot" id="calTot"></span><button type="button" id="prevW" aria-label="Précédent">‹</button><button type="button" id="nextW" aria-label="Suivant">›</button></div></div>
-        <div class="wk"><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div></div>
+        <div class="wk"><div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div><div>Semaine</div></div>
         <div class="days" id="days"></div>
         <button type="button" class="monthtoggle" id="btnMonth">Voir tout le mois</button>
         <p class="help">Touche un jour pour saisir ses trades.</p>
@@ -1062,6 +1177,13 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 <div class="lightbox" id="lightbox" hidden><img id="lightImg" alt="Certificat"><div class="lb-acts"><button type="button" id="lbEdit">Modifier</button><button type="button" id="lbClose">Fermer</button></div></div>
 
 <!-- Fiche du jour -->
+<div class="modal" id="jourModal" hidden>
+  <div class="jsheet" role="dialog" aria-label="Journal du jour">
+    <header class="jh"><div><h2 id="jTitle"></h2><div class="sum" id="jSum"></div></div>
+      <div class="jacts"><button type="button" id="jAdd">+ Ajouter un trade</button><button type="button" id="jClose">Fermer</button></div></header>
+    <div class="jcards" id="jCards"></div>
+  </div>
+</div>
 <div class="modal" id="dayModal" hidden>
   <div class="sheet daysheet" role="dialog" aria-labelledby="dayTitle">
     <div class="dh"><div><h2 id="dayTitle"></h2><div class="sum" id="daySum"></div></div><button type="button" id="dayClose">Fermer</button></div>
@@ -1386,8 +1508,10 @@ function renderDash(){
     const ts = tradesOf(y, m).filter(t => t.day === d), pnl = ts.reduce((a, t) => a + t.pnl, 0);
     const cls = (other ? " other" : "") + (isToday(y, m, d) ? " today" : "");
     const da = `data-y="${y}" data-m="${m}" data-day="${d}"`;
-    if (ts.length) return `<button type="button" class="cell ${pnl < 0 ? "down" : "up"}${cls}" ${da} aria-label="${d} ${MONTHS[m]} : ${money(pnl)}"><span class="dn">${d}</span><span class="p">${compact(pnl)}</span><span class="c">${ts.length} trade${ts.length > 1 ? "s" : ""}</span></button>`;
-    return `<button type="button" class="cell${cls}" ${da} aria-label="Ajouter des trades le ${d}"><span class="dn">${d}</span><span class="add">+</span><span class="c">&nbsp;</span></button>`;
+    const wd = new Date(y, m, d).getDay(), we = wd === 0 || wd === 6 ? " we" : "";
+    if (ts.length) { const w = ts.filter(t => t.pnl > 0).length, l = ts.filter(t => t.pnl < 0).length;
+      return `<button type="button" class="cell ${pnl < 0 ? "down" : "up"}${cls}${we}" ${da} aria-label="${d} ${MONTHS[m]} : ${money(pnl)}"><span class="dn">${d}</span><span class="p mv"><span class="pf">${bigMoney(pnl)}</span><span class="ps">${compact(pnl)}</span></span><span class="cf"><span>${ts.length} trade${ts.length > 1 ? "s" : ""}</span><span>${w + l ? Math.round(w / (w + l) * 100) + " %" : "—"}</span></span><i class="cbar" style="width:${(Math.abs(pnl) / (calMax || 1) * 100).toFixed(1)}%"></i></button>`; }
+    return `<button type="button" class="cell empty${cls}${we}" ${da} aria-label="Ajouter des trades le ${d}"><span class="dn">${d}</span><span class="add">+</span></button>`;
   };
   const compact = v => (v < 0 ? "−" : "+") + (Math.abs(v) >= 1000 ? (Math.abs(v) / 1000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + "k" : Math.round(Math.abs(v)));
   let html = "";
@@ -1395,8 +1519,19 @@ function renderDash(){
     $("calTitle").textContent = monthName();
     $("calTot").innerHTML = s.n ? `<span class="${s.net < 0 ? "r" : "g"}">${money(s.net)}</span>` : "";
     const first = (new Date(state.year, state.month, 1).getDay() + 6) % 7, dim = new Date(state.year, state.month + 1, 0).getDate();
-    for (let i = 0; i < first; i++) html += `<div class="cell blank" aria-hidden="true"></div>`;
-    for (let d = 1; d <= dim; d++) html += cellHTML(state.year, state.month, d, false);
+    const dayP = {}; state.trades.forEach(t => { dayP[t.day] = (dayP[t.day] || 0) + t.pnl; });
+    calMax = Math.max(0, ...Object.values(dayP).map(Math.abs));
+    const weeks = []; let cur = [];
+    for (let i = 0; i < first; i++) cur.push(0);
+    for (let d = 1; d <= dim; d++) { cur.push(d); if (cur.length === 7) { weeks.push(cur); cur = []; } }
+    if (cur.length) { while (cur.length < 7) cur.push(0); weeks.push(cur); }
+    const wTot = weeks.map(w => { const ts = state.trades.filter(t => w.includes(t.day)); return {p: ts.reduce((a, t) => a + t.pnl, 0), n: ts.length}; });
+    const wMax = Math.max(0, ...wTot.map(x => Math.abs(x.p)));
+    weeks.forEach((w, k) => {
+      w.forEach(d => { html += d ? cellHTML(state.year, state.month, d, false) : `<div class="cell blank" aria-hidden="true"></div>`; });
+      const x = wTot[k];
+      html += `<div class="cell wkc${x.n ? (x.p < 0 ? " down" : " up") : ""}"><span class="dn">S${k + 1}</span>${x.n ? `<span class="p mv"><span class="pf">${bigMoney(x.p)}</span><span class="ps">${compact(x.p)}</span></span><span class="cf"><span>${x.n} trade${x.n > 1 ? "s" : ""}</span></span><i class="cbar" style="width:${(Math.abs(x.p) / (wMax || 1) * 100).toFixed(1)}%"></i>` : `<span class="c">—</span>`}</div>`;
+    });
   } else {
     if (!weekStart) defaultWeek();
     const end = new Date(weekStart); end.setDate(end.getDate() + 6);
@@ -1425,7 +1560,7 @@ function renderDash(){
 const mkey = (y, m) => y + "-" + m;
 const tradesOf = (y, m) => (y === state.year && m === state.month) ? state.trades : ((state.archive || {})[mkey(y, m)] || []);
 const mondayOf = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - (x.getDay() + 6) % 7); return x; };
-let weekStart = null, monthOpen = true;
+let weekStart = null, monthOpen = true, calMax = 0;
 function defaultWeek(){
   const now = new Date();
   weekStart = (now.getFullYear() === state.year && now.getMonth() === state.month) ? mondayOf(now) : mondayOf(new Date(state.year, state.month, 1));
@@ -1434,7 +1569,8 @@ $("days").addEventListener("click", e => {
   const c = e.target.closest("[data-day]"); if (!c) return;
   const y = +c.dataset.y, m = +c.dataset.m;
   if (y !== state.year || m !== state.month) goMonth(y, m, true);
-  openDay(+c.dataset.day);
+  const d = +c.dataset.day;
+  if (state.trades.some(t => t.day === d)) openJournal(d); else openDay(d);
 });
 $("btnMonth").onclick = () => { monthOpen = !monthOpen; renderDash(); };
 $("prevW").onclick = () => { if (monthOpen) return shiftMonth(-1); weekStart.setDate(weekStart.getDate() - 7); syncMonthToWeek(); };
@@ -1558,7 +1694,7 @@ function layoutDeck(){
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (!c) return; const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
-  if (!im) { certEdit = {...c}; drawCerts(); return; } lbId = c.id; $("lightImg").src = im; $("lightbox").hidden = false; }
+  if (!im) { certEdit = {...c}; drawCerts(); return; } lbId = c.id; $("lbEdit").hidden = false; $("lightImg").src = im; $("lightbox").hidden = false; }
 (() => {
   const g = $("certGrid"); let wAcc = 0, wT = 0, px = null, moved = false;
   g.addEventListener("click", e => {
@@ -1600,7 +1736,7 @@ $("certGrid").addEventListener("click", e => {
   if (b.dataset.newcert) { newCert(); return; }
   if (b.dataset.open) { const im = (imgCache["cert:" + b.dataset.open] || [])[0] || (state.certs.find(c => c.id === b.dataset.open) || {}).src;
     if (!im) { certEdit = {...state.certs.find(c => c.id === b.dataset.open)}; drawCerts(); return; }
-    lbId = b.dataset.open; $("lightImg").src = im; $("lightbox").hidden = false; }
+    lbId = b.dataset.open; $("lbEdit").hidden = false; $("lightImg").src = im; $("lightbox").hidden = false; }
 });
 $("lbClose").onclick = () => { $("lightbox").hidden = true; };
 $("lbEdit").onclick = () => { $("lightbox").hidden = true; certEdit = {...state.certs.find(c => c.id === lbId)}; drawCerts(); };
@@ -1688,8 +1824,9 @@ function editHTML(){
       <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
       <div class="fld">Sens<div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></div>
     </div>
+    <label class="fld" for="e-tags">Étiquettes <small class="muted">(séparées par des virgules)</small><input id="e-tags" autocomplete="off" placeholder="Patient, Discipliné, FVG H1" value="${esc((t.tags || []).join(", "))}"></label>
     <label class="fld" for="e-note">Explique ton analyse<textarea id="e-note" placeholder="Pourquoi ce trade, ce que tu as vu, ce que tu en retiens">${esc(t.note)}</textarea></label>
-    <div class="fld">Note<div class="seg2">${["A", "B", "C"].map(o => `<button type="button" class="${t.grade === o ? "on" : ""}" data-grade="${o}">${o}</button>`).join("")}</div></div>
+    <div class="fld">Note<div class="seg2">${["A+", "A", "B", "C"].map(o => `<button type="button" class="${t.grade === o ? "on" : ""}" data-grade="${o}">${o}</button>`).join("")}</div></div>
     <p class="err" id="dayErr" hidden></p>
     <div class="e-acts">
       <button type="button" class="mini" id="eImgs">Images</button>
@@ -1721,7 +1858,7 @@ function startNew(){ edit = {id: uid(), pnl: "", sym: "XAUUSD", side: "Long", se
 function readForm(){
   if (!edit) return;
   const g = id => document.getElementById(id);
-  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.entryTxt = g("e-entry").value; edit.exitTxt = g("e-exit").value; edit.lotsTxt = g("e-lots").value; edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
+  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.entryTxt = g("e-entry").value; edit.exitTxt = g("e-exit").value; edit.lotsTxt = g("e-lots").value; edit.tags = g("e-tags").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 8); edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
 }
 async function addImages(files){
   files = [...files].filter(f => f.type.startsWith("image/")).slice(0, 6);
@@ -1848,7 +1985,7 @@ $("dayList").addEventListener("submit", e => {
   editId = null; edit = null; save(); renderDash(); drawDay();
 });
 $("addRow").onclick = () => { startNew(); drawDay(); };
-$("dayClose").onclick = () => { $("dayModal").hidden = true; editId = null; edit = null; };
+$("dayClose").onclick = () => { $("dayModal").hidden = true; editId = null; edit = null; if (state.trades.some(t => t.day === dayOpen)) openJournal(dayOpen); };
 
 /* ---------- Settings ---------- */
 function openSettings(){
@@ -2011,13 +2148,13 @@ document.addEventListener("keydown", e => {
   if (open && e.key === "Escape") open.hidden = true;
 });
 
-const THEME_KEY = "month-review-theme";
+const THEME_KEY = "bilan-theme-v2"; /* clair par défaut */
 function applyTheme(light){
   document.body.classList.toggle("light", light);
   $("btnTheme").textContent = light ? "☾ Sombre" : "☀ Clair";
   try { localStorage.setItem(THEME_KEY, light ? "light" : "dark"); } catch(e) {}
 }
-let startLight = false; try { startLight = localStorage.getItem(THEME_KEY) === "light"; } catch(e) {}
+let startLight = true; try { startLight = localStorage.getItem(THEME_KEY) !== "dark"; } catch(e) {}
 applyTheme(startLight);
 $("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("light"));
 
@@ -2436,7 +2573,7 @@ const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graph
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
 function setView(v){
   if (!VIEWS.includes(v)) v = "tableau";
-  ["dayModal", "certEditModal", "lightbox"].forEach(id => { const m = $(id); if (m && id !== "dayModal") m.hidden = true; });
+  ["dayModal", "certEditModal", "lightbox", "jourModal"].forEach(id => { const m = $(id); if (m && id !== "dayModal") m.hidden = true; });
   document.body.style.overflow = "";
   view = v;
   document.querySelectorAll("section.view").forEach(x => { x.hidden = x.dataset.view !== v; });
@@ -2916,6 +3053,46 @@ $("chartView").addEventListener("click", e => {
 $("chartView").addEventListener("input", e => { const k = e.target.dataset.col; if (!k) return; const c = chartPrefs(); c[k] = e.target.value; c.preset = "perso"; save(); applyChartLook();
   document.querySelectorAll("#chartView .chp").forEach(b => b.classList.remove("on")); });
 
+
+/* ===== Journal du jour : les trades en cartes, avec captures, notes et étiquettes ===== */
+let jDay = 0;
+async function openJournal(d){
+  jDay = d; const ts = state.trades.filter(t => t.day === d);
+  await Promise.all(ts.flatMap(t => [idb.get(t.id), idb.get(t.id + "#main")]));
+  drawJournal(); $("jourModal").hidden = false;
+}
+function drawJournal(){
+  const ts = state.trades.filter(t => t.day === jDay).sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+  const tot = ts.reduce((a, t) => a + t.pnl, 0), dt = new Date(state.year, state.month, jDay);
+  const dl = dt.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long", year: "numeric"});
+  $("jTitle").textContent = dl[0].toUpperCase() + dl.slice(1);
+  $("jSum").innerHTML = `${ts.length} trade${pl(ts.length)} · <b class="mv ${tot < 0 ? "r" : ""}">${tot < 0 ? "" : "+"}${money(tot)}</b>`;
+  const f = v => isNum(v) ? v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "";
+  $("jCards").innerHTML = ts.map(t => { const main = (imgCache[t.id + "#main"] || [])[0], imgs = imgCache[t.id] || [], ses = t.time ? sessionOf({time: t.time}) : "";
+    const tags = Array.isArray(t.tags) ? t.tags : [];
+    return `<article class="jc ${t.pnl < 0 ? "down" : "up"}">
+      <div class="jc-h"><span class="tico ${isGold(t.sym) ? "gold" : "oth"}">${isGold(t.sym) ? GOLD_SVG : esc((t.sym || "?").slice(0, 3))}</span>
+        ${t.grade ? `<span class="jg">${esc(t.grade)}</span>` : ""}<b class="jsym">${esc(t.sym || "XAUUSD")}</b><span class="jside ${t.side === "Short" ? "s" : ""}">${t.side === "Short" ? "SHORT" : "LONG"}</span>
+        <span class="grow"></span><div class="jres"><b class="mv ${t.pnl < 0 ? "r" : ""}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)}</b>${isNum(t.r) ? `<small>${fmtR(t.r)}</small>` : ""}</div></div>
+      <div class="jtags">${ses ? `<span>◷ ${ses}</span>` : ""}${t.time ? `<span>${esc(t.time)}</span>` : ""}${t.lots ? `<span>${String(t.lots).replace(".", ",")} lots</span>` : ""}${isNum(t.entry) ? `<span>${f(t.entry)} → ${f(t.exit)}</span>` : ""}${t.setup ? `<span>${esc(t.setup)}</span>` : ""}</div>
+      ${main || imgs.length ? `<div class="jshots${main && imgs.length ? " two" : ""}">${[main, ...imgs].filter(Boolean).slice(0, 4).map((src, i) => `<button type="button" class="jshot" data-jimg="${t.id}|${i}"><img src="${src}" alt="Capture du trade"><span class="zoom">⌕</span></button>`).join("")}</div>` : `<div class="jshots none">Pas encore de capture</div>`}
+      ${t.note ? `<p class="jnote">${esc(t.note)}</p>` : `<p class="jnote muted">Pas encore d'analyse écrite.</p>`}
+      ${tags.length ? `<div class="jtags2">${tags.map(x => `<span>${esc(x)}</span>`).join("")}</div>` : ""}
+      <div class="jc-a"><button type="button" data-jedit="${t.id}">Modifier</button><button type="button" data-jchart="${t.id}">Voir sur le graphique</button><button type="button" class="go" data-jplay="${t.id}">▶ Lancer</button></div>
+    </article>`; }).join("") || `<p class="muted">Aucun trade ce jour.</p>`;
+}
+$("jClose").onclick = () => { $("jourModal").hidden = true; };
+$("jAdd").onclick = () => { $("jourModal").hidden = true; openDay(jDay).then(() => { startNew(); drawDay(); }); };
+$("jourModal").addEventListener("click", e => {
+  if (e.target === $("jourModal")) { $("jourModal").hidden = true; return; }
+  const b = e.target.closest("button"); if (!b) return; const ds = b.dataset;
+  if (ds.jimg) { const [id, i] = ds.jimg.split("|"); const all = [(imgCache[id + "#main"] || [])[0], ...(imgCache[id] || [])].filter(Boolean); if (!all[+i]) return;
+    lbId = null; $("lbEdit").hidden = true; $("lightImg").src = all[+i]; $("lightbox").hidden = false; return; }
+  if (ds.jedit) { const t = state.trades.find(x => x.id === ds.jedit); $("jourModal").hidden = true; openDay(jDay).then(() => { edit = {...t}; editId = t.id; drawDay(); }); return; }
+  if (ds.jplay) { const t = state.trades.find(x => x.id === ds.jplay); $("jourModal").hidden = true; playTradeObj(t); return; }
+  if (ds.jchart) { cSel = ds.jchart; $("jourModal").hidden = true; setView("graphique"); return; }
+});
+
 let wheelAcc = 0, wheelT = 0;
 $("anaView").addEventListener("wheel", e => {
   if (!e.target.closest("#srDial")) return;
@@ -2932,6 +3109,18 @@ $("anaView").addEventListener("keydown", e => { if (!e.target.closest("#srDial")
 applySeed(); save();
 renderDash();
 setView(view);
+
+/* ===== Profondeur : la planète glisse plus lentement que le tableau ===== */
+(() => {
+  const o1 = document.querySelector(".orb.o1"), o2 = document.querySelector(".orb.o2"); if (!o1) return;
+  let tk = 0, mx = 0, my = 0;
+  const upd = () => { tk = 0; const y = scrollY;
+    o1.style.transform = `translate3d(${mx * -18}px, ${y * -.12 + my * -12}px, 0) scale(${1 + Math.min(y, 1200) / 9000})`;
+    o2.style.transform = `translate3d(${mx * 10}px, ${y * -.05 + my * 8}px, 0)`; };
+  addEventListener("scroll", () => { if (!tk) tk = requestAnimationFrame(upd); }, {passive: true});
+  if (matchMedia("(pointer:fine)").matches) addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; if (!tk) tk = requestAnimationFrame(upd); }, {passive: true});
+  upd();
+})();
 
 /* ===== Traînée de pinceau derrière la souris ===== */
 (() => {
@@ -2988,7 +3177,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-12";
+const APP_VERSION = "2026-10-26-15";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
