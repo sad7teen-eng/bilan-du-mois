@@ -1156,6 +1156,7 @@ function parseText(text){
 const num = v => parseFloat(String(v ?? "").replace(/\s/g, "").replace(/[−–—]/g, "-").replace(/[€$]/g, "").replace(",", "."));
 const toText = ts => [...ts].sort((a, b) => a.day - b.day).map(t => [t.day, (t.pnl >= 0 ? "+" : "") + t.pnl, t.sym, t.side, t.setup, t.grade, t.note].join(";")).join("\n");
 
+try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).forEach(k => localStorage.removeItem(k)); } catch(e) {}
 const DEFAULT = {greet: "Bonsoir,", name: "Kael", ready: "Ton bilan du mois est prêt", currency: "€", handle: "@kael.hq", year: new Date().getFullYear(), month: new Date().getMonth(), trades: []};
 const KEY = "month-review-v3";
 let state = JSON.parse(JSON.stringify(DEFAULT));
@@ -1252,7 +1253,12 @@ function save(){
   state.archive[state.year + "-" + state.month] = state.trades;
   state.savedAt = Date.now();
   let ok = true;
-  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) { ok = false; }
+  const data = JSON.stringify(state);
+  try { localStorage.setItem(KEY, data); } catch(e) {
+    /* mémoire pleine : on vide ce qui n'est que du cache, puis on réessaie */
+    try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).forEach(k => localStorage.removeItem(k)); localStorage.setItem(KEY, data); } catch(e2) { ok = false; }
+  }
+  try { if (state.chart && state.chart.tdKey) localStorage.setItem("bilan-td-key", state.chart.tdKey); } catch(e) {}
   showSaved(ok);
   if (window.BSync) window.BSync.soon();
 }
@@ -2744,8 +2750,6 @@ async function fetchBars(tf, endMs){
   const q = `interval=${tf}&limit=1000${endMs ? "&endTime=" + endMs : ""}`;
   const td = tdKey();
   if (td) {
-    const lsk = "bilan-td|" + tf + "|" + (endMs || "now");
-    try { const c = JSON.parse(localStorage.getItem(lsk) || "null"); if (c && (endMs ? c.at : Date.now() - c.at < 10 * 60e3)) { const out = {name: "XAU/USD · Twelve Data", bars: c.bars}; cCache.set(key, out); return out; } } catch(e) {}
     try {
       const iv = {"5m": "5min", "15m": "15min", "1h": "1h", "4h": "4h", "1d": "1day"}[tf];
       const end = endMs ? "&end_date=" + encodeURIComponent(new Date(endMs).toISOString().slice(0, 19).replace("T", " ")) : "";
@@ -2754,7 +2758,6 @@ async function fetchBars(tf, endMs){
       if (j.status === "ok" && Array.isArray(j.values) && j.values.length) {
         const bars = j.values.map(v => { const t = Math.floor(Date.parse(v.datetime.replace(" ", "T") + "Z") / 1000); return {t, time: t + tzOff(t), open: +v.open, high: +v.high, low: +v.low, close: +v.close}; }).sort((a, b) => a.t - b.t);
         oandaErr = ""; const out = {name: "XAU/USD · Twelve Data", bars}; cCache.set(key, out);
-        try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).slice(0, -24).forEach(k => localStorage.removeItem(k)); localStorage.setItem(lsk, JSON.stringify({at: Date.now(), bars})); } catch(e) {}
         return out;
       }
       oandaErr = j.code === 429 ? "Twelve Data : trop de demandes, réessayez dans une minute." : j.code === 401 ? "Clé Twelve Data refusée." : "Twelve Data : " + (j.message || "pas de données").slice(0, 80);
@@ -2985,7 +2988,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-11";
+const APP_VERSION = "2026-10-26-12";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
