@@ -651,7 +651,7 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .dock{display:none}
 .dash{max-width:1320px!important;margin:0 auto!important;padding-top:26px!important}
 @media (min-width:901px){.dash{padding-left:36px!important;padding-right:36px!important}}
-@media (max-width:1180px) and (min-width:901px){.tn span{display:none}.tn{padding:8px 10px!important}}
+@media (max-width:1280px) and (min-width:901px){.tn span{display:none}.tn{padding:8px 10px!important}}
 @media (max-width:900px){
   .tn-in{grid-template-columns:1fr auto;padding:10px 16px}
   .tn-tabs{display:none}
@@ -902,6 +902,43 @@ body:not(.light) .di-v{text-shadow:0 0 24px rgba(255,255,255,.3)}
 .di-in small{font-size:12px;color:var(--muted)}
 .di-acts{display:flex;gap:8px;margin-top:6px}
 .di-acts button{border-radius:999px!important;padding:7px 14px!important;font-size:12px}
+
+/* ===== Graphique ===== */
+.chgrid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:14px;align-items:start}
+@media (max-width:1000px){.chgrid{grid-template-columns:minmax(0,1fr)}}
+.chcard{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--panel)}
+body:not(.light) .chcard{border-color:#222}
+.chwrap{position:relative;height:clamp(380px,62vh,640px);background:#161616}
+#chEl{position:absolute;inset:0}
+.chlegend{position:absolute;left:12px;top:10px;z-index:3;display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#8b8b8b;pointer-events:none;font-variant-numeric:tabular-nums}
+.chlegend b{color:#fff;font-weight:600}
+.chlegend em{font-style:normal;color:#e6e6e6}
+.chlegend em.r{color:#ff4d4d}
+.chstatus{position:absolute;inset:auto 0 50% 0;text-align:center;color:#9a9a9a;font-size:13px;margin:0;z-index:4}
+.chfoot{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line)}
+.chlook{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.chlook > span{margin-right:4px}
+.chp{display:inline-flex;align-items:center;gap:5px;padding:5px 10px!important;border-radius:999px!important;font-size:12px}
+.chp i{width:9px;height:12px;border-radius:2px;display:block}
+.chp.on{border-color:var(--fg)!important;color:var(--fg)}
+.chc{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer;padding:2px 4px}
+.chc input{width:22px;height:22px;padding:0;border:1px solid var(--line);border-radius:6px;background:none;cursor:pointer}
+.chc input::-webkit-color-swatch-wrapper{padding:2px}
+.chc input::-webkit-color-swatch{border:0;border-radius:4px}
+.chlinks{display:flex;gap:14px;font-size:12px}
+.chlinks a{color:var(--fg);text-decoration:none}
+.chlinks a.muted{color:var(--muted)}
+.chlinks a:hover{text-decoration:underline}
+.chside{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;position:sticky;top:calc(78px + env(safe-area-inset-top,0px))}
+body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);border-color:#1c1c1c}
+.chsel{padding:14px 16px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid rgba(255,255,255,.14)}
+.chsel-h{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.chsel-h span{font-weight:600;font-variant-numeric:tabular-nums}
+.chsel-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.chsel-k small{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.chsel-k b{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.chlist{max-height:min(560px,60vh);overflow:auto;padding-top:8px!important}
+.rt.sel{background:var(--panel-2)!important;box-shadow:inset 2px 0 0 var(--fg)}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -924,11 +961,11 @@ body:not(.light) .di-v{text-shadow:0 0 24px rgba(255,255,255,.3)}
   <div class="tn-in">
     <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
     <div class="tn-brand">Kael<b>Journal</b></div>
-    <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button></div>
+    <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="tn" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button></div>
     <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
   </div>
 </nav>
-<nav class="dock" aria-label="Pages"><button type="button" class="dk" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="dk" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="dk" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="dk" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="dk" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></nav>
+<nav class="dock" aria-label="Pages"><button type="button" class="dk" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="dk" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="dk" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="dk" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="dk" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button><button type="button" class="dk" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></nav>
 <div class="dash" id="dash">
   <section class="view" data-view="tableau">
   <header class="top">
@@ -993,6 +1030,7 @@ body:not(.light) .di-v{text-shadow:0 0 24px rgba(255,255,255,.3)}
   </section>
   <section class="view" data-view="strategie" id="stratView" hidden></section>
   <section class="view" data-view="analytics" id="anaView" hidden></section>
+  <section class="view" data-view="graphique" id="chartView" hidden></section>
 
   <footer class="savebar">
     <span class="st" id="saveSt"></span>
@@ -1998,7 +2036,7 @@ window.BSync = (() => {
     const trades = {};
     Object.entries(state.archive).forEach(([k, list]) => { if (!Array.isArray(list)) return; const [y, m] = k.split("-").map(Number); list.forEach(t => { if (t && t.id) trades[t.id] = {...t, y, m}; }); });
     const certs = {}; (state.certs || []).forEach(c => { if (c && c.id) certs[c.id] = {...c}; });
-    const settings = {}; ["greet", "name", "ready", "currency", "handle", "plan", "strategy"].forEach(k => { if (state[k] !== undefined) settings[k] = state[k]; });
+    const settings = {}; ["greet", "name", "ready", "currency", "handle", "plan", "strategy", "chart"].forEach(k => { if (state[k] !== undefined) settings[k] = state[k]; });
     return {trades, certs, settings, seedSkip: [...new Set(state.seedSkip || [])].sort()};
   }
   const fill = (r, l) => {
@@ -2366,7 +2404,7 @@ $("btnCal").onclick = () => $("calSec").scrollIntoView({behavior: reduced ? "aut
 
 
 /* ===== Pages : navigation du haut (Tableau, Résultats, Certificats, Stratégie, Analytics) ===== */
-const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics"];
+const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graphique"];
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
 function setView(v){
   if (!VIEWS.includes(v)) v = "tableau";
@@ -2379,6 +2417,7 @@ function setView(v){
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
+  if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   window.scrollTo(0, 0);
 }
@@ -2647,6 +2686,164 @@ $("anaView").addEventListener("click", e => {
 });
 
 
+
+/* ===== Graphique : l'or en bougies (Lightweight Charts de TradingView, gratuit) + mes trades dessus ===== */
+const LWC_URL = "https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js";
+const CH_TF = [["5m", "M5", 300], ["15m", "M15", 900], ["1h", "H1", 3600], ["4h", "H4", 14400], ["1d", "J", 86400]];
+const CH_PRESETS = {
+  nb: {lab: "Noir & blanc", up: "#ffffff", down: "#000000", bg: "#161616"},
+  site: {lab: "Blanc & rouge", up: "#f4f4f4", down: "#ff4d4d", bg: "#121212"},
+  classic: {lab: "Vert & rouge", up: "#26a69a", down: "#ef5350", bg: "#131722"}
+};
+let chartLib = null, chart = null, cSeries = null, cBars = [], cSrc = "", cTf = "1h", cSel = null, cLines = [], cBusy = false, cOldest = Infinity;
+const cCache = new Map();
+function chartPrefs(){
+  if (!state.chart || typeof state.chart !== "object") state.chart = {};
+  const c = state.chart; if (!c.up) Object.assign(c, {preset: "nb", ...CH_PRESETS.nb});
+  if (c.tf) cTf = c.tf;
+  return c;
+}
+const tzOff = sec => -new Date(sec * 1000).getTimezoneOffset() * 60; /* heure de Paris sur l'axe */
+const tradeTs = t => Date.UTC(t.y, t.m, t.day, ...(t.time ? t.time.split(":").map(Number) : [12, 0])) / 1000;
+function loadLib(){
+  if (window.LightweightCharts) return Promise.resolve(window.LightweightCharts);
+  if (chartLib) return chartLib;
+  chartLib = new Promise((res, rej) => { const s = document.createElement("script"); s.src = LWC_URL; s.onload = () => res(window.LightweightCharts); s.onerror = () => { chartLib = null; rej(new Error("lib")); }; document.head.appendChild(s); });
+  return chartLib;
+}
+/* Bougies : Binance XAUUSDT (contrat or, gratuit, sans clé). Secours : PAXG (jeton adossé à l'or). */
+async function fetchBars(tf, endMs){
+  const key = tf + "|" + endMs; if (cCache.has(key)) return cCache.get(key);
+  const q = `interval=${tf}&limit=1000${endMs ? "&endTime=" + endMs : ""}`;
+  const srcs = [["Binance · XAUUSDT", "https://fapi.binance.com/fapi/v1/klines?symbol=XAUUSDT&" + q], ["Binance · PAXG (or)", "https://api.binance.com/api/v3/klines?symbol=PAXGUSDT&" + q]];
+  for (const [name, url] of srcs) {
+    try {
+      const r = await fetch(url); if (!r.ok) continue;
+      const rows = await r.json(); if (!Array.isArray(rows) || !rows.length) continue;
+      const bars = rows.map(k => { const t = Math.floor(k[0] / 1000); return {t, time: t + tzOff(t), open: +k[1], high: +k[2], low: +k[3], close: +k[4]}; })
+        .filter(b => { const d = new Date(b.t * 1000), wd = d.getUTCDay(), h = d.getUTCHours(); return !(wd === 6 || (wd === 0 && h < 22) || (wd === 5 && h >= 21)); }); /* marché de l'or fermé le week-end */
+      const out = {name, bars}; cCache.set(key, out); return out;
+    } catch(e) {}
+  }
+  throw new Error("data");
+}
+function chartColors(){
+  const c = chartPrefs(), dark = c.down.toLowerCase() === "#000000";
+  return {upColor: c.up, downColor: c.down, borderUpColor: c.up, borderDownColor: dark ? "#d9d9d9" : c.down, wickUpColor: c.up, wickDownColor: dark ? "#bdbdbd" : c.down};
+}
+function applyChartLook(){
+  if (!chart) return; const c = chartPrefs();
+  chart.applyOptions({layout: {background: {type: "solid", color: c.bg}, textColor: "#9a9a9a", fontFamily: "Geist, system-ui, sans-serif"},
+    grid: {vertLines: {color: "rgba(255,255,255,.045)"}, horzLines: {color: "rgba(255,255,255,.045)"}}});
+  cSeries.applyOptions(chartColors());
+  $("chWrap").style.background = c.bg;
+}
+function chartMarkers(){
+  if (!cSeries || !cBars.length) return;
+  const first = cBars[0].time, last = cBars[cBars.length - 1].time;
+  const ms = allTrades().map(t => {
+    const ts = tradeTs(t); if (ts < first || ts > last + CH_TF.find(x => x[0] === cTf)[2]) return null;
+    let lo = 0, hi = cBars.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (cBars[mid].time <= ts) lo = mid; else hi = mid - 1; }
+    const long = t.side !== "Short", sel = cSel === t.id;
+    return {time: cBars[lo].time, position: long ? "belowBar" : "aboveBar", shape: long ? "arrowUp" : "arrowDown", color: t.pnl < 0 ? "#ff4d4d" : (sel ? "#ffffff" : "#e6e6e6"), size: sel ? 2 : 1,
+      text: `${long ? "Long" : "Short"} ${t.pnl < 0 ? "" : "+"}${kMoney(t.pnl)}`};
+  }).filter(Boolean).sort((a, b) => a.time - b.time);
+  cSeries.setMarkers(ms);
+}
+function chartLinesFor(t){
+  cLines.forEach(l => cSeries.removePriceLine(l)); cLines = [];
+  if (!t) return;
+  const mk = (price, color, title, style) => cLines.push(cSeries.createPriceLine({price, color, lineWidth: 1, lineStyle: style, axisLabelVisible: true, title}));
+  if (isNum(t.entry)) mk(t.entry, "#ffffff", "Entrée", 2);
+  if (isNum(t.exit)) mk(t.exit, t.pnl < 0 ? "#ff4d4d" : "#cfcfcf", "Sortie", 2);
+}
+async function chartLoad(endMs, center){
+  if (cBusy) return; cBusy = true; $("chStatus").textContent = "Chargement des bougies…"; $("chStatus").hidden = false;
+  try {
+    const {name, bars} = await fetchBars(cTf, endMs);
+    cSrc = name; cBars = bars; cOldest = bars.length ? bars[0].t * 1000 : Infinity;
+    cSeries.setData(bars); chartMarkers(); $("chSrc").textContent = name; $("chStatus").hidden = true;
+    if (center) { const i = cBars.findIndex(b => b.time >= center); const k = i < 0 ? cBars.length - 1 : i, span = cTf === "1d" ? 60 : 80;
+      chart.timeScale().setVisibleLogicalRange({from: k - span * .6, to: k + span * .4}); }
+    else chart.timeScale().scrollToRealTime();
+  } catch(e) { $("chStatus").textContent = "Impossible de charger les bougies (connexion ?). Réessayez dans un instant."; }
+  cBusy = false;
+}
+async function chartMore(){
+  if (cBusy || !isFinite(cOldest)) return; cBusy = true;
+  try { const {bars} = await fetchBars(cTf, cOldest - 1); const older = bars.filter(b => b.time < cBars[0].time);
+    if (older.length) { const r = chart.timeScale().getVisibleLogicalRange(); cBars = older.concat(cBars); cOldest = bars[0].t * 1000; cSeries.setData(cBars); chartMarkers();
+      if (r) chart.timeScale().setVisibleLogicalRange({from: r.from + older.length, to: r.to + older.length}); } else cOldest = Infinity;
+  } catch(e) {}
+  cBusy = false;
+}
+function renderChartPage(){
+  if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
+  const c = chartPrefs(), all = allTrades().slice().reverse();
+  $("chartView").innerHTML = `
+    <header class="top vhead"><div><h1>Graphique</h1><div class="meta">XAUUSD · heures de Paris · <span id="chSrc">—</span></div></div>
+      <div class="tools"><div class="scope" id="chTfs">${CH_TF.map(([k, l]) => `<button type="button" data-tf="${k}" class="${cTf === k ? "on" : ""}">${l}</button>`).join("")}</div></div></header>
+    <div class="chgrid">
+      <section class="chcard">
+        <div class="chwrap" id="chWrap"><div id="chEl"></div><div class="chlegend" id="chLeg"></div><p class="chstatus" id="chStatus" hidden></p></div>
+        <div class="chfoot">
+          <div class="chlook"><span>Bougies</span>${Object.entries(CH_PRESETS).map(([k, p]) => `<button type="button" class="chp${c.preset === k ? " on" : ""}" data-preset="${k}"><i style="background:${p.up}"></i><i style="background:${p.down};${k === "nb" ? "box-shadow:inset 0 0 0 1px #888" : ""}"></i>${p.lab}</button>`).join("")}
+            <label class="chc" title="Hausse"><input type="color" data-col="up" value="${c.up}">Hausse</label><label class="chc" title="Baisse"><input type="color" data-col="down" value="${c.down}">Baisse</label><label class="chc" title="Fond"><input type="color" data-col="bg" value="${c.bg}">Fond</label></div>
+          <div class="chlinks"><a href="https://www.tradingview.com/chart/?symbol=OANDA%3AXAUUSD" target="_blank" rel="noopener">Ouvrir sur TradingView ↗</a><a class="muted" href="https://www.tradingview.com/" target="_blank" rel="noopener">Graphique par TradingView</a></div>
+        </div>
+      </section>
+      <aside class="chside">
+        <div class="psec"><div class="chsel" id="chSel"><small class="muted">Touchez un trade pour le voir sur le graphique.</small></div></div>
+        <div class="pbody rts chlist">${all.map(t => `<button type="button" class="rt${cSel === t.id ? " sel" : ""}" data-ct="${t.id}">
+          <span class="arr${t.side === "Short" ? " s" : ""}">${t.side === "Short" ? "↘" : "↗"}</span>
+          <span class="tico ${isGold(t.sym) ? "gold" : "oth"}">${isGold(t.sym) ? GOLD_SVG : esc((t.sym || "?").slice(0, 3))}</span>
+          <span class="rt-m"><b>${esc(t.sym || "XAUUSD")}</b><small>${esc(t.side || "")}${isNum(t.r) ? " · " + fmtR(t.r) : ""}</small></span>
+          <span class="rt-v"><b class="mv ${t.pnl < 0 ? "r" : ""}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)}</b><small>${whenTxt(t, new Date())}</small></span></button>`).join("") || `<p class="pempty">Aucun trade.</p>`}</div>
+      </aside>
+    </div>`;
+  initChart();
+}
+async function initChart(){
+  chart = null;
+  let L; try { L = await loadLib(); } catch(e) { $("chStatus").textContent = "Le graphique n'a pas pu se charger (connexion ?)."; $("chStatus").hidden = false; return; }
+  if (view !== "graphique") return;
+  chart = L.createChart($("chEl"), {autoSize: true, rightPriceScale: {borderColor: "rgba(255,255,255,.08)"}, timeScale: {borderColor: "rgba(255,255,255,.08)", timeVisible: true, secondsVisible: false, rightOffset: 6},
+    crosshair: {mode: 0, vertLine: {color: "rgba(255,255,255,.35)", labelBackgroundColor: "#2a2a2a"}, horzLine: {color: "rgba(255,255,255,.35)", labelBackgroundColor: "#2a2a2a"}},
+    localization: {locale: "fr-FR", priceFormatter: p => p.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2})}});
+  cSeries = chart.addCandlestickSeries({priceLineVisible: true, lastValueVisible: true});
+  applyChartLook();
+  chart.subscribeCrosshairMove(p => { const b = p && p.time && p.seriesData && p.seriesData.get(cSeries);
+    const f = v => v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const x = b || cBars[cBars.length - 1]; if (!x) return;
+    $("chLeg").innerHTML = `<b>XAUUSD</b><span>${CH_TF.find(t => t[0] === cTf)[1]}</span> <span>O <em>${f(x.open)}</em></span><span>H <em>${f(x.high)}</em></span><span>B <em>${f(x.low)}</em></span><span>C <em class="${x.close < x.open ? "r" : ""}">${f(x.close)}</em></span>`; });
+  chart.timeScale().subscribeVisibleLogicalRangeChange(r => { if (r && r.from < 15) chartMore(); });
+  const t = cSel && allTrades().find(x => x.id === cSel);
+  await chartLoad(t ? Math.min(Date.now(), (tradeTs(t) - tzOff(tradeTs(t))) * 1000 + 300 * CH_TF.find(x => x[0] === cTf)[2] * 1000) : null, t ? tradeTs(t) : null);
+  if (t) { chartLinesFor(t); showChSel(t); }
+}
+function showChSel(t){
+  const f = v => isNum(v) ? v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "—";
+  $("chSel").innerHTML = `<div class="chsel-h"><b>${t.side === "Short" ? "↘ Short" : "↗ Long"} · ${esc(t.sym || "XAUUSD")}</b><span class="mv ${t.pnl < 0 ? "r" : ""}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)}</span></div>
+    <div class="chsel-k"><div><small>Entrée</small><b>${f(t.entry)}</b></div><div><small>Sortie</small><b>${f(t.exit)}</b></div><div><small>R</small><b>${isNum(t.r) ? fmtR(t.r) : "—"}</b></div><div><small>Lots</small><b>${t.lots ? String(t.lots).replace(".", ",") : "—"}</b></div></div>
+    <small class="muted">${whenTxt(t, new Date())}${t.time ? "" : " · heure inconnue, placé à midi"}</small>`;
+}
+$("chartView").addEventListener("click", e => {
+  const tf = e.target.closest("[data-tf]"); if (tf) { cTf = tf.dataset.tf; chartPrefs().tf = cTf; save(); renderChartPage(); return; }
+  const pr = e.target.closest("[data-preset]"); if (pr) { const c = chartPrefs(); Object.assign(c, {preset: pr.dataset.preset, ...CH_PRESETS[pr.dataset.preset]}); delete c.lab; save(); applyChartLook();
+    document.querySelectorAll("#chartView .chp").forEach(b => b.classList.toggle("on", b === pr)); ["up", "down", "bg"].forEach(k => { const i = document.querySelector(`#chartView [data-col=${k}]`); if (i) i.value = c[k]; }); return; }
+  const tr = e.target.closest("[data-ct]"); if (tr && chart) {
+    const t = allTrades().find(x => x.id === tr.dataset.ct); if (!t) return; cSel = t.id;
+    document.querySelectorAll("#chartView [data-ct]").forEach(b => b.classList.toggle("sel", b === tr));
+    const ts = tradeTs(t), step = CH_TF.find(x => x[0] === cTf)[2];
+    if (cBars.length && ts >= cBars[0].time && ts <= cBars[cBars.length - 1].time) { const i = cBars.findIndex(b => b.time >= ts); chart.timeScale().setVisibleLogicalRange({from: i - 48, to: i + 32}); chartMarkers(); }
+    else chartLoad(Math.min(Date.now(), (ts - tzOff(ts) + 300 * step) * 1000), ts);
+    chartLinesFor(t); showChSel(t);
+    if (innerWidth < 900) $("chWrap").scrollIntoView({behavior: reduced ? "auto" : "smooth", block: "start"});
+  }
+});
+$("chartView").addEventListener("input", e => { const k = e.target.dataset.col; if (!k) return; const c = chartPrefs(); c[k] = e.target.value; c.preset = "perso"; save(); applyChartLook();
+  document.querySelectorAll("#chartView .chp").forEach(b => b.classList.remove("on")); });
+
 let wheelAcc = 0, wheelT = 0;
 $("anaView").addEventListener("wheel", e => {
   if (!e.target.closest("#srDial")) return;
@@ -2692,7 +2889,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-4";
+const APP_VERSION = "2026-10-26-5";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
