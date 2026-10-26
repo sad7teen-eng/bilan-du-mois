@@ -959,8 +959,8 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 body.light .scene{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#fbfbfc 0%,#eef0f3 55%,#e4e7eb 100%)}
 .orb{position:absolute;border-radius:50%;will-change:transform}
 .orb i{position:absolute;inset:0;border-radius:50%}
-.orb.o1{width:min(80vmin,780px);aspect-ratio:1;left:50%;margin-left:calc(min(80vmin,780px) / -2 + 8vw);top:48vh}
-.orb.o1 i{background:radial-gradient(circle at 34% 28%,#8a8d93 0%,#3a3c40 14%,#141416 38%,#050506 62%,#000 70.5%,transparent 71%);filter:blur(16px);opacity:.94}
+.orb.o1{width:min(72vmin,702px);aspect-ratio:1;left:50%;margin-left:calc(min(72vmin,702px) / -2 + 8vw);top:50vh}
+.orb.o1 i{background:radial-gradient(circle at 34% 28%,#8a8d93 0%,#3a3c40 14%,#141416 38%,#050506 62%,#000 70.5%,transparent 71%);filter:blur(16px);opacity:.75}
 .orb.o1::after{content:"";position:absolute;inset:14%;border-radius:50%;background:radial-gradient(circle at 30% 24%,rgba(255,255,255,.55),transparent 22%);filter:blur(14px)}
 .orb.o2{width:min(34vmax,520px);aspect-ratio:1;left:-10vmax;bottom:-12vmax}
 .orb.o2 i{background:radial-gradient(circle at 60% 35%,#3a3c41,#0d0d0f 55%,transparent 72%);filter:blur(70px);opacity:.35}
@@ -3617,7 +3617,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-27";
+const APP_VERSION = "2026-10-26-28";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
