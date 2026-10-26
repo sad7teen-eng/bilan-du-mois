@@ -1166,6 +1166,26 @@ body.inmacro .topnav,body.inmacro .dock{visibility:hidden}
 #macroView .mpanel{max-height:calc(100dvh - 190px)}
 .mhint{transition:opacity .4s}
 .msrcb{font-style:normal;font-weight:600;color:#fff;letter-spacing:.02em}
+
+/* --- correctifs planète (v23) --- */
+.miniglobe{top:6px!important}
+#macroView{transition:none!important}
+#macroView.entering{opacity:1!important;visibility:hidden}
+#macroView:not(.entering) .mframe > *{animation:mIn .5s cubic-bezier(.2,.8,.2,1) both}
+#macroView:not(.entering) .mframe > .mbody{animation-delay:.05s}
+@keyframes mIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#macroView .mframe{height:100dvh;min-height:0;box-sizing:border-box;overflow:hidden}
+#macroView .mbody{flex:1;min-height:0!important;grid-template-columns:minmax(0,1fr)!important;transition:grid-template-columns .5s}
+#macroView.hassel .mbody{grid-template-columns:minmax(0,1fr) 380px!important}
+#macroView .mpanel{display:none;max-height:100%;align-self:stretch}
+#macroView.hassel .mpanel{display:block;animation:pIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes pIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+#macroView .mglobe{height:100%;min-height:0}
+#macroView #bigGlobe{width:auto!important;height:min(100%,780px);max-width:100%;aspect-ratio:1}
+#macroView .mchips{flex:none;padding:4px 2px 6px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
+#macroView .mchips button{flex:none;padding:7px 14px 7px 8px!important}
+#macroView .mchips button b{font-weight:600;font-variant-numeric:tabular-nums;opacity:.75;margin-left:2px}
+@media (max-width:1000px){#macroView.hassel .mbody{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) minmax(0,1.1fr)}#macroView .mframe{height:auto;min-height:100dvh;overflow:visible}#macroView .mglobe{height:52vh}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3307,7 +3327,7 @@ function mountMini(){
   const place = () => { const r = h.getBoundingClientRect(); h.style.setProperty("--vl", (-r.left) + "px"); };
   place(); addEventListener("resize", place);
   b.onclick = openMacro;
-  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 9}); }).catch(() => {});
+  loadGeo().then(() => { miniG = makeGlobe(b.querySelector("canvas"), {mini: true, speed: 24}); }).catch(() => {});
 }
 
 /* --- ouverture : la planète tourne, grossit au centre, puis la page macro apparaît --- */
@@ -3318,7 +3338,7 @@ async function openMacro(){
   const r0 = src.getBoundingClientRect();
   const fly = document.createElement("div"); fly.className = "globefly"; fly.innerHTML = `<div class="gf-bg"></div><canvas></canvas>`; document.body.appendChild(fly);
   const cv = fly.querySelector("canvas"); Object.assign(cv.style, {left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"});
-  const g = makeGlobe(cv, {speed: 260, rot: miniG ? miniG.st.rot : undefined});
+  const g = makeGlobe(cv, {speed: 320, rot: miniG ? miniG.st.rot : undefined});
   src.style.visibility = "hidden";
   flyRot = g.st.rot; $("macroView").classList.add("entering");
   setView("macro", true);
@@ -3326,11 +3346,12 @@ async function openMacro(){
   const t = $("bigGlobe").getBoundingClientRect(), D = reduced ? 10 : 1300;
   fly.querySelector(".gf-bg").animate([{opacity: 0}, {opacity: 1}], {duration: D * .55, fill: "forwards", easing: "ease-out"});
   const a = cv.animate([{left: r0.left + "px", top: r0.top + "px", width: r0.width + "px", height: r0.height + "px"}, {left: t.left + "px", top: t.top + "px", width: t.width + "px", height: t.height + "px"}], {duration: D, easing: "cubic-bezier(.7,0,.15,1)", fill: "forwards"});
-  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 260 * (1 - k) + 6 * k; if (k < 1) requestAnimationFrame(slow); })();
+  const t0 = performance.now(); (function slow(){ const k = Math.min(1, (performance.now() - t0) / D); g.st.speed = 320 * (1 - k) + 16 * k; if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
   if (bigG) bigG.st.rot = g.st.rot.slice(); flyRot = null;
   $("macroView").classList.remove("entering");
-  fly.animate([{opacity: 1}, {opacity: 0}], {duration: 380, fill: "forwards"}).finished.then(() => { g.destroy(); fly.remove(); });
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  fly.animate([{opacity: 1}, {opacity: 0}], {duration: 360, fill: "forwards", delay: 60}).finished.then(() => { g.destroy(); fly.remove(); });
   src.style.visibility = "";
 }
 
@@ -3353,16 +3374,19 @@ function renderMacro(){
   $("mBack").onclick = () => { const mv = $("macroView"); mv.classList.add("leaving"); setTimeout(() => { mv.classList.remove("leaving"); setView("tableau", true); }, 380); };
   loadGeo().then(() => {
     if ($("macroView").hidden || !$("bigGlobe")) return;
-    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 6, rot: flyRot || undefined,
+    bigG = makeGlobe($("bigGlobe"), {interactive: true, speed: 16, rot: flyRot || undefined,
       onTouch: () => { const hh = $("mHint"); if (hh) { hh.style.opacity = 0; setTimeout(() => hh.remove(), 400); try { localStorage.setItem("bilan-mhint", "1"); } catch(e) {} } },
       onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2]; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
       onPick: f => selectCountry(f.iso)});
     $("mList").innerHTML = geo.feats.slice().sort((a, b) => a.c[2].localeCompare(b.c[2], "fr")).map(f => `<option value="${esc(f.c[2])}">`).join("");
-    $("mChips").innerHTML = KEY_ECO.map(i => geo.byIso[i] ? `<button type="button" data-iso="${i}"><img src="https://flagcdn.com/w40/${i.toLowerCase()}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'">${esc(geo.byIso[i].c[2])}</button>` : "").join("");
+    const chipIso = [...new Set([...KEY_ECO, ...Object.keys(RATES).filter(k => k !== "EZ")])];
+    $("mChips").innerHTML = chipIso.map(i => { const f = geo.byIso[i]; if (!f) return ""; const r = rateOf(i);
+      return `<button type="button" data-iso="${i}"><img src="https://flagcdn.com/w40/${i.toLowerCase()}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(f.c[2])}</span>${r ? `<b>${r[1].toFixed(2).replace(".", ",")} %</b>` : ""}</button>`; }).join("");
     if (macroSel) selectCountry(macroSel); else drawOverview();
   }).catch(() => { $("mPanel").innerHTML = `<p class="mmuted">La carte n'a pas pu se charger (connexion ?).</p>`; });
 }
 function drawOverview(){
+  $("macroView").classList.remove("hassel"); $("mPanel").innerHTML = ""; return;
   const rows = Object.entries(RATES).map(([iso, r]) => ({iso, r, n: iso === "EZ" ? "Zone euro" : (geo && geo.byIso[iso] ? geo.byIso[iso].c[2] : iso)})).sort((a, b) => b.r[1] - a.r[1]);
   $("mPanel").innerHTML = `<div class="mp-h"><span class="mlab">Taux directeurs</span><small>relevés le 26 oct. 2026</small></div>
     <div class="mrates">${rows.map(x => `<button type="button" data-iso="${x.iso === "EZ" ? "DE" : x.iso}"><img src="https://flagcdn.com/w40/${x.iso === "EZ" ? "eu" : x.iso.toLowerCase()}.png" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(x.n)}</span><b>${x.r[1].toFixed(2).replace(".", ",")} %</b></button>`).join("")}</div>
@@ -3397,7 +3421,8 @@ const agoFr = s => { const d = new Date(s.replace(/^(\d{4})(\d\d)(\d\d)T(\d\d)(\
   return m < 60 ? `il y a ${m} min` : m < 1440 ? `il y a ${Math.round(m / 60)} h` : `il y a ${Math.round(m / 1440)} j`; };
 const bigNum = v => v >= 1e9 ? Math.round(v / 1e9).toLocaleString("fr-FR").replace(/\s/g, "\u00a0") + "\u00a0Md$" : Math.round(v / 1e6).toLocaleString("fr-FR").replace(/\s/g, "\u00a0") + "\u00a0M$";
 async function selectCountry(iso){
-  if (!geo) return; const f = geo.byIso[iso]; if (!f) return; macroSel = iso; bigG && bigG.focus(f);
+  if (!geo) return; const f = geo.byIso[iso]; if (!f) return; macroSel = iso; bigG && bigG.focus(f); $("macroView").classList.add("hassel");
+  const chip = document.querySelector(`#mChips button[data-iso="${iso}"]`); chip && chip.scrollIntoView({behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest"});
   document.querySelectorAll("#mChips button").forEach(b => b.classList.toggle("on", b.dataset.iso === iso));
   const c = f.c, rate = rateOf(iso), ez = EZ.has(iso);
   $("mPanel").innerHTML = `<div class="mp-c">
@@ -3412,7 +3437,7 @@ async function selectCountry(iso){
     </div>
     <div class="mp-h"><span class="mlab">Actu éco & géopolitique · 7 jours</span></div>
     <div class="mnews" id="mNews"><p class="mmuted">Chargement des articles…</p></div>
-    <p class="mmuted msrc">Sources : Banque mondiale (chiffres annuels) · articles Bloomberg, Wall Street Journal, BAHA, Reuters… repérés via GDELT · banques centrales.</p></div>`;
+    <p class="mmuted msrc">Taux directeurs relevés le 26 oct. 2026, à vérifier sur le site de la banque centrale. Sources : Banque mondiale (chiffres annuels) · articles Bloomberg, Wall Street Journal, BAHA, Reuters… repérés via GDELT · banques centrales.</p></div>`;
   $("mClose").onclick = () => { macroSel = null; bigG && bigG.release(); document.querySelectorAll("#mChips button").forEach(b => b.classList.remove("on")); drawOverview(); };
   const put = (id, val, y, fmt) => { const el = $(id); if (!el || macroSel !== iso) return; el.querySelector("b").classList.remove("sk"); el.querySelector("b").textContent = val == null ? "—" : fmt(val); if (y) el.insertAdjacentHTML("beforeend", `<em>en ${y}</em>`); };
   const pc = v => (v > 0 ? "+" : "") + v.toFixed(1).replace(".", ",") + " %";
@@ -3510,7 +3535,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-22";
+const APP_VERSION = "2026-10-26-23";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
