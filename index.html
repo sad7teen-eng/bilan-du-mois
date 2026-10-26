@@ -3492,6 +3492,7 @@ async function openMacro(){
   bg.animate([{opacity: 0}, {opacity: .18}], {duration: D, fill: "forwards"});
   const t0 = performance.now();
   (function slow(){ const k = Math.min(1, (performance.now() - t0) / D), e = k * k * (3 - 2 * k); g.st.k = .96 + (.6 - .96) * e;
+    const up = Math.min(1, k / .35); g.st.speed = 8 * (1 + up * up * (3 - 2 * up)); /* la rotation double pendant le trajet */
     if (k > .55 && light) g.st.iw = Math.min(1, (k - .55) / .45 * .5); if (k < 1) requestAnimationFrame(slow); })();
   await a.finished.catch(() => {});
   /* 2) l'univers noir arrive autour, la planète passe au blanc */
@@ -3499,7 +3500,9 @@ async function openMacro(){
   bg.animate([{opacity: .18}, {opacity: 1}], {duration: B, fill: "forwards", easing: "ease-out"});
   await new Promise(res => (function ph(){ const k = Math.min(1, (performance.now() - t1) / B); g.st.iw = iw0 + (1 - iw0) * k; if (k < 1) requestAnimationFrame(ph); else res(); })());
   /* 3) on passe la main à la planète de la page (même place, même rotation), puis elle se remplit */
-  if (bigG) { bigG.st.rot = g.st.rot.slice(); bigG.st.m = 0; bigG.st.au = 0; bigG.st.iw = 1; } flyRot = null;
+  if (bigG) { bigG.st.rot = g.st.rot.slice(); bigG.st.m = 0; bigG.st.au = 0; bigG.st.iw = 1; bigG.st.speed = 16; } flyRot = null;
+  /* une fois arrivée, elle ralentit doucement jusqu'à sa vitesse normale */
+  if (bigG) { const G = bigG, t2 = performance.now(); (function dec(){ const k = Math.min(1, (performance.now() - t2) / 1800), e = 1 - Math.pow(1 - k, 3); G.st.speed = 16 - 8 * e; if (k < 1 && !G.st.dead) requestAnimationFrame(dec); })(); }
   mv.classList.remove("entering"); document.body.classList.add("inmacro");
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r))));
   if (bigG) bigG.st.rot = g.st.rot.slice();
@@ -3690,7 +3693,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-26-37";
+const APP_VERSION = "2026-10-26-38";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
