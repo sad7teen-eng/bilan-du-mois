@@ -2555,8 +2555,7 @@ const BASE_ASSETS = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "NAS100", "US30", "
 const TV_SYM = {XAUUSD: "OANDA:XAUUSD", EURUSD: "FX:EURUSD", GBPUSD: "FX:GBPUSD", USDJPY: "FX:USDJPY", NAS100: "OANDA:NAS100USD", US30: "OANDA:US30USD", SPX500: "OANDA:SPX500USD", GER40: "OANDA:DE30EUR", BTCUSD: "BITSTAMP:BTCUSD"};
 const QA = [
   {k: "plan", q: "As-tu respecté ton plan ?", good: true, y: "Plan respecté", n: "Plan non respecté"},
-  {k: "confirm", q: "As-tu attendu ta confirmation avant d'entrer ?", good: true, y: "Patient à l'entrée", n: "Entrée précipitée"},
-  {k: "risk", q: "As-tu respecté ton risque (lots, stop) ?", good: true, y: "Risque respecté", n: "Risque dépassé"},
+  {k: "risk", q: "As-tu respecté ton risque (ex. 1 %, 2 %) ?", good: true, y: "Risque respecté", n: "Risque dépassé"},
   {k: "moved", q: "As-tu déplacé ton stop ou ton objectif ?", good: false, y: "Stop / objectif déplacé", n: "Gestion tenue"},
   {k: "emo", q: "As-tu tradé sous le coup d'une émotion (peur, FOMO, revanche) ?", good: false, y: "Trade émotionnel", n: "Tête froide"},
   {k: "happy", q: "Es-tu content de ce trade ?", good: true, y: "Content du trade", n: "Pas content du trade"}];
@@ -2594,7 +2593,7 @@ function editHTML(){
         <label class="fld" for="e-entry"><span>Prix d'entrée <b>*</b></span><input class="pnl" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${esc(val("entry"))}"></label>
         <label class="fld" for="e-exit"><span>Prix de sortie <b>*</b></span><input class="pnl" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${esc(val("exit"))}"></label>
       </section>
-      <section class="tf-sec"><div class="tf-lab">Ton trade en 6 questions <small>facultatif · un clic par question</small></div>
+      <section class="tf-sec"><div class="tf-lab">Ton trade en ${QA.length} questions <small>facultatif · un clic par question</small></div>
         <div class="tf-qa">${QA.map(x => `<div class="tf-q"><span>${x.q}</span><div class="tf-yn">${[["oui", true], ["non", false]].map(([l, v]) => `<button type="button" class="${qa[x.k] === v ? "on " + (v === x.good ? "ok" : "ko") : ""}" data-qa="${x.k}" data-v="${v ? 1 : 0}">${l === "oui" ? "Oui" : "Non"}</button>`).join("")}</div></div>`).join("")}</div></section>
       <section class="tf-sec"><div class="tf-lab">Comment tu te sentais <small>facultatif · plusieurs choix possibles</small></div>
         <div class="tf-chips">${MOODS.map(m => `<button type="button" class="tf-chip mood${moods.includes(m) ? " on" : ""}" data-mood="${m}">${m}</button>`).join("")}</div></section>
@@ -4533,7 +4532,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-57";
+const APP_VERSION = "2026-10-27-58";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
