@@ -1403,6 +1403,17 @@ section.view[data-view="tableau"].venter .plan .psec{animation:vUp .5s cubic-bez
 /* --- v55 : couleur de sélection du texte, assortie au site --- */
 ::selection{background:rgba(11,11,12,.14);color:inherit;text-shadow:none}
 body:not(.light) ::selection,body.inmacro #macroView ::selection{background:rgba(255,255,255,.22);color:inherit}
+
+/* --- v56 : barre de défilement assortie (fond clair, curseur noir) --- */
+html{scrollbar-width:thin;scrollbar-color:#0b0b0c #eceef1}
+html:has(body:not(.light)){scrollbar-color:#f4f4f6 #0a0a0a}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:#eceef1}
+::-webkit-scrollbar-thumb{background:#0b0b0c;border-radius:999px;border:3px solid #eceef1}
+::-webkit-scrollbar-thumb:hover{background:#3a3b3f}
+::-webkit-scrollbar-button{display:none;height:0;width:0}
+body:not(.light)::-webkit-scrollbar-track,body:not(.light) ::-webkit-scrollbar-track{background:#0a0a0a}
+body:not(.light) ::-webkit-scrollbar-thumb{background:#f4f4f6;border-color:#0a0a0a}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -4055,7 +4066,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-16";
+const APP_VERSION = "2026-10-27-17";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
