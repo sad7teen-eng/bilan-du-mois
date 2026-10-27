@@ -324,6 +324,11 @@ input.wz-asset{text-align:center;text-transform:uppercase}
 .wz-final .save{padding:14px 26px;font-size:15px;font-weight:600;border-radius:12px}
 
 #dayModal.full #dayList{align-items:center}
+.t-acts-top{flex-direction:row!important;justify-content:flex-end;gap:8px}
+.t-acts .del,.wz-top .del{padding:8px 16px;font-size:14px;font-weight:500;border-radius:9px;background:transparent;color:var(--loss);border-color:color-mix(in srgb,var(--loss) 40%,transparent)}
+.t-acts .del.sure,.wz-top .del.sure{background:var(--loss)!important;color:#fff!important;border-color:var(--loss)!important}
+.wz-top{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted)}
+
 .wz-mt5 .drop{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:14px}
 .wz-mt5 .drop b{color:var(--fg)}
 .wz-mt5:has(img){display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:12px}
@@ -1512,6 +1517,8 @@ section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:c
 .tcz-acts button{display:inline-flex;align-items:center;gap:7px;border-radius:999px!important;padding:9px 16px!important;font-size:13px;background:rgba(255,255,255,.92)!important;color:#0b0b0c!important;border:0!important}
 .tcz-acts button:first-child{background:#0b0b0c!important;color:#fff!important}
 .tcz-acts svg{width:16px;height:16px}
+.tcz-acts .tz-del{background:rgba(255,255,255,.92)!important;color:#e5484d!important}
+.tcz-acts .tz-del.sure{background:#e5484d!important;color:#fff!important}
 @keyframes globeIn{from{opacity:0;transform:translateX(-45%) rotate(-25deg)}to{opacity:1;transform:none}}
 @keyframes helloIn{from{clip-path:inset(-60px 100% -60px -60px);transform:translateX(-12px);opacity:0}to{clip-path:inset(-60px -60px -60px -60px);transform:none;opacity:1}}
 @keyframes planIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
@@ -2616,7 +2623,7 @@ const thumbsHTML = (imgs, removable) => imgs.length ? `<div class="thumbs">${img
 function cardHTML(t){
   const imgs = imgCache[t.id] || [], red = t.pnl < 0;
   return `<article class="tcard ${red ? "down" : "up"}">
-    <div class="t-acts"><button type="button" class="edit" data-edit="${t.id}">Modifier</button></div>
+    <div class="t-acts t-acts-top"><button type="button" class="del" data-del="${t.id}">Supprimer</button><button type="button" class="edit" data-edit="${t.id}">Modifier</button></div>
     <div class="t-top"><div class="t-sym">${esc(t.sym)}<span class="chip2 ${String(t.side).toLowerCase()}">${esc(t.side)}</span>${t.grade ? `<span class="grade">${esc(t.grade)}</span>` : ""}</div>
       <span class="t-res ${red ? "r" : "g"}">${money(t.pnl)}</span></div>
     ${imgCache[t.id + "#main"] && imgCache[t.id + "#main"][0] ? `<div class="t-photo"><img src="${imgCache[t.id + "#main"][0]}" alt="Photo du trade"></div>` : ""}
@@ -2800,11 +2807,11 @@ function editHTML(){
       <p class="err" id="dayErr" hidden></p>
       <div class="wz-row wz-final">
         <button type="button" class="mini go" id="ePlay">▶ Lancer l'animation</button><span class="grow"></span>
-        ${state.trades.some(x => x.id === t.id) ? `<button type="button" class="mini del" id="eDel">Supprimer</button>` : ""}
         <button type="button" class="mini ghost" id="eCancel">Annuler</button>
         <button type="submit" class="go save">Enregistrer le trade</button></div>`;
   };
   return `<form class="tedit wz" id="editForm" novalidate>
+    ${state.trades.some(x => x.id === t.id) ? `<div class="wz-top"><span>Modification du trade</span><button type="button" class="del" id="eDel">Supprimer ce trade</button></div>` : ""}
     <div class="wz-prog"><i style="width:${(doneN / needN * 100).toFixed(0)}%"></i></div>
     ${WZ.map((w, i) => { const open = i === step, done = wzDone(t, w.k), sum = i < step || done ? wzSum(t, w.k) : "";
       return `<section class="wz-step${open ? " open" : ""}${done ? " done" : ""}" data-wz="${i}">
@@ -2936,7 +2943,10 @@ $("dayList").addEventListener("click", e => {
     const rv = num(edit.rTxt); playTradeObj({...edit, day: dayOpen, pnl: v, r: isFinite(rv) ? rv : edit.r}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
-  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); idb.set(edit.id + "#mt5", []); const gone = edit.id; editId = null; edit = null; save(); renderDash(); refreshTCards(gone); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
+  if (b.id === "eDel" || ds.del) { const id = ds.del || edit.id;
+    /* deux clics : « Supprimer » puis « Confirmer » (pas de fenêtre de confirmation du navigateur) */
+    if (!b.classList.contains("sure")) { document.querySelectorAll(".sure").forEach(x => { x.classList.remove("sure"); x.textContent = "Supprimer"; }); b.classList.add("sure"); b.textContent = "Confirmer la suppression"; setTimeout(() => { if (b.isConnected) { b.classList.remove("sure"); b.textContent = "Supprimer"; } }, 4000); return; }
+    deleteTrade(id); editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
 });
 async function setMT5File(file){ if (!file || !file.type.startsWith("image/") || !edit) return; readForm();
   const url = await shrink(file); if (!url) return; await idb.set(edit.id + "#mt5", [url]); drawDay(); readMT5(url); }
@@ -4610,6 +4620,8 @@ async function tcPrefetch(){
   const order = [tcIdx, tcIdx + 1, tcIdx - 1, ...tcList.map((_, i) => i)];
   for (const i of [...new Set(order)]) { const t = tcList[i]; if (!t || tcCurveCache[t.id]) continue; await tcCurve(t); if (view !== "resultats") return; tcDraw(i, 1); }
 }
+function deleteTrade(id){ if (String(id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), id];
+  state.trades = state.trades.filter(x => x.id !== id); ["", "#main", "#orig", "#mt5"].forEach(k => idb.set(id + k, [])); save(); renderDash(); refreshTCards(id); }
 /* après un ajout / une modification / une suppression : la bande « Mes trades » se met à jour tout de suite */
 function refreshTCards(id){ Object.keys(tcCurveCache).forEach(k => delete tcCurveCache[k]);
   const i = tcTrades().findIndex(x => x.id === id); if (i >= 0) tcIdx = i; try { renderTCards(false); } catch (e) {} }
@@ -4651,7 +4663,7 @@ function renderTCards(animate){
 function tcZoom(i){
   const t = tcList[i]; if (!t) return;
   const ov = document.createElement("div"); ov.className = "tcz"; ov.innerHTML = `<div class="tcz-card"><canvas></canvas><span class="tcz-glare"></span></div>
-    <div class="tcz-acts"><button type="button" data-z="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Partager</button><button type="button" data-z="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Télécharger l'image</button></div>
+    <div class="tcz-acts"><button type="button" data-z="share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Partager</button><button type="button" data-z="dl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Télécharger l'image</button><button type="button" data-z="del" class="tz-del">Supprimer</button></div>
     <p class="tcz-hint">Bougez la souris · touchez en dehors pour fermer</p>`;
   document.body.appendChild(ov);
   const card = ov.querySelector(".tcz-card"), c = ov.querySelector("canvas"), w = Math.min(420, innerWidth * .82, innerHeight * .72 / 1.25), dpr = Math.min(2, devicePixelRatio || 1);
@@ -4667,7 +4679,10 @@ function tcZoom(i){
   loop();
   const close = () => { ov.classList.remove("on"); setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); }, 320); removeEventListener("keydown", esc); };
   const esc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc);
-  ov.addEventListener("click", e => { const z = e.target.closest("[data-z]"); if (z) { $(z.dataset.z === "share" ? "tcShare" : "tcDl").click(); return; } if (!e.target.closest(".tcz-card")) close(); });
+  ov.addEventListener("click", e => { const z = e.target.closest("[data-z]");
+    if (z && z.dataset.z === "del") { if (!z.classList.contains("sure")) { z.classList.add("sure"); z.textContent = "Confirmer la suppression"; setTimeout(() => { if (z.isConnected) { z.classList.remove("sure"); z.textContent = "Supprimer"; } }, 4000); return; }
+      const t = tcList[i]; close(); if (t) { if (state.trades.some(x => x.id === t.id)) deleteTrade(t.id); else { const k = Object.keys(state.archive || {}).find(k => (state.archive[k] || []).some(x => x.id === t.id)); if (k) { state.archive[k] = state.archive[k].filter(x => x.id !== t.id); ["", "#main", "#orig", "#mt5"].forEach(s2 => idb.set(t.id + s2, [])); save(); refreshTCards(t.id); } } } return; }
+    if (z) { $(z.dataset.z === "share" ? "tcShare" : "tcDl").click(); return; } if (!e.target.closest(".tcz-card")) close(); });
 }
 async function tcBlob(){
   const t = tcList[tcIdx], c = document.createElement("canvas"); c.width = 1080; c.height = 1350;
@@ -4755,7 +4770,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-63";
+const APP_VERSION = "2026-10-27-64";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
