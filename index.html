@@ -511,7 +511,8 @@ body:not(.light) button.go,body:not(.light) button.primary{background:#fff;color
   body:not(.light) .cell:not(.blank):hover{transform:translateY(-2px) scale(1.03);border-color:rgba(255,255,255,.35);box-shadow:0 0 24px rgba(255,255,255,.08)}
   body:not(.light) .side button{transition:background .2s,color .2s,transform .2s}
   body:not(.light) .side button:hover{transform:translateX(3px)}
-  .glow-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(600px circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.035),transparent 60%);transition:background .1s}
+  .glow-bg{position:fixed;left:0;top:0;width:1200px;height:1200px;margin:-600px 0 0 -600px;pointer-events:none;z-index:0;background:radial-gradient(600px circle at 50% 50%,rgba(255,255,255,.035),transparent 60%);transform:translate3d(50vw,30vh,0);transition:transform .1s linear;will-change:transform}
+  body.light .glow-bg{display:none}
 }
 .ctip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .3s cubic-bezier(.2,.8,.2,1)}
 .ctip.on{opacity:1;transform:none}
@@ -1304,6 +1305,9 @@ body.mfade .topnav{transform:translateY(-10px)}
 /* --- v37 : pendant le vol, plus rien de lourd à l'écran --- */
 body.mfade .tile,body.mfade .cal,body.mfade .plan,body.mfade .topnav,body.mfade .scope,body.mfade .ready{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.mgone .dash > section.view:not(#macroView),body.mgone .scene,body.mgone .topnav{visibility:hidden}
+/* scène du certificat ouverte et opaque : la page dessous ne calcule plus ni flou ni animation */
+body.covered .dash,body.covered .scene,body.covered .topnav,body.covered .dock,body.covered .glow-bg,body.covered::before{visibility:hidden!important}
+body.covered .dash *,body.covered .scene *{animation-play-state:paused!important}
 
 /* --- v43 : montagnes floues en bas à droite au lieu de la boule --- */
 .orb.o1.mtn{width:min(118vw,1700px);aspect-ratio:16/9;left:auto;right:-6vw;margin:0;top:auto;bottom:-4vh;border-radius:0;filter:blur(3.5px);opacity:.9}
@@ -2321,8 +2325,9 @@ function openTrophy(c){
   const CX = 512, CY = 262;   /* centre du certificat, en base 1024 × 572 */
   const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3; BW = Math.min(232 * S, W * .42); BH = BW / r;
     ov.style.setProperty("--bw", BW + "px"); ov.style.setProperty("--bh", BH + "px"); CYs = OY + CY * S; stage.style.top = CYs + "px"; };
-  const fit = () => { W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
-    for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
+  let dpr2 = 1;
+  const fit = () => { W = innerWidth; H = innerHeight; dpr2 = Math.min(2, devicePixelRatio || 1); dpr = Math.min(1.5, dpr2);
+    sky.width = W * dpr; sky.height = H * dpr; fore.width = W * dpr2; fore.height = H * dpr2;
     S = 1.12 * Math.max(W / 1024, H / 572); OX = Math.min(-20, Math.max(W - 1024 * S + 20, W / 2 - CX * S)); OY = Math.min(-14, Math.max(H - 572 * S + 14, H / 2 - CY * S)); size(); };
   fit(); img.addEventListener("load", size); addEventListener("resize", fit);
   /* cailloux : placés autour du certificat, ils flottent comme lui (montent/descendent doucement), sans tourner */
@@ -2402,7 +2407,7 @@ function openTrophy(c){
           bx.globalCompositeOperation = "lighter"; bx.fillStyle = gr; bx.fillRect(gx - R, gy - R, R * 2, R * 2); bx.globalCompositeOperation = "source-over"; } }
       bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
     const kr = ease((now - t0 - (from ? 900 : 250)) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
-    fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
+    fx.setTransform(dpr2, 0, 0, dpr2, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
     if (closing) { const base = Math.round(ry / 360) * 360; ry += (base - ry) * Math.min(1, dt * 4); rx += (0 - rx) * Math.min(1, dt * 4); vy = vx = 0; }
     else if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
       if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2800) * 14, tx = 4 + Math.sin(now / 3400) * 4;
@@ -2425,9 +2430,9 @@ function openTrophy(c){
     shards.blow(2300);
     setTimeout(() => ov.classList.add("build"), 700);
     setTimeout(() => ov.classList.add("show"), 2300);
-    setTimeout(() => { if (closing) return; shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; }, 2700);
-  } else setTimeout(() => ov.classList.add("show"), reduced ? 0 : 600);
-  const close = () => { if (closing) return; closing = true; removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
+    setTimeout(() => { if (closing) return; shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; document.body.classList.add("covered"); }, 2700);
+  } else { setTimeout(() => ov.classList.add("show"), reduced ? 0 : 600); setTimeout(() => { if (!closing) document.body.classList.add("covered"); }, 700); }
+  const close = () => { if (closing) return; closing = true; document.body.classList.remove("covered"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
     const cardEl = !reduced && document.querySelector("#certGrid .dcard.on"), to = cardEl ? cardEl.getBoundingClientRect() : null;
     if (!to) { ov.classList.remove("show", "go"); ov.classList.add("out"); setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); return; }
     /* animation inverse : le plexi se défait, le certificat retourne à sa carte, la salle noire revient depuis les bords */
@@ -3962,7 +3967,11 @@ function makeGlobe(canvas, o = {}){
   const key = new Set(KEY_ECO), phase = {}; KEY_ECO.forEach((k, i) => phase[k] = i * 1.7);
   const flights = []; let last = performance.now(), raf = 0, nextF = 0;
   const mix = (a, b, t) => a + (b - a) * t;
-  function fit(){ const r = {width: canvas.clientWidth, height: canvas.clientHeight}, dpr = o.res ? o.res() : Math.min(2, devicePixelRatio || 1);
+  /* taille et visibilité mises en cache (aucune lecture de mise en page à chaque image) */
+  let cw = canvas.clientWidth, ch = canvas.clientHeight, onScreen = true;
+  if (window.ResizeObserver) new ResizeObserver(en => { const r = en[0].contentRect; cw = r.width; ch = r.height; }).observe(canvas);
+  if (window.IntersectionObserver) new IntersectionObserver(en => { onScreen = en[0].isIntersecting; }).observe(canvas);
+  function fit(){ const r = {width: cw, height: ch}, dpr = o.res ? o.res() : Math.min(2, devicePixelRatio || 1);
     if (canvas.width !== Math.round(r.width * dpr) || canvas.height !== Math.round(r.height * dpr)) { canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr); }
     const R = Math.min(r.width, r.height) / 2 * st.k * (st.z || 1); proj.scale(R).translate([r.width / 2, r.height / 2]); projB.scale(R).translate([r.width / 2, r.height / 2]);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return r; }
@@ -4070,7 +4079,7 @@ function makeGlobe(canvas, o = {}){
     if (st.anim) {} else if (!st.drag && (st.z || 1) < 1.05 && now - st.touched > 2500) { const k = Math.min(1, (now - st.touched - 2500) / 1200); st.rot[0] += st.speed * dt * k; st.rot[1] += (-18 - st.rot[1]) * dt * .4 * k; }
     raf = requestAnimationFrame(frame);
     /* page cachée (autre onglet du journal) : rien à dessiner, mais la boucle continue */
-    if (!canvas.offsetWidth || !canvas.offsetHeight || (o.paused && o.paused())) return;
+    if (!cw || !ch || !onScreen || document.body.classList.contains("covered") || (o.paused && o.paused())) return;
     try { proj.rotate(st.rot); draw(now); blurPass(); } catch(e) {}
   }
   let cityPts = [];
@@ -4504,7 +4513,7 @@ setView(view);
   const tip = document.createElement("div"); tip.className = "ctip"; tip.innerHTML = '<div class="box"><small></small><b></b></div><span class="stem"></span><span class="dot"></span>'; document.body.appendChild(tip);
   let cur = null;
   document.addEventListener("mousemove", e => {
-    glow.style.setProperty("--gx", e.clientX + "px"); glow.style.setProperty("--gy", e.clientY + "px");
+    if (!document.body.classList.contains("light")) glow.style.transform = `translate3d(${e.clientX}px,${e.clientY}px,0)`;
     const card = e.target.closest && e.target.closest(".tile,.cal,.plan");
     if (card) { const r = card.getBoundingClientRect(); card.style.setProperty("--mx", (e.clientX - r.left) + "px"); card.style.setProperty("--my", (e.clientY - r.top) + "px"); }
     const t = e.target.closest && e.target.closest("[data-tip]");
@@ -4524,7 +4533,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-56";
+const APP_VERSION = "2026-10-27-57";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
