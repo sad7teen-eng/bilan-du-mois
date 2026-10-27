@@ -2798,36 +2798,48 @@ const whenTxt = (t, now) => {
   return d + (t.time ? " · " + t.time : "");
 };
 
+/* P&L cumulé jour par jour : un point par jour calendaire (jours sans trade = palier) */
+function dailySeries(L){
+  const now = new Date(); let start, end;
+  if (scope === "month") { start = new Date(state.year, state.month, 1); end = new Date(state.year, state.month + 1, 0); }
+  else { if (!L.length) return null; const f = L[0].at; start = new Date(f.getFullYear(), f.getMonth(), f.getDate()); end = new Date(now.getFullYear(), now.getMonth(), now.getDate()); }
+  const per = {}; L.forEach(t => { const k = dkey(t.at); per[k] = per[k] || {p: 0, n: 0}; per[k].p += t.pnl; per[k].n++; });
+  const days = []; let c = 0;
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) { const k = dkey(d), x = per[k]; if (x) c += x.p; days.push({d: new Date(d), v: c, p: x ? x.p : 0, n: x ? x.n : 0}); }
+  return days;
+}
 function curveHTML(L){
-  if (!L.length) return `<p class="cv-empty">La courbe apparaîtra avec tes premiers trades.</p>`;
-  const pts = [0]; let c = 0; L.forEach(t => pts.push(c += t.pnl));
+  const days = dailySeries(L);
+  if (!L.length || !days || !days.length) return `<p class="cv-empty">La courbe apparaîtra avec tes premiers trades.</p>`;
+  const pts = days.map(x => x.v), n = pts.length;
   const W = 600, H = 220, lo = Math.min(0, ...pts), hiRaw = Math.max(0, ...pts), hi = hiRaw + (hiRaw - lo) * .1 || 1;
-  const X = i => i / (pts.length - 1) * W, Y = v => H - (v - lo) / (hi - lo) * H;
+  const X = i => n > 1 ? i / (n - 1) * W : W / 2, Y = v => H - (v - lo) / (hi - lo) * H;
   const d = smoothPath(pts.map((v, i) => [X(i), Y(v)])), gid = "cvg" + (++gradSeq);
   const ticks = [lo, lo + (hi - lo) / 2, hi].map(v => ({v, p: (1 - (v - lo) / (hi - lo)) * 100}));
-  const first = L[0], last = L[L.length - 1];
+  const fd = x => `${x.d.getDate()} ${MON3[x.d.getMonth()]}`, mid = days[Math.floor((n - 1) / 2)];
   return `<div class="cv${boardDrawn || reduced ? "" : " anim"}" id="cv">
     <div class="cv-y">${ticks.map(t => `<span class="mv" style="top:${t.p.toFixed(1)}%">${kMoney(t.v)}</span>`).join("")}</div>
     <div class="cv-plot" id="cvPlot">
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--fg)" stop-opacity=".22"/><stop offset="1" style="stop-color:var(--fg)" stop-opacity="0"/></linearGradient></defs>
         ${ticks.map(t => `<line class="cv-grid" x1="0" x2="${W}" y1="${(t.p / 100 * H).toFixed(1)}" y2="${(t.p / 100 * H).toFixed(1)}"/>`).join("")}
         <path d="${d} L${W} ${H} L0 ${H} Z" fill="url(#${gid})"/><path class="cv-line" d="${d}"/></svg>
-      <span class="cv-end" style="left:100%;top:${(Y(pts[pts.length - 1]) / H * 100).toFixed(2)}%"></span>
+      <span class="cv-end" style="left:100%;top:${(Y(pts[n - 1]) / H * 100).toFixed(2)}%"></span>
       <span class="cv-x" hidden></span><span class="cv-dot" hidden></span><div class="cv-tip" hidden></div>
     </div>
-    <div class="cv-xl"><span>${first.day} ${MON3[first.m]}</span><span>${last.day} ${MON3[last.m]}</span></div></div>`;
+    <div class="cv-xl"><span>${fd(days[0])}</span>${n > 6 ? `<span>${fd(mid)}</span>` : ""}<span>${fd(days[n - 1])}</span></div></div>`;
 }
 function bindCurve(L){
   const plot = $("cvPlot"); if (!plot) return;
-  const pts = [0]; let c = 0; L.forEach(t => pts.push(c += t.pnl));
+  const days = dailySeries(L); if (!days || !days.length) return;
+  const pts = days.map(x => x.v), n = pts.length;
   const lo = Math.min(0, ...pts), hiRaw = Math.max(0, ...pts), hi = hiRaw + (hiRaw - lo) * .1 || 1;
   const [xl, dot, tip] = [".cv-x", ".cv-dot", ".cv-tip"].map(q => plot.querySelector(q));
   const show = cx => {
-    const r = plot.getBoundingClientRect(), i = Math.max(0, Math.min(pts.length - 1, Math.round((cx - r.left) / r.width * (pts.length - 1))));
-    const xp = i / (pts.length - 1) * 100, yp = (1 - (pts[i] - lo) / (hi - lo)) * 100;
+    const r = plot.getBoundingClientRect(), i = Math.max(0, Math.min(n - 1, Math.round((cx - r.left) / r.width * (n - 1))));
+    const xp = n > 1 ? i / (n - 1) * 100 : 50, yp = (1 - (pts[i] - lo) / (hi - lo)) * 100;
     xl.style.left = dot.style.left = xp + "%"; dot.style.top = yp + "%";
-    const t = L[i - 1];
-    tip.innerHTML = i ? `${t.day} ${MON3[t.m]} · ${t.side || ""} ${isNum(t.r) ? fmtR(t.r) : ""}<b class="mv">${bigMoney(pts[i])}</b><span class="${t.pnl < 0 ? "r" : ""}" style="color:${t.pnl < 0 ? "#ff4d4d" : "#cfcfcf"}">${t.pnl < 0 ? "" : "+"}${money(t.pnl)} sur ce trade</span>` : `Départ<b>0\u00a0${cur()}</b>`;
+    const x = days[i], dl = x.d.toLocaleDateString("fr-FR", {weekday: "short", day: "numeric", month: "short"});
+    tip.innerHTML = `${dl}<b class="mv">${bigMoney(pts[i])}</b>${x.n ? `<span style="color:${x.p < 0 ? "#ff4d4d" : "#cfcfcf"}">${x.p < 0 ? "" : "+"}${money(x.p)} · ${x.n} trade${pl(x.n)}</span>` : `<span style="color:#8b8b8b">Pas de trade</span>`}`;
     const half = (tip.offsetWidth || 120) / 2, px = xp / 100 * r.width;
     tip.style.left = Math.max(half - 30, Math.min(r.width - half + 30, px)) + "px";
     xl.hidden = dot.hidden = tip.hidden = false;
@@ -4136,7 +4148,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-30";
+const APP_VERSION = "2026-10-27-31";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
