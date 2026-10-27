@@ -2184,8 +2184,16 @@ function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
 /* ===== Trophée : grande salle sombre, faisceau de lumière, podium, certificat en lévitation qu'on fait tourner à 360° ===== */
 /* décor : paysage gris, ciel couvert, cailloux en suspension autour du certificat */
 let hallImg = null;
-function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land.jpg?v=2"; } return hallImg; }
-function prewarmNebula(){ getHallImg(); }
+let rockAtlas = null;
+const ROCK_CELLS = [[132, 24, 39, 53], [219, 24, 38, 34], [305, 24, 43, 44], [486, 24, 41, 32], [575, 24, 34, 36], [657, 24, 32, 33], [737, 24, 32, 35], [817, 24, 33, 35], [898, 24, 33, 38], [1058, 24, 32, 37], [1138, 24, 31, 30], [1217, 24, 31, 32], [1296, 24, 32, 30], [24, 125, 31, 28], [258, 125, 31, 26], [479, 125, 30, 24], [557, 125, 27, 25], [632, 125, 23, 29], [703, 125, 28, 24], [856, 125, 26, 24], [930, 125, 20, 28], [1074, 125, 22, 26], [1144, 125, 22, 28], [1288, 125, 30, 20], [24, 215, 25, 23], [97, 215, 29, 25], [174, 215, 25, 20], [247, 215, 21, 17], [316, 215, 19, 22], [383, 215, 18, 21]];
+function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land_blur.jpg?v=2"; } return hallImg; }
+/* atlas des cailloux + deux versions floutées (profondeur de champ) */
+function getRocks(){ if (rockAtlas) return rockAtlas; const im = new Image(); rockAtlas = {im, ready: false, lv: []};
+  /* un petit canvas par caillou et par niveau de flou : aucun débordement d'un caillou sur l'autre */
+  im.onload = () => { rockAtlas.lv = [0, 1.6, 4].map(b => ROCK_CELLS.map(([sx, sy, w, h]) => { const P = 16, c = document.createElement("canvas"); c.width = w + P * 2; c.height = h + P * 2;
+      const g = c.getContext("2d"); if (b) g.filter = `blur(${b}px)`; g.drawImage(im, sx, sy, w, h, P, P, w, h); return c; })); rockAtlas.ready = true; };
+  im.src = "data/bg/rocks.png?v=2"; return rockAtlas; }
+function prewarmNebula(){ getHallImg(); getRocks(); }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
@@ -2219,6 +2227,22 @@ function openTrophy(c){
   /* poussière qui flotte dans le faisceau */
   const rnd = Math.random, beamHalf = y => S * (60 + 90 * Math.min(1, Math.max(0, y / H)));
   const motes = Array.from({length: 0}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
+  const RK = getRocks(), rocks = Array.from({length: 66}, (_, i) => { const near = i < 6;
+    const o = {c: near ? (i * 2) % 12 : (i * 7 + (rnd() * 5 | 0)) % ROCK_CELLS.length, a: rnd() * 6.283, sp: (.05 + rnd() * .07) * (rnd() < .5 ? -1 : 1) * (near ? .6 : 1),
+      rx: near ? 1.7 + rnd() * .6 : .92 + rnd() * .8, yo: near ? (rnd() - .5) * 1.6 : (rnd() - .5) * 1.5, sz: near ? 1.7 + rnd() * .8 : .45 + rnd() * .7,
+      rot: rnd() * 6.283, spin: (rnd() - .5) * .5, p: rnd() * 7, near, side: near || rnd() < .45, base: rnd() < .5 ? 0 : Math.PI, amp: .5 + rnd() * .45};
+      /* « orbite » : passe au-dessus ou en dessous du certificat ; « côté » : va et vient devant/derrière sur les côtés, sans jamais cacher le texte */
+      if (!o.side) o.yo = (rnd() < .5 ? -1 : 1) * (.62 + rnd() * .45); return o; });
+  function rocksTo(ctx, now, front, k){
+    if (!RK.ready) return; const bw = parseFloat(ov.style.getPropertyValue("--bw")) || 400, bh = parseFloat(ov.style.getPropertyValue("--bh")) || 300, cx = W / 2, cy = parseFloat(stage.style.top) || H / 2;
+    const list = [];
+    for (const r of rocks) { const a = r.side ? r.base + r.amp * Math.sin(r.a + now / 1000 * r.sp * 2.2) : r.a + now / 1000 * r.sp, z = Math.sin(a); if ((z > 0) !== front) continue; list.push([z, r, a]); }
+    list.sort((p, q) => p[0] - q[0]);
+    for (const [z, r, a] of list) {
+      const x = cx + Math.cos(a) * r.rx * bw * .62, y = cy + r.yo * bh + z * bh * .08 + Math.sin(now / 1500 + r.p) * 6, sc = r.sz * (1 + .35 * z) * (S / 1.6);
+      const lvl = r.near ? 2 : z < -.55 ? 1 : 0, img = RK.lv[lvl][r.c];
+      ctx.save(); ctx.globalAlpha = k * (z < 0 ? .78 + .22 * (1 + z) : 1); ctx.translate(x, y); ctx.rotate(r.rot + now / 1000 * r.spin); ctx.scale(sc, sc);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore(); } }
   let t0 = performance.now(); const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
   function dustTo(ctx, now, front, k){
     for (const m of motes) { if (m.f !== front) continue;
@@ -2245,8 +2269,8 @@ function openTrophy(c){
       const kz = 1 + .025 * (.5 - .5 * Math.cos(now / 9000)), zx = W / 2, zy = H / 2;
       bx.globalAlpha = kb; bx.drawImage(bg, zx + (OX - zx) * kz, zy + (OY - zy) * kz, 1024 * S * kz, 572 * S * kz);
       bx.globalCompositeOperation = "source-over"; bx.globalAlpha = 1; }
-    bx.globalCompositeOperation = "lighter"; dustTo(bx, now, false, k); bx.globalCompositeOperation = "source-over";
-    fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); fx.globalCompositeOperation = "lighter"; dustTo(fx, now, true, k); fx.globalCompositeOperation = "source-over";
+    const kr = ease((now - t0 - 300) / 1400); rocksTo(bx, now, false, kr);
+    fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr);
     if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
       if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2800) * 14, tx = 4 + Math.sin(now / 3400) * 4;
         ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
@@ -4309,7 +4333,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-46";
+const APP_VERSION = "2026-10-27-47";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
