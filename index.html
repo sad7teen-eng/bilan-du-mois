@@ -804,6 +804,11 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .gl-acts{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .7s ease 1s}
 .gl.lit .gl-acts{opacity:1}
 .gl-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.07)!important;color:#fff!important;border:1px solid rgba(255,255,255,.16)!important}
+
+.gl-vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(0,0,0,.65))}
+.gl-fade{position:absolute;inset:0;background:#000;pointer-events:none;opacity:1}
+.gl-cv{cursor:default}
+.gl.lit:not(.glhero) .gl-info{opacity:0;transform:translateY(10px);filter:blur(6px)}
 /* ---------- La vitrine du certificat ---------- */
 .vit{position:fixed;inset:0;z-index:75;background:#050506;opacity:0;transition:opacity .6s ease;overflow:hidden;color:#f2f2f2}
 .vit.on{opacity:1}
@@ -2420,10 +2425,9 @@ async function openGlass(c){
   if (!im) { certEdit = {...c}; drawCerts(); return; }
   const A = certAmt(c), date = c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : "";
   const ov = document.createElement("div"); ov.className = "gl";
-  ov.innerHTML = `<div class="gl-bg"></div><canvas class="gl-cv"></canvas>
+  ov.innerHTML = `<div class="gl-bg"></div><canvas class="gl-cv"></canvas><div class="gl-vig"></div><div class="gl-fade"></div>
     <div class="gl-info"><div class="gl-firm">${esc(c.firm || "")}${c.kind ? `<span>${esc(c.kind)}</span>` : ""}</div>
       <div class="gl-amt" id="glAmt">${A.v != null ? "" : esc(c.amount || "")}</div><div class="gl-date">${esc(date)}</div></div>
-    <div class="gl-hint">Faites glisser pour tourner le bloc</div>
     <div class="gl-acts"><button type="button" data-gl="edit">Modifier</button><button type="button" data-gl="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   requestAnimationFrame(() => ov.classList.add("on"));
@@ -2449,7 +2453,11 @@ async function openGlass(c){
   { const bc = document.createElement("canvas"); bc.width = bc.height = 512; const g = bc.getContext("2d"), r = g.createRadialGradient(256, 215, 0, 256, 256, 330);
     r.addColorStop(0, "#202127"); r.addColorStop(.5, "#0d0d10"); r.addColorStop(1, "#030304"); g.fillStyle = r; g.fillRect(0, 0, 512, 512);
     const bt = new THREE.CanvasTexture(bc); bt.colorSpace = THREE.SRGBColorSpace; const bg = new THREE.Mesh(new THREE.PlaneGeometry(60, 34), new THREE.MeshBasicMaterial({map: bt, toneMapped: false, depthWrite: false}));
-    bg.position.z = -9; scene.add(bg); }
+    bg.position.z = -9; bg.visible = false;
+    const sc2 = document.createElement("canvas"); sc2.width = 16; sc2.height = 256; const g2 = sc2.getContext("2d"), lg = g2.createLinearGradient(0, 0, 0, 256);
+    lg.addColorStop(0, "#050506"); lg.addColorStop(.42, "#16171b"); lg.addColorStop(.52, "#1c1d22"); lg.addColorStop(.62, "#0c0c0e"); lg.addColorStop(1, "#020203"); g2.fillStyle = lg; g2.fillRect(0, 0, 16, 256);
+    const st2 = new THREE.CanvasTexture(sc2); st2.colorSpace = THREE.SRGBColorSpace;
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(40, 48, 24), new THREE.MeshBasicMaterial({map: st2, side: THREE.BackSide, toneMapped: false, depthWrite: false}))); }
   const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(renderer), .04).texture;
   const tex = await new THREE.TextureLoader().loadAsync(im); if (!alive) return; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const ar = tex.image.width / tex.image.height, Wd = 3.3, Hd = Wd / ar, D = .32;
@@ -2476,24 +2484,33 @@ async function openGlass(c){
   const fill = new THREE.DirectionalLight(0xffffff, .8); fill.position.set(4, 3, 6); scene.add(fill);
   const fit = () => { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < 760 ? 44 : 30; cam.updateProjectionMatrix(); };
   onResize = fit; addEventListener("resize", fit); fit();
-  /* rotation libre au glisser, avec inertie ; retour doux face caméra */
-  let ry = -.95, rx = .32, vy = 0, vx = 0, drag = null, idle = performance.now();
-  cv.addEventListener("pointerdown", e => { drag = {x: e.clientX, y: e.clientY}; vy = vx = 0; cv.setPointerCapture(e.pointerId); ov.classList.add("used"); });
-  cv.addEventListener("pointermove", e => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-    ry += dx * .009; rx = Math.max(-.9, Math.min(.9, rx + dy * .006)); vy = dx * .009; vx = dy * .006; idle = performance.now(); });
-  const up = () => { drag = null; idle = performance.now(); }; cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-  const t0 = performance.now(), ease = x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
-  let counted = false;
+  /* ===== film en boucle : 4 plans de caméra autour du bloc, coupes en fondu au noir (style « Macbook around Linear ») ===== */
+  block.position.y = 0; shadow.position.y = -Hd * .62 - .55;
+  const sm = x => x * x * (3 - 2 * x), lerp = (a, b, k) => a + (b - a) * k, V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const SHOTS = [
+    {d: 4.6, fov: [30, 28], from: V(-6.2, 1.3, 6.4), to: V(-3.9, .7, 7.9), look: [V(0, -.3, 0), V(0, -.25, 0)], light: [-6, 6]},            /* large, travelling de 3/4 */
+    {d: 4.2, fov: [15, 14], from: V(3.4, -.9, 5.6), to: V(1.5, -.5, 6.1), look: [V(.9, -.15, 0), V(.55, -.3, 0)], light: [7, -4]},            /* gros plan au téléobjectif sur le montant */
+    {d: 4.4, fov: [26, 24], arc: [.75, -.2], r: 7.6, h: [3.6, 1.6], look: [V(0, .1, 0), V(0, 0, 0)], light: [5, -6]},                       /* arc en plongée, la lumière glisse sur le verre */
+    {d: 5.2, fov: [31, 29], from: V(.4, .45, 13.4), to: V(0, .15, 11.8), look: [V(0, -.95, 0), V(0, -.9, 0)], light: [-5, 5], hero: true}];    /* plan héros, de face */
+  const TOTAL = SHOTS.reduce((a, x) => a + x.d, 0), fade = ov.querySelector(".gl-fade");
+  const t0 = performance.now(); let counted = false, lastShot = -1;
   const frame = now => { if (!alive) return; raf = requestAnimationFrame(frame);
-    const t = (now - t0) / 1000, k = ease(Math.min(1, t / 2.2));
-    if (t < 2.4 && !drag) { ry = -.95 * (1 - k) + .16 * k; rx = .32 * (1 - k) + .06 * k; }
-    else if (!drag) { ry += vy; rx += vx; vy *= .93; vx *= .93;
-      if (now - idle > 1800 && Math.abs(vy) < .002) { const base = Math.round(ry / (Math.PI * 2)) * Math.PI * 2, ty = base + Math.sin(t * .45) * .16, tx = .06 + Math.sin(t * .37) * .04; ry += (ty - ry) * .025; rx += (tx - rx) * .025; } }
-    block.rotation.set(rx, ry, 0); block.position.y = .38 + (1 - k) * -.5 + Math.sin(t * 1.1) * .045; block.scale.setScalar(.86 + .14 * k);
-    print.material.color.setScalar(Math.min(1, t / .6));
-    key.position.x = -5 + Math.min(1, Math.max(0, (t - 1.5) / 1.8)) * 10; key.intensity = t > 1.4 && t < 3.6 ? 26 * Math.sin(Math.PI * (t - 1.4) / 2.2) : 0;
-    shadow.material.opacity = .35 + .65 * k; shadow.position.y = .38 - Hd * .62 - .55 + Math.sin(t * 1.1) * .02;
-    if (t > 1.1 && !counted) { counted = true; ov.classList.add("lit"); count(); }
+    const T = (now - t0) / 1000, tl = T % TOTAL; let acc = 0, i = 0; while (i < SHOTS.length - 1 && tl >= acc + SHOTS[i].d) acc += SHOTS[i++].d;
+    const S = SHOTS[i], p = (tl - acc) / S.d, e = sm(p);
+    if (S.arc) { const a = lerp(S.arc[0], S.arc[1], e); cam.position.set(Math.sin(a) * S.r, lerp(S.h[0], S.h[1], e), Math.cos(a) * S.r); }
+    else cam.position.lerpVectors(S.from, S.to, e);
+    cam.fov = lerp(S.fov[0], S.fov[1], e) * (innerWidth < 760 ? 1.45 : 1); cam.updateProjectionMatrix();
+    cam.lookAt(new THREE.Vector3().lerpVectors(S.look[0], S.look[1], e));
+    /* fondu au noir à chaque coupe, et ouverture au tout début */
+    const edge = Math.min(p * S.d, (1 - p) * S.d), fo = T < 1.2 ? Math.max(0, 1 - T / 1.2) : Math.max(0, 1 - edge / .32);
+    fade.style.opacity = fo.toFixed(3);
+    /* le bloc flotte à peine ; une lumière passe sur le verre pendant chaque plan */
+    block.rotation.set(.04 + Math.sin(T * .5) * .02, Math.sin(T * .33) * .06, 0); block.position.y = Math.sin(T * 1.1) * .04;
+    key.position.set(lerp(S.light[0], S.light[1], e), 2.4, 3.2); key.intensity = 30 * Math.sin(Math.PI * e);
+    print.material.color.setScalar(Math.min(1, T / .8));
+    ov.classList.toggle("glhero", !!S.hero);
+    if (i !== lastShot) { lastShot = i; if (S.hero) count(); }
+    if (T > .6) ov.classList.add("lit");
     renderer.render(scene, cam); };
   raf = requestAnimationFrame(frame);
 }
@@ -4977,7 +4994,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-69";
+const APP_VERSION = "2026-10-27-70";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
