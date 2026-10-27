@@ -1545,6 +1545,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 /* le style « verre » global ne doit pas dessiner de cadre blanc autour de la scène */
 .troph,.tr-stage,.tr-float,.tr-load,.tr-hint,.tr-acts{border:0!important;border-radius:0!important;box-shadow:none!important;outline:0!important;background-image:none!important;backdrop-filter:none!important}
 .troph{background-color:#030304!important}
+.troph.hall{background-color:#6d6f73!important}
 .troph.hall .tr-stage{top:40%;transform:translate(-50%,-50%);perspective:1400px;--d:30px}
 .troph.hall .tr-front{background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.03) 32%,rgba(255,255,255,0) 64%,rgba(255,255,255,.08) 100%);
   box-shadow:inset 0 0 0 1.5px rgba(245,247,255,.9),inset 0 0 8px rgba(230,236,255,.4),inset 0 0 30px rgba(200,215,255,.15),0 0 26px rgba(220,230,255,.25),0 0 80px rgba(180,200,255,.12)}
@@ -2181,9 +2182,9 @@ function layoutDeck(){
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
 /* ===== Trophée : grande salle sombre, faisceau de lumière, podium, certificat en lévitation qu'on fait tourner à 360° ===== */
-/* décor : photo de la salle (faisceau, poussière, pupitre), cadrée serré sur le haut du pupitre */
+/* décor : paysage gris, ciel couvert, cailloux en suspension autour du certificat */
 let hallImg = null;
-function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/hall.jpg"; } return hallImg; }
+function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land.jpg"; } return hallImg; }
 function prewarmNebula(){ getHallImg(); }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2205,19 +2206,19 @@ function openTrophy(c){
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore"), stage = ov.querySelector(".tr-stage");
   const bx = sky.getContext("2d"), fx = fore.getContext("2d");
   let W = 0, H = 0, dpr = 1, S = 1, OX = 0, OY = 0, bgAt = 0;
-  const bg = getHallImg(), CX = 528, CY = 277;   /* centre du certificat sur la photo (base 1024 × 572) */
+  const bg = getHallImg(), CX = 517, CY = 288;   /* centre du certificat sur la photo (base 1024 × 572) */
   const toX = x => OX + x * S, toY = y => OY + y * S;
-  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bw = Math.min(172 * S, W * .4), bh = bw / r;
+  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bw = Math.min(232 * S, W * .42), bh = bw / r;
     ov.style.setProperty("--bw", bw + "px"); ov.style.setProperty("--bh", bh + "px"); stage.style.top = toY(CY) + "px"; };
   const fit = () => { W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
     for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
-    S = 1.55 * Math.max(W / 1024, H / 572); OX = W / 2 - CX * S; OY = H * .38 - CY * S; size(); };
+    S = 1.04 * Math.max(W / 1024, H / 572); OX = W / 2 - CX * S; OY = H / 2 - CY * S; size(); };
   fit(); img.addEventListener("load", size); addEventListener("resize", fit);
   const spr = document.createElement("canvas"); spr.width = spr.height = 32; { const g = spr.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16);
     r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.3, "rgba(240,244,255,.5)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); }
   /* poussière qui flotte dans le faisceau */
   const rnd = Math.random, beamHalf = y => S * (60 + 90 * Math.min(1, Math.max(0, y / H)));
-  const motes = Array.from({length: 700}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
+  const motes = Array.from({length: 0}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
   let t0 = performance.now(); const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
   function dustTo(ctx, now, front, k){
     for (const m of motes) { if (m.f !== front) continue;
@@ -2241,11 +2242,8 @@ function openTrophy(c){
     if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now; const k = ease((now - t0) / 1400);
     bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#030304"; bx.fillRect(0, 0, W, H);
     if (bg.complete && bg.naturalWidth) { if (!bgAt) bgAt = now; const kb = ease((now - bgAt) / 1200);
-      bx.globalAlpha = kb; bx.drawImage(bg, OX, OY, 1024 * S, 572 * S);
-      /* lueur douce qui monte du pupitre vers le certificat */
-      bx.globalCompositeOperation = "lighter"; const gx = toX(CX), gy = toY(342), gr = bx.createRadialGradient(gx, gy, 0, gx, gy, 70 * S);
-      gr.addColorStop(0, `rgba(200,220,255,${(.32 + .06 * Math.sin(now / 900)).toFixed(3)})`); gr.addColorStop(1, "rgba(0,0,0,0)");
-      bx.save(); bx.translate(gx, gy); bx.scale(1, .55); bx.translate(-gx, -gy); bx.fillStyle = gr; bx.fillRect(gx - 80 * S, gy - 80 * S, 160 * S, 160 * S); bx.restore();
+      const kz = 1 + .025 * (.5 - .5 * Math.cos(now / 9000)), zx = W / 2, zy = H / 2;
+      bx.globalAlpha = kb; bx.drawImage(bg, zx + (OX - zx) * kz, zy + (OY - zy) * kz, 1024 * S * kz, 572 * S * kz);
       bx.globalCompositeOperation = "source-over"; bx.globalAlpha = 1; }
     bx.globalCompositeOperation = "lighter"; dustTo(bx, now, false, k); bx.globalCompositeOperation = "source-over";
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); fx.globalCompositeOperation = "lighter"; dustTo(fx, now, true, k); fx.globalCompositeOperation = "source-over";
@@ -4311,7 +4309,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-44";
+const APP_VERSION = "2026-10-27-45";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
