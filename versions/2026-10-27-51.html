@@ -2305,12 +2305,12 @@ function openTrophy(c){
         for (const [sp, al] of [[17, 1], [27, .3]]) { const off = ((now / 1000 * sp * S / 1.5) % sw + sw) % sw, x0 = OX + off - sw - smx * 8;   /* même sens que la poussière */
           bx.globalAlpha = kb * al; bx.drawImage(A.sky, x0, sy, sw, sh); bx.drawImage(A.sky, x0 + sw, sy, sw, sh); } bx.globalAlpha = kb; }
       /* orage dans les nuages : lueurs aléatoires qui palpitent derrière les nuages, sans éclair */
-      if (now > storm.next) { storm.x = .1 + rnd() * .8; storm.y = .05 + rnd() * .22; storm.at = now; storm.r = .12 + rnd() * .14; storm.next = now + 2500 + rnd() * 6000; }
+      if (now > storm.next) { storm.x = .1 + rnd() * .8; storm.y = .05 + rnd() * .22; storm.at = now; storm.r = .16 + rnd() * .14; storm.next = now + 2500 + rnd() * 6000; }
       const st = (now - storm.at) / 1000;
-      if (st >= 0 && st < 1.4) { const f = Math.max(0, Math.sin(st * 22) * Math.exp(-st * 3.2)) + (st < .5 ? .25 * (1 - st / .5) : 0);
+      if (st >= 0 && st < 1.4) { const f = Math.max(0, Math.sin(st * 17) * Math.exp(-st * 2.4)) * 1.4 + (st < .6 ? .3 * (1 - st / .6) : 0);
         if (f > .01) { const gx = storm.x * W - smx * 8, gy = OY + storm.y * 572 * S, R = storm.r * W, gr = bx.createRadialGradient(gx, gy, 0, gx, gy, R);
-          gr.addColorStop(0, `rgba(225,232,255,${(.55 * f * kb).toFixed(3)})`); gr.addColorStop(.35, `rgba(190,205,240,${(.22 * f * kb).toFixed(3)})`); gr.addColorStop(1, "rgba(180,195,230,0)");
-          bx.globalCompositeOperation = "screen"; bx.fillStyle = gr; bx.fillRect(gx - R, gy - R, R * 2, R * 2); bx.globalCompositeOperation = "source-over"; } }
+          gr.addColorStop(0, `rgba(235,240,255,${(.3 * f * kb).toFixed(3)})`); gr.addColorStop(.3, `rgba(200,212,245,${(.2 * f * kb).toFixed(3)})`); gr.addColorStop(1, "rgba(180,195,230,0)");
+          bx.globalCompositeOperation = "lighter"; bx.fillStyle = gr; bx.fillRect(gx - R, gy - R, R * 2, R * 2); bx.globalCompositeOperation = "source-over"; } }
       bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
     const kr = ease((now - t0 - 250) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
