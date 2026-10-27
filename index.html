@@ -1457,6 +1457,10 @@ body:not(.light) #heroVal.shin{animation:shadowInD 1.2s ease both}
 .odc span{height:1.2em!important;line-height:1.2!important}
 #heroVal.go .odc{transform:translateY(calc(var(--n) * -1.2em))!important}
 #heroVal.rolling{display:inline-flex!important;align-items:center!important;margin-block:-.1em}
+
+/* --- v64 : grand P&L, apparition chiffre par chiffre (remplace les rouleaux) --- */
+#heroVal.reveal .hc{display:inline-block;animation:hcIn .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.35s + var(--i) * .06s)}
+@keyframes hcIn{from{opacity:0;transform:translateY(.35em);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2841,14 +2845,11 @@ function renderBoard(){
   $("heroNum").innerHTML = `<span class="mv${s.net < 0 ? " r" : ""}" id="heroVal">${heroMoney(s.net)}</span>`;
   $("heroSub").innerHTML = `<span class="trend${wk7 < 0 ? " dn" : ""}">${wk7 < 0 ? "↘" : "↗"} <b class="mv">${bigMoney(wk7)}</b>&nbsp;sur 7 jours</span><span><b>${s.wins}G</b> / <b>${s.losses}P</b></span>`;
   if (!boardDrawn && !reduced && s.net) {
-    /* compteur à rouleaux : chaque chiffre défile jusqu'à sa valeur, de gauche à droite */
+    /* apparition chiffre par chiffre : le texte final est en place dès le départ, rien ne bouge dans la mise en page */
     const el = $("heroVal"), txt = (s.net < 0 ? "−" : "+") + frN(Math.round(s.net), 0);
-    let k = 0; const nd = (txt.match(/\d/g) || []).length;
-    el.innerHTML = `<span class="odo">${[...txt].map(ch => { if (!/\d/.test(ch)) return `<span class="odx">${ch}</span>`;
-      const i = k++, n = +ch; return `<span class="od"><span class="odc" style="--n:${n + 10};--dl:${(.35 + i * .07).toFixed(2)}s">${"01234567890123456789".split("").map(d => `<span>${d}</span>`).join("")}</span></span>`; }).join("")}</span><span class="cur">\u00a0${cur()}</span>`;
-    el.classList.add("rolling");
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("go")));
-    setTimeout(() => { if (el.isConnected) { el.classList.remove("rolling", "go"); el.innerHTML = heroMoney(s.net); el.classList.add("shin"); setTimeout(() => el.classList.remove("shin"), 1300); } }, 1700 + nd * 70);
+    let k = 0; el.innerHTML = [...txt].map(ch => ch === "\u00a0" || ch === " " ? ch : `<span class="hc" style="--i:${k++}">${ch}</span>`).join("") + `<span class="cur"><span class="hc" style="--i:${k + 1}">\u00a0${cur()}</span></span>`;
+    el.classList.add("reveal");
+    setTimeout(() => { if (el.isConnected) { el.classList.remove("reveal"); el.innerHTML = heroMoney(s.net); } }, 1400 + k * 60);
   }
 
   const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ",");
@@ -4115,7 +4116,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-27";
+const APP_VERSION = "2026-10-27-28";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
