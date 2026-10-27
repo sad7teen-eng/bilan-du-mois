@@ -2184,7 +2184,7 @@ function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
 /* ===== Trophée : grande salle sombre, faisceau de lumière, podium, certificat en lévitation qu'on fait tourner à 360° ===== */
 /* décor : paysage gris, ciel couvert, cailloux en suspension autour du certificat */
 let hallImg = null;
-function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land.jpg"; } return hallImg; }
+function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land.jpg?v=2"; } return hallImg; }
 function prewarmNebula(){ getHallImg(); }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2206,13 +2206,13 @@ function openTrophy(c){
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore"), stage = ov.querySelector(".tr-stage");
   const bx = sky.getContext("2d"), fx = fore.getContext("2d");
   let W = 0, H = 0, dpr = 1, S = 1, OX = 0, OY = 0, bgAt = 0;
-  const bg = getHallImg(), CX = 517, CY = 288;   /* centre du certificat sur la photo (base 1024 × 572) */
+  const bg = getHallImg(), CX = 512, CY = 262;   /* centre du certificat sur la photo (base 1024 × 572) */
   const toX = x => OX + x * S, toY = y => OY + y * S;
   const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bw = Math.min(232 * S, W * .42), bh = bw / r;
     ov.style.setProperty("--bw", bw + "px"); ov.style.setProperty("--bh", bh + "px"); stage.style.top = toY(CY) + "px"; };
   const fit = () => { W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
     for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
-    S = 1.04 * Math.max(W / 1024, H / 572); OX = W / 2 - CX * S; OY = H / 2 - CY * S; size(); };
+    S = 1.1 * Math.max(W / 1024, H / 572); OX = Math.min(0, Math.max(W - 1024 * S, W / 2 - CX * S)); OY = Math.min(0, Math.max(H - 572 * S, H / 2 - CY * S)); size(); };
   fit(); img.addEventListener("load", size); addEventListener("resize", fit);
   const spr = document.createElement("canvas"); spr.width = spr.height = 32; { const g = spr.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16);
     r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.3, "rgba(240,244,255,.5)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); }
@@ -4309,7 +4309,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-45";
+const APP_VERSION = "2026-10-27-46";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
