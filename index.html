@@ -1446,6 +1446,9 @@ section.view[data-view="tableau"].venter .hnum::before{animation:haloIn 1.4s .3s
 @keyframes shadowInD{from{text-shadow:0 0 0 rgba(255,255,255,0),0 0 0 rgba(255,255,255,0)}to{text-shadow:0 0 30px rgba(255,255,255,.35),0 0 90px rgba(255,255,255,.14)}}
 body.light #heroVal.shin{animation:shadowIn 1.2s ease both}
 body:not(.light) #heroVal.shin{animation:shadowInD 1.2s ease both}
+
+/* --- v62 : les ombres des gros chiffres ne sont plus coupées en carré pendant les animations --- */
+.scn,.pv,.wkv,.sessv{padding:24px 28px;margin:-24px -28px}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -4104,7 +4107,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-25";
+const APP_VERSION = "2026-10-27-26";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
