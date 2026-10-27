@@ -1496,7 +1496,7 @@ body.incerts .dcard.on{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 80px rgba(120,
 body.incerts .ripple i{border-color:rgba(245,245,247,.8)}
 body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22%2F%3E%3C%2Fsvg%3E") 8 8, auto!important}
 
-.troph{position:fixed;inset:0;z-index:75;background:#02030a;overflow:hidden;opacity:0;transition:opacity .4s;cursor:grab;touch-action:none;user-select:none}
+.troph{position:fixed;inset:0;z-index:75;background:#02030a;overflow:hidden;opacity:0;transition:opacity .4s;cursor:grab!important;touch-action:none;user-select:none}
 .troph.grab,.troph.grab *{cursor:grabbing!important}
 .troph.go{opacity:1}
 .troph.out{opacity:0;transition:opacity .4s}
@@ -2161,27 +2161,29 @@ function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSe
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
 /* nébuleuse façon photo spatiale : bruit fractal, nuages bleus/violets, bandes de poussière sombre, amas d'étoiles */
 function paintNebula(W, H){
-  const S = 3, w = Math.ceil(W / S), h = Math.ceil(H / S), seed = Math.random() * 1000;
+  /* panorama 2 écrans de large, raccord parfait gauche/droite pour tourner à l'infini */
+  const S = 3, w = Math.round(W * 2 / S), h = Math.ceil(H * 1.4 / S), PW = w * S, PH = h * S, seed = Math.random() * 1000, Np = 8;
   const hash = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453; return n - Math.floor(n); };
-  const noise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
-  const fbm = (x, y) => { let s = 0, a = .5, f = 1; for (let i = 0; i < 6; i++) { s += a * noise(x * f, y * f); f *= 2.03; a *= .5; } return s; };
-  const blobs = [[.06, .42, .30, 1], [.14, .7, .2, .6], [.95, .5, .26, .9], [.85, .12, .18, .5], [.5, .5, .55, .35], [.35, .95, .25, .45], [.7, .85, .2, .4]];
-  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const g = cv.getContext("2d"), id = g.createImageData(w, h), D = id.data, sc = 3.2 / Math.max(w, h);
+  const md = (a, p) => ((a % p) + p) % p;
+  const noise = (x, y, p) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), x0 = md(xi, p), x1 = md(xi + 1, p);
+    const a = hash(x0, yi), b = hash(x1, yi), c = hash(x0, yi + 1), d = hash(x1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; };
+  const fbm = (x, y, p) => { let s = 0, a = .5, f = 1; for (let i = 0; i < 6; i++) { s += a * noise(x * f, y * f, p * f); f *= 2; a *= .5; } return s; };
+  const blobs = Array.from({length: 10}, (_, i) => [(i + Math.random() * .6) / 10, .15 + Math.random() * .7, .07 + Math.random() * .12, .45 + Math.random() * .6]);
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const g = cv.getContext("2d"), id = g.createImageData(w, h), D = id.data, sc = Np / w, asp = PH / PW;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const nx = x / w, ny = y / h * (H / W); let m = 0;
-    for (const [bx, by, br, bk] of blobs) { const dx = nx - bx, dy = ny - by * (H / W); m += bk * Math.exp(-(dx * dx + dy * dy) / (br * br)); }
-    const q = fbm(x * sc + 3, y * sc + 7), cl = Math.pow(Math.max(0, fbm(x * sc + q * 1.6, y * sc + q * 1.6) - .28), 1.7) * 2.6;
-    const dust = Math.pow(Math.max(0, fbm(x * sc * 2.2 + 40, y * sc * 2.2) - .5) * 2, 1.5), hue = fbm(x * sc * .7 + 90, y * sc * .7);
+    const nx = x / w, ny = y / h; let m = 0;
+    for (const [bx, by, br, bk] of blobs) { let dx = Math.abs(nx - bx); dx = Math.min(dx, 1 - dx); const dy = (ny - by) * asp; m += bk * Math.exp(-(dx * dx + dy * dy) / (br * br)); }
+    const X = x * sc, Y = y * sc, q = fbm(X + 3, Y + 7, Np), cl = Math.pow(Math.max(0, fbm(X + q * 1.6, Y + q * 1.6, Np) - .28), 1.7) * 2.6;
+    const dust = Math.pow(Math.max(0, fbm(X * 2 + 40, Y * 2, Np * 2) - .5) * 2, 1.5), hue = fbm(X * .5 + 90, Y * .5, Np / 2);
     const k = Math.min(1.1, m * cl * .85) * (1 - .75 * dust);
     const r = 3 + k * (18 + 85 * hue * hue), gg = 5 + k * (40 + 45 * (1 - hue)), b = 16 + k * 175, i = (y * w + x) * 4;
     D[i] = Math.min(255, r); D[i + 1] = Math.min(255, gg); D[i + 2] = Math.min(255, b); D[i + 3] = 255; }
   g.putImageData(id, 0, 0);
-  const out = document.createElement("canvas"); out.width = W; out.height = H; const o = out.getContext("2d");
-  o.imageSmoothingQuality = "high"; o.filter = "blur(1.5px)"; o.drawImage(cv, 0, 0, W, H); o.filter = "none";
+  const out = document.createElement("canvas"); out.width = PW; out.height = PH; const o = out.getContext("2d");
+  o.imageSmoothingQuality = "high"; o.filter = "blur(1.5px)"; for (const k of [-1, 0, 1]) o.drawImage(cv, k * PW, 0, PW, PH); o.filter = "none";
   /* amas d'étoiles serrés dans les zones de nébuleuse */
-  for (const [bx, by, br, bk] of blobs) for (let i = 0; i < 260 * bk; i++) {
-    const a = Math.random() * 6.283, d = Math.abs((Math.random() + Math.random() - 1)) * br * W * .7, x = bx * W + Math.cos(a) * d, y = by * H + Math.sin(a) * d * .8;
+  for (const [bx, by, br, bk] of blobs) for (let i = 0; i < 300 * bk; i++) {
+    const a = Math.random() * 6.283, d = Math.abs((Math.random() + Math.random() - 1)) * br * PW * .8, x = md(bx * PW + Math.cos(a) * d, PW), y = by * PH + Math.sin(a) * d * .8;
     o.fillStyle = `rgba(${200 + Math.random() * 55 | 0},${210 + Math.random() * 45 | 0},255,${(.25 + Math.random() * .6).toFixed(2)})`; const z = Math.random() < .08 ? 1.6 : .7; o.fillRect(x, y, z, z); }
   return out;
 }
@@ -2200,7 +2202,7 @@ function openTrophy(c){
       </div></div>
     </div>
     <canvas class="tr-fore"></canvas>
-    <div class="tr-hint">Glissez pour faire tourner</div>
+    <div class="tr-hint">Glissez ou utilisez la molette pour tourner dans l'espace</div>
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore");
@@ -2216,7 +2218,7 @@ function openTrophy(c){
   const spr = document.createElement("canvas"); spr.width = spr.height = 64; { const g = spr.getContext("2d"), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
     r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.15, "rgba(225,232,255,.75)"); r.addColorStop(.4, "rgba(150,175,255,.18)"); r.addColorStop(1, "rgba(120,140,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 64, 64); }
   /* étoiles sur plusieurs profondeurs */
-  const rnd = Math.random, stars = Array.from({length: 1400}, () => ({x: rnd(), y: rnd(), z: .15 + rnd() * .85, r: rnd() < .025 ? 1.8 + rnd() * 1.6 : .3 + rnd() * .9, p: rnd() * 7, h: rnd() < .25 ? 1 : 0}));
+  const rnd = Math.random, stars = Array.from({length: 2600}, () => ({x: rnd(), y: rnd(), z: .15 + rnd() * .85, r: rnd() < .025 ? 1.8 + rnd() * 1.6 : .3 + rnd() * .9, p: rnd() * 7, h: rnd() < .25 ? 1 : 0}));
   /* anneaux d'énergie : ellipses inclinées, particules qui y circulent */
   const rings = [
     {k: 1.0, f: .30, t: -.24, sp: .55, col: [150, 170, 255], w: 2.2},
@@ -2250,23 +2252,28 @@ function openTrophy(c){
       else { ctx.fillStyle = `rgba(225,232,255,${al.toFixed(3)})`; ctx.fillRect(x, y + p.v * B, p.r, p.r); } }
     ctx.globalCompositeOperation = "source-over";
   }
-  /* rotation libre à la souris, inertie, petit zoom */
+  /* c'est nous qui tournons dans l'espace : l'univers défile, le certificat reste en lévitation */
   const blk = ov.querySelector("#trBlock"), flo = ov.querySelector(".tr-float"), sh = ov.querySelector(".tr-shine");
-  let ry = -25, rx = 8, vy = 0, vx = 0, drag = null, last = performance.now(), idleAt = performance.now(), zoom = 1, zt = 1, raf = 0;
-  ov.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; drag = {x: e.clientX, y: e.clientY}; vy = vx = 0; ov.classList.add("grab"); ov.setPointerCapture(e.pointerId); ov.classList.add("used"); });
+  let ox = Math.random() * 4000, oy = 0, oyInit = false, vxu = 0, vyu = 0, drag = null, last = performance.now(), idleAt = performance.now(), raf = 0;
+  ov.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; drag = {x: e.clientX, y: e.clientY}; vxu = vyu = 0; ov.classList.add("grab", "used"); ov.setPointerCapture(e.pointerId); });
   ov.addEventListener("pointermove", e => { mx = e.clientX / W - .5; my = e.clientY / H - .5;
     if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-    ry += dx * .45; rx = Math.max(-75, Math.min(75, rx - dy * .35)); vy = dx * .45; vx = -dy * .35; idleAt = performance.now(); });
+    ox -= dx; oy -= dy; vxu = -dx; vyu = -dy; idleAt = performance.now(); });
   const up = () => { if (drag) { drag = null; ov.classList.remove("grab"); idleAt = performance.now(); } };
   ov.addEventListener("pointerup", up); ov.addEventListener("pointercancel", up);
-  ov.addEventListener("wheel", e => { e.preventDefault(); zt = Math.max(.88, Math.min(1.18, zt - e.deltaY * .0008)); }, {passive: false});
+  ov.addEventListener("wheel", e => { e.preventDefault(); ov.classList.add("used"); vxu += (e.deltaX + e.deltaY) * .12; vxu = Math.max(-60, Math.min(60, vxu)); idleAt = performance.now(); }, {passive: false});
   function frame(now){
     if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
     const intro = ease((now - t0 - 150) / 1600), introStars = ease((now - t0) / 900);
     smx += (mx - smx) * .05; smy += (my - smy) * .05;
     /* fond : nébuleuse + étoiles en parallaxe */
-    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.globalAlpha = 1; bx.drawImage(neb, 0, 0, W, H);
-    for (const s of stars) { const x = (s.x * W - smx * 40 * s.z + W) % W, y = (s.y * H - smy * 30 * s.z + H) % H, tw = .55 + .45 * Math.sin(now / 900 * (1 + s.z) + s.p);
+    /* déplacement dans l'univers : inertie + lente dérive quand on ne touche à rien */
+    if (!drag) { ox += vxu; oy += vyu; vxu *= .95; vyu *= .9; if (now - idleAt > 2500) ox += 10 * dt; }
+    const PW = neb.width, PH = neb.height, maxY = PH - H; if (!oyInit) { oy = maxY / 2; oyInit = true; } oy = Math.max(0, Math.min(maxY, oy));
+    const nx = ((ox % PW) + PW) % PW;
+    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.globalAlpha = 1; bx.drawImage(neb, -nx, -oy); if (PW - nx < W) bx.drawImage(neb, PW - nx, -oy);
+    for (const s of stars) { const pf = .8 + .4 * s.z, x = ((s.x * PW - ox * pf - smx * 30 * s.z) % PW + PW) % PW, y = s.y * PH - oy * pf - smy * 20 * s.z;
+      if (x > W + 20 || y < -20 || y > H + 20) continue; const tw = .55 + .45 * Math.sin(now / 900 * (1 + s.z) + s.p);
       bx.fillStyle = s.h ? `rgba(170,190,255,${(tw * s.z * introStars).toFixed(3)})` : `rgba(255,255,255,${(tw * s.z * introStars).toFixed(3)})`;
       if (s.r > 1.7) { bx.globalAlpha = tw * s.z * introStars; const z = s.r * 9 * s.z; bx.drawImage(spr, x - z / 2, y - z / 2, z, z); bx.globalAlpha = 1; }
       else bx.fillRect(x, y, s.r * s.z * 1.4, s.r * s.z * 1.4); }
@@ -2275,14 +2282,11 @@ function openTrophy(c){
     for (const R of rings) drawRing(bx, R, now, intro, false);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H);
     for (const R of rings) drawRing(fx, R, now, intro, true);
-    /* certificat : inertie, retour doux face caméra quand on le laisse */
-    if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94;
-      if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2600) * 22, tx = 6 + Math.sin(now / 3300) * 6;
-        ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
-    zoom += (zt - zoom) * .12;
+    /* certificat : en lévitation, léger balancement, il ne tourne pas avec nous */
+    const ry = Math.sin(now / 2600) * 16 + smx * 8, rx = 6 + Math.sin(now / 3300) * 5 - smy * 5;
     blk.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    flo.style.transform = `translateY(${(Math.sin(now / 1100) * 9).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
-    const k = ((ry % 360) + 360) % 360; sh.style.setProperty("--sx", (50 - Math.sin(k * Math.PI / 180) * 60) + "%"); sh.style.setProperty("--sy", (35 + rx) + "%");
+    flo.style.transform = `translateY(${(Math.sin(now / 1100) * 9).toFixed(2)}px)`;
+    sh.style.setProperty("--sx", (50 - ry * 2.5) + "%"); sh.style.setProperty("--sy", (35 + rx) + "%");
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
@@ -4337,7 +4341,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-37";
+const APP_VERSION = "2026-10-27-38";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
