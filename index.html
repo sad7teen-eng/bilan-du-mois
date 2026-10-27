@@ -1552,10 +1552,10 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 .troph.intro{opacity:1!important;transition:none!important}
 .troph.intro .tr-stage{z-index:5}
 .troph.intro .tr-block{opacity:1!important;scale:1!important;filter:none!important;transition:none!important}
-.troph.intro .tr-front,.troph.intro .tr-back,.troph.intro .tr-l,.troph.intro .tr-r,.troph.intro .tr-t,.troph.intro .tr-b{opacity:0}
-.troph.intro .tr-front{clip-path:inset(0 100% 0 0)}
-.troph.intro.build .tr-front,.troph.intro.build .tr-back,.troph.intro.build .tr-l,.troph.intro.build .tr-r,.troph.intro.build .tr-t,.troph.intro.build .tr-b{opacity:1;transition:opacity .7s ease .15s}
-.troph.intro.build .tr-front{clip-path:inset(0 0 0 0);transition:clip-path 1s cubic-bezier(.5,0,.2,1) .2s,opacity .4s ease .2s}
+.troph.intro .tr-front,.troph.intro .tr-back,.troph.intro .tr-l,.troph.intro .tr-r,.troph.intro .tr-t,.troph.intro .tr-b{opacity:0;transition:opacity 1s ease}
+.troph.intro .tr-front{clip-path:inset(0 100% 0 0);transition:clip-path 1.3s cubic-bezier(.5,0,.2,1),opacity 1s ease .3s}
+.troph.intro.build .tr-front,.troph.intro.build .tr-back,.troph.intro.build .tr-l,.troph.intro.build .tr-r,.troph.intro.build .tr-t,.troph.intro.build .tr-b{opacity:1;transition:opacity 1.2s ease .2s}
+.troph.intro.build .tr-front{clip-path:inset(0 0 0 0);transition:clip-path 1.6s cubic-bezier(.5,0,.2,1) .25s,opacity .6s ease .25s}
 
 /* le style « verre » global ne doit pas dessiner de cadre blanc autour de la scène */
 .troph,.tr-stage,.tr-float,.tr-load,.tr-hint,.tr-acts{border:0!important;border-radius:0!important;box-shadow:none!important;outline:0!important;background-image:none!important;backdrop-filter:none!important}
@@ -2235,11 +2235,11 @@ function buildShards(){
   el.appendChild(sh);
   const R = Math.hypot(W, H) * .6, soft = Math.max(W, H) * .22;
   const setR = r => { const m = `radial-gradient(circle at 50% 50%, transparent ${r.toFixed(0)}px, #000 ${(r + soft).toFixed(0)}px)`; sh.style.webkitMaskImage = m; sh.style.maskImage = m; };
-  setR(-soft);
-  return {el, crack(){},
-    blow(){ const t0 = performance.now(), D = 1300, step = now => { const k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-        setR(-soft * .4 + (R + soft * .9) * e); sh.style.filter = `blur(${(e * 6).toFixed(2)}px)`; sh.style.transform = `scale(${(1 + e * .05).toFixed(4)})`; if (k < 1 && el.isConnected) requestAnimationFrame(step); };
-      requestAnimationFrame(step); } };
+  const at = e => { setR(-soft * .4 + (R + soft * .9) * e); sh.style.filter = `blur(${(e * 6).toFixed(2)}px)`; sh.style.transform = `scale(${(1 + e * .05).toFixed(4)})`; };
+  const run = (D, back) => { const t0 = performance.now(), step = now => { const k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      at(back ? 1 - e : e); if (k < 1 && el.isConnected) requestAnimationFrame(step); }; requestAnimationFrame(step); };
+  at(0);
+  return {el, blow(D = 2300){ run(D, false); }, open(){ at(1); }, back(D = 1900){ run(D, true); }};
 }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2349,29 +2349,40 @@ function openTrophy(c){
       bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
     const kr = ease((now - t0 - (from ? 900 : 250)) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
-    if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
+    if (closing) { const base = Math.round(ry / 360) * 360; ry += (base - ry) * Math.min(1, dt * 4); rx += (0 - rx) * Math.min(1, dt * 4); vy = vx = 0; }
+    else if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
       if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2800) * 14, tx = 4 + Math.sin(now / 3400) * 4;
         ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
     zoom += (zt - zoom) * .12;
     blk.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    flo.style.transform = `translate(${(-smx * 18).toFixed(2)}px, ${(Math.sin(now / 1200) * 7 - smy * 11).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
+    bobK += ((closing ? 0 : 1) - bobK) * Math.min(1, dt * 3);
+    flo.style.transform = `translate(${(-smx * 18 * bobK).toFixed(2)}px, ${((Math.sin(now / 1200) * 7 - smy * 11) * bobK).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
     sh.style.setProperty("--sx", (50 - Math.sin(ry * Math.PI / 180) * 60) + "%"); sh.style.setProperty("--sy", (20 + rx) + "%");
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
   requestAnimationFrame(() => ov.classList.add("go"));
+  const cardT = r => `translate(-50%,-50%) translate(${(r.left + r.width / 2 - W / 2).toFixed(1)}px,${(r.top + r.height / 2 - CYs).toFixed(1)}px) scale(${(r.width / (BW * .9)).toFixed(4)})`;
+  let closing = false, bobK = 1;
   if (from) {
-    /* le certificat part de la carte cliquée et glisse à sa place ; le plexi se construit autour pendant le trajet */
-    rx = 0; const s0 = from.width / (BW * .9), dx = from.left + from.width / 2 - W / 2, dy = from.top + from.height / 2 - CYs;
-    stage.style.transition = "none"; stage.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(${s0})`;
-    requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.transition = "transform 1.3s cubic-bezier(.6,0,.2,1) .28s"; stage.style.transform = "translate(-50%,-50%)"; }));
-    shards.blow();
-    setTimeout(() => ov.classList.add("build"), 420);
-    setTimeout(() => ov.classList.add("show"), 1500);
-    setTimeout(() => { shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; }, 1900);
+    /* le certificat part de la carte cliquée et glisse lentement à sa place ; le plexi se construit autour pendant le trajet */
+    rx = 0; stage.style.transition = "none"; stage.style.transform = cardT(from);
+    requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.transition = "transform 2.1s cubic-bezier(.55,0,.2,1) .35s"; stage.style.transform = "translate(-50%,-50%)"; }));
+    shards.blow(2300);
+    setTimeout(() => ov.classList.add("build"), 700);
+    setTimeout(() => ov.classList.add("show"), 2300);
+    setTimeout(() => { if (closing) return; shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; }, 2700);
   } else setTimeout(() => ov.classList.add("show"), reduced ? 0 : 600);
-  const close = () => { ov.classList.remove("show", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
-    setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); };
+  const close = () => { if (closing) return; closing = true; removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
+    const cardEl = !reduced && document.querySelector("#certGrid .dcard.on"), to = cardEl ? cardEl.getBoundingClientRect() : null;
+    if (!to) { ov.classList.remove("show", "go"); ov.classList.add("out"); setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); return; }
+    /* animation inverse : le plexi se défait, le certificat retourne à sa carte, la salle noire revient depuis les bords */
+    if (shards) shards.el.remove(); const back = buildShards(); back.open(); ov.appendChild(back.el);
+    ov.classList.remove("show"); ov.classList.add("intro", "build"); zt = 1;
+    stage.style.transition = "transform 1.9s cubic-bezier(.55,0,.25,1) .2s"; stage.style.transform = cardT(to);
+    setTimeout(() => ov.classList.remove("build"), 250);
+    back.back(1900);
+    setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 2200); };
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
   ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]"); if (!b) return;
     if (b.dataset.tr === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 460); return; }
@@ -4420,7 +4431,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-54";
+const APP_VERSION = "2026-10-27-55";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
