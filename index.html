@@ -1544,7 +1544,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 @keyframes trFadeTxt{50%{opacity:.45}}
 /* transition : la page se brise en éclats, le certificat glisse à sa place et le plexi se construit */
 .tr-shards{position:absolute;inset:0;z-index:3;pointer-events:none;perspective:900px}
-.tr-shard{position:absolute;inset:0;overflow:hidden;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000);transition:transform .25s ease-out;will-change:transform,opacity;backface-visibility:hidden}
+.tr-shard{position:absolute;inset:0;overflow:hidden;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000);will-change:transform,filter,mask-image}
 .tr-cracks{position:absolute;inset:0;pointer-events:none}
 .tr-cracks polygon,.tr-cracks polyline{fill:none;stroke:rgba(235,240,255,.55);stroke-width:.9;stroke-dasharray:3000;stroke-dashoffset:3000;transition:stroke-dashoffset .4s ease-out}
 .tr-cracks.on polygon,.tr-cracks.on polyline{stroke-dashoffset:0}
@@ -2225,34 +2225,21 @@ function getDust(){ if (dustSprites) return dustSprites; const N = 128, seedN = 
     g.putImageData(id, 0, 0); return c; });
   return dustSprites; }
 function prewarmNebula(){ getLand(); getDust(); }
-/* la page actuelle (salle noire + cartes) découpée en éclats de verre qui se fissurent puis volent en morceaux */
+/* la page actuelle (salle noire + cartes) se dissout doucement, depuis le certificat vers les bords */
 function buildShards(){
   const W = innerWidth, H = innerHeight, el = document.createElement("div"); el.className = "tr-shards";
-  const view = document.querySelector('section.view[data-view="certs"]'), nav = document.querySelector(".topnav"), parts = [view, nav].filter(Boolean).map(n => [n, n.getBoundingClientRect()]);
-  /* éclats en étoile autour du certificat, comme une vitre qui casse : rayons + anneaux irréguliers */
-  const cx = W / 2, cy = H * .5, N = 13, RR = Math.hypot(W, H) * .62, rings = [.13, .3, .52, .8, 1.2], ang = [], polys = [];
-  let acc = Math.random() * 6.283; for (let i = 0; i < N; i++) { ang.push(acc); acc += 6.283 / N * (.65 + Math.random() * .7); }
-  const k0 = 6.283 / (acc - ang[0]); for (let i = 0; i < N; i++) ang[i] = ang[0] + (ang[i] - ang[0]) * k0;
-  const pt = (i, j) => { const a = ang[i % N] + (j && j < rings.length ? (Math.random() - .5) * .08 : 0), r = (j ? rings[j - 1] : 0) * RR * (j ? .9 + Math.random() * .2 : 1); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
-  const G = []; for (let j = 0; j <= rings.length; j++) { G.push([]); for (let i = 0; i < N; i++) G[j].push(pt(i, j)); }
-  for (let j = 0; j < rings.length; j++) for (let i = 0; i < N; i++) { const a = G[j][i], b = G[j][(i + 1) % N], c2 = G[j + 1][(i + 1) % N], d = G[j + 1][i];
-    polys.push(j ? [a, b, c2, d] : [a, c2, d]); }
-  const pieces = polys.map(pg => { const sh = document.createElement("div"); sh.className = "tr-shard"; sh.style.clipPath = `polygon(${pg.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(",")})`;
-    for (const [n, r] of parts) { const k = n.cloneNode(true); k.querySelectorAll(".dcard.on").forEach(e => e.style.visibility = "hidden");
-      k.hidden = false; Object.assign(k.style, {position: "absolute", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", margin: "0", pointerEvents: "none"}); sh.appendChild(k); }
-    el.appendChild(sh); const mx = pg.reduce((s, q) => s + q[0], 0) / pg.length, my = pg.reduce((s, q) => s + q[1], 0) / pg.length; return {sh, mx, my}; });
-  /* lignes de fissure */
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "tr-cracks"); svg.setAttribute("width", W); svg.setAttribute("height", H);
-  /* fissures : rayons puis anneaux, tracés depuis le centre */
-  for (let i = 0; i < N; i++) { const pl = document.createElementNS("http://www.w3.org/2000/svg", "polyline"); pl.setAttribute("points", G.map(r => r[i].join(",")).join(" ")); svg.appendChild(pl); }
-  for (let j = 1; j < rings.length; j++) { const pl = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); pl.setAttribute("points", G[j].map(q => q.join(",")).join(" ")); pl.style.transitionDelay = (j * .07) + "s"; svg.appendChild(pl); }
-  el.appendChild(svg);
-  return {el,
-    crack(){ svg.classList.add("on"); pieces.forEach(q => { const dx = (q.mx - cx) / W, dy = (q.my - cy) / H; q.sh.style.transform = `translate(${(dx * 6).toFixed(1)}px,${(dy * 6).toFixed(1)}px)`; }); },
-    blow(){ svg.classList.add("off"); pieces.forEach(q => { const dx = q.mx - cx, dy = q.my - cy, dist = Math.hypot(dx / W, dy / H), sp = .55 + Math.random() * .5;
-      q.sh.style.transition = `transform ${(1 + Math.random() * .35).toFixed(2)}s cubic-bezier(.3,.1,.2,1) ${(dist * .22).toFixed(2)}s, opacity .8s ease ${(.25 + dist * .22).toFixed(2)}s`;
-      q.sh.style.transform = `perspective(900px) translate3d(${(dx * sp * 1.4).toFixed(0)}px,${(dy * sp * 1.4 + 120).toFixed(0)}px,${(250 + Math.random() * 450).toFixed(0)}px) rotateX(${((Math.random() - .5) * 120).toFixed(0)}deg) rotateY(${((Math.random() - .5) * 120).toFixed(0)}deg) rotateZ(${((Math.random() - .5) * 60).toFixed(0)}deg)`;
-      q.sh.style.opacity = "0"; }); } };
+  const view = document.querySelector('section.view[data-view="certs"]'), nav = document.querySelector(".topnav");
+  const sh = document.createElement("div"); sh.className = "tr-shard";
+  for (const n of [view, nav]) { if (!n) continue; const r = n.getBoundingClientRect(), k = n.cloneNode(true); k.querySelectorAll(".dcard.on").forEach(e => e.style.visibility = "hidden");
+    k.hidden = false; Object.assign(k.style, {position: "absolute", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", margin: "0", pointerEvents: "none"}); sh.appendChild(k); }
+  el.appendChild(sh);
+  const R = Math.hypot(W, H) * .6, soft = Math.max(W, H) * .22;
+  const setR = r => { const m = `radial-gradient(circle at 50% 50%, transparent ${r.toFixed(0)}px, #000 ${(r + soft).toFixed(0)}px)`; sh.style.webkitMaskImage = m; sh.style.maskImage = m; };
+  setR(-soft);
+  return {el, crack(){},
+    blow(){ const t0 = performance.now(), D = 1300, step = now => { const k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        setR(-soft * .4 + (R + soft * .9) * e); sh.style.filter = `blur(${(e * 6).toFixed(2)}px)`; sh.style.transform = `scale(${(1 + e * .05).toFixed(4)})`; if (k < 1 && el.isConnected) requestAnimationFrame(step); };
+      requestAnimationFrame(step); } };
 }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2378,7 +2365,7 @@ function openTrophy(c){
     rx = 0; const s0 = from.width / (BW * .9), dx = from.left + from.width / 2 - W / 2, dy = from.top + from.height / 2 - CYs;
     stage.style.transition = "none"; stage.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(${s0})`;
     requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.transition = "transform 1.3s cubic-bezier(.6,0,.2,1) .28s"; stage.style.transform = "translate(-50%,-50%)"; }));
-    shards.crack(); setTimeout(() => shards.blow(), 320);
+    shards.blow();
     setTimeout(() => ov.classList.add("build"), 420);
     setTimeout(() => ov.classList.add("show"), 1500);
     setTimeout(() => { shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; }, 1900);
@@ -4433,7 +4420,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-53";
+const APP_VERSION = "2026-10-27-54";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
