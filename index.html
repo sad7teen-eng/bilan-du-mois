@@ -2248,7 +2248,7 @@ function openTrophy(c){
   /* vent au ras du sol, sable qui file, nuage de poussière et grains autour du certificat */
   const DS = getDust(), HZ = 282;   /* horizon, en base 1024 × 572 */
   const wisps = Array.from({length: 34}, () => ({u: rnd(), v: Math.pow(rnd(), .8), s: DS[(rnd() * 4) | 0], k: .8 + rnd() * 1.1, al: .26 + rnd() * .3, sp: .7 + rnd() * .6}));
-  const sand = Array.from({length: 240}, () => ({u: rnd(), v: Math.pow(rnd(), .6), sp: .6 + rnd() * .9, l: .5 + rnd(), p: rnd() * 7, al: .3 + rnd() * .4}));
+  const clumps = Array.from({length: 16}, () => ({T: 9 + rnd() * 7, off: rnd() * 20, v: Math.pow(rnd(), .8), k: .7 + rnd() * .8, x0: rnd(), run: .35 + rnd() * .35, rot: rnd() * 6, al: .35 + rnd() * .3, s: [0, 1, 2].map(() => DS[(rnd() * 4) | 0])}));
   const puffs = Array.from({length: 22}, (_, i) => ({a: rnd() * 6.283, rx: .5 + rnd() * .7, ry: .35 + rnd() * .5, k: .5 + rnd() * .7, s: DS[i % 4], sp: (.02 + rnd() * .04) * (rnd() < .5 ? -1 : 1), al: .22 + rnd() * .2, front: i % 4 === 0}));
   const motes = Array.from({length: 140}, () => ({x: (rnd() - .5) * 3, y: (rnd() - .5) * 2.4, sp: .2 + rnd() * .6, p: rnd() * 7, r: .6 + rnd() * 1.3, front: rnd() < .3}));
   function windTo(ctx, now, k){   /* derrière le certificat : voiles de poussière et sable au sol */
@@ -2256,9 +2256,14 @@ function openTrophy(c){
     for (const w of wisps) { const depth = .25 + .75 * w.v, y = gy + w.v * gh * .95, sc = S * (.45 + 1.6 * depth) * w.k, ww = 128 * sc * 3.2, hh = 128 * sc * .55;
       const x = ((w.u * (W + ww * 2) + t * 38 * w.sp * depth * S / 1.5) % (W + ww * 2)) - ww - smx * 14 * depth;
       ctx.globalAlpha = k * w.al * (.75 + .25 * Math.sin(t * .7 + w.u * 9)); ctx.drawImage(w.s, x - ww / 2, y - hh / 2 - smy * 9 * depth, ww, hh); }
-    ctx.globalAlpha = 1; ctx.lineCap = "round";
-    for (const p of sand) { const depth = .2 + .8 * p.v, y = gy + p.v * gh * .9 + Math.sin(t * 3 + p.p) * 3 * depth, len = (6 + 22 * depth) * p.l, x = ((p.u * (W + 200) + t * (90 + 260 * depth) * p.sp) % (W + 200)) - 100 - smx * 14 * depth;
-      ctx.strokeStyle = `rgba(214,206,190,${(k * p.al * depth).toFixed(3)})`; ctx.lineWidth = .6 + 1.2 * depth; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - len, y + len * .06); ctx.stroke(); } }
+    ctx.globalAlpha = 1;
+    /* amas de poussière qui roulent avec le vent : ils naissent, avancent en gonflant, puis se dissipent */
+    for (const c of clumps) { const life = ((t + c.off) % c.T) / c.T, depth = .3 + .7 * c.v, y = gy + c.v * gh * .8 - life * 18 * depth, sc = S * (.5 + 1.4 * depth) * c.k * (.7 + .7 * life);
+      const x = -W * .15 + (W * 1.3) * ((c.x0 + life * c.run) % 1) - smx * 14 * depth, fade = Math.sin(Math.PI * life);
+      for (let j = 0; j < 3; j++) { const sz = 128 * sc * (1 - j * .18), rot = c.rot + t * .12 * (j % 2 ? -1 : 1) + j;
+        ctx.save(); ctx.globalAlpha = k * c.al * fade * (1 - j * .2); ctx.translate(x + (j - 1) * sz * .28, y - j * sz * .12 - smy * 9 * depth); ctx.rotate(rot); ctx.scale(1.5, .8);
+        ctx.drawImage(c.s[j], -sz / 2, -sz / 2, sz, sz); ctx.restore(); } }
+    ctx.globalAlpha = 1; }
   function hazeTo(ctx, now, front, k){   /* nuage de poussière et grains autour du certificat */
     const t = now / 1000, cx = W / 2 - smx * 20, cy = CYs - smy * 12;
     for (const p of puffs) { if (p.front !== front) continue; const a = p.a + t * p.sp, x = cx + Math.cos(a) * p.rx * BW, y = cy + Math.sin(a) * p.ry * BH + BH * .25, sz = BW * p.k * 1.4;
@@ -4362,7 +4367,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-49";
+const APP_VERSION = "2026-10-27-50";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
