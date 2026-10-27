@@ -2271,6 +2271,7 @@ function openTrophy(c){
     ctx.globalAlpha = 1;
     for (const m of motes) { if (m.front !== front) continue; const x = cx + m.x * BW + Math.sin(t * .4 + m.p) * 14 + t * 6 * m.sp % 30, y = cy + m.y * BH - ((t * 9 * m.sp + m.p * 20) % (BH * .6)) + BH * .3;
       ctx.fillStyle = `rgba(226,220,208,${(k * (.35 + .35 * Math.sin(t * 1.3 + m.p))).toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, m.r, 0, 6.283); ctx.fill(); } }
+  const storm = {next: performance.now() + 1800, at: -9e9, x: .5, y: .1, r: .2};
   let mx = 0, my = 0, smx = 0, smy = 0;
   function rocksTo(ctx, now, front, k){
     if (!A.ready || !A.rocks.length) return; const base = S * 1024 / 2576;   /* taille réelle d'un caillou de la photo */
@@ -2300,8 +2301,15 @@ function openTrophy(c){
       bx.globalAlpha = kb;
       /* nuages : bande de ciel en boucle qui glisse lentement (deux couches pour qu'ils évoluent) */
       if (A.sky) { const sh = ph * A.sky.height / A.plateH, sw = pw * A.sky.width / A.plateW, sy = OY - smy * 6;
-        for (const [sp, al] of [[9, 1], [16, .3]]) { const off = ((now / 1000 * sp * S / 1.5) % sw + sw) % sw, x0 = OX - off - smx * 8;
+        for (const [sp, al] of [[17, 1], [27, .3]]) { const off = ((now / 1000 * sp * S / 1.5) % sw + sw) % sw, x0 = OX + off - sw - smx * 8;   /* même sens que la poussière */
           bx.globalAlpha = kb * al; bx.drawImage(A.sky, x0, sy, sw, sh); bx.drawImage(A.sky, x0 + sw, sy, sw, sh); } bx.globalAlpha = kb; }
+      /* orage dans les nuages : lueurs aléatoires qui palpitent derrière les nuages, sans éclair */
+      if (now > storm.next) { storm.x = .1 + rnd() * .8; storm.y = .05 + rnd() * .22; storm.at = now; storm.r = .12 + rnd() * .14; storm.next = now + 2500 + rnd() * 6000; }
+      const st = (now - storm.at) / 1000;
+      if (st >= 0 && st < 1.4) { const f = Math.max(0, Math.sin(st * 22) * Math.exp(-st * 3.2)) + (st < .5 ? .25 * (1 - st / .5) : 0);
+        if (f > .01) { const gx = storm.x * W - smx * 8, gy = OY + storm.y * 572 * S, R = storm.r * W, gr = bx.createRadialGradient(gx, gy, 0, gx, gy, R);
+          gr.addColorStop(0, `rgba(225,232,255,${(.55 * f * kb).toFixed(3)})`); gr.addColorStop(.35, `rgba(190,205,240,${(.22 * f * kb).toFixed(3)})`); gr.addColorStop(1, "rgba(180,195,230,0)");
+          bx.globalCompositeOperation = "screen"; bx.fillStyle = gr; bx.fillRect(gx - R, gy - R, R * 2, R * 2); bx.globalCompositeOperation = "source-over"; } }
       bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
     const kr = ease((now - t0 - 250) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
@@ -4367,7 +4375,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-50";
+const APP_VERSION = "2026-10-27-51";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
