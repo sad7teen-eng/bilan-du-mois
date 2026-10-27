@@ -1542,6 +1542,21 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 @keyframes trPulse{50%{transform:scale(1.35);box-shadow:0 0 26px 9px rgba(140,170,255,.85),0 0 80px 28px rgba(90,120,255,.4)}}
 @keyframes trOrbit{from{offset-distance:0%}to{offset-distance:100%}}
 @keyframes trFadeTxt{50%{opacity:.45}}
+/* transition : la page se brise en éclats, le certificat glisse à sa place et le plexi se construit */
+.tr-shards{position:absolute;inset:0;z-index:3;pointer-events:none;perspective:900px}
+.tr-shard{position:absolute;inset:0;overflow:hidden;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000);transition:transform .25s ease-out;will-change:transform,opacity;backface-visibility:hidden}
+.tr-cracks{position:absolute;inset:0;pointer-events:none}
+.tr-cracks polygon,.tr-cracks polyline{fill:none;stroke:rgba(235,240,255,.55);stroke-width:.9;stroke-dasharray:3000;stroke-dashoffset:3000;transition:stroke-dashoffset .4s ease-out}
+.tr-cracks.on polygon,.tr-cracks.on polyline{stroke-dashoffset:0}
+.tr-cracks.off{opacity:0;transition:opacity .25s}
+.troph.intro{opacity:1!important;transition:none!important}
+.troph.intro .tr-stage{z-index:5}
+.troph.intro .tr-block{opacity:1!important;scale:1!important;filter:none!important;transition:none!important}
+.troph.intro .tr-front,.troph.intro .tr-back,.troph.intro .tr-l,.troph.intro .tr-r,.troph.intro .tr-t,.troph.intro .tr-b{opacity:0}
+.troph.intro .tr-front{clip-path:inset(0 100% 0 0)}
+.troph.intro.build .tr-front,.troph.intro.build .tr-back,.troph.intro.build .tr-l,.troph.intro.build .tr-r,.troph.intro.build .tr-t,.troph.intro.build .tr-b{opacity:1;transition:opacity .7s ease .15s}
+.troph.intro.build .tr-front{clip-path:inset(0 0 0 0);transition:clip-path 1s cubic-bezier(.5,0,.2,1) .2s,opacity .4s ease .2s}
+
 /* le style « verre » global ne doit pas dessiner de cadre blanc autour de la scène */
 .troph,.tr-stage,.tr-float,.tr-load,.tr-hint,.tr-acts{border:0!important;border-radius:0!important;box-shadow:none!important;outline:0!important;background-image:none!important;backdrop-filter:none!important}
 .troph{background-color:#030304!important}
@@ -2210,10 +2225,41 @@ function getDust(){ if (dustSprites) return dustSprites; const N = 128, seedN = 
     g.putImageData(id, 0, 0); return c; });
   return dustSprites; }
 function prewarmNebula(){ getLand(); getDust(); }
+/* la page actuelle (salle noire + cartes) découpée en éclats de verre qui se fissurent puis volent en morceaux */
+function buildShards(){
+  const W = innerWidth, H = innerHeight, el = document.createElement("div"); el.className = "tr-shards";
+  const view = document.querySelector('section.view[data-view="certs"]'), nav = document.querySelector(".topnav"), parts = [view, nav].filter(Boolean).map(n => [n, n.getBoundingClientRect()]);
+  /* éclats en étoile autour du certificat, comme une vitre qui casse : rayons + anneaux irréguliers */
+  const cx = W / 2, cy = H * .5, N = 13, RR = Math.hypot(W, H) * .62, rings = [.13, .3, .52, .8, 1.2], ang = [], polys = [];
+  let acc = Math.random() * 6.283; for (let i = 0; i < N; i++) { ang.push(acc); acc += 6.283 / N * (.65 + Math.random() * .7); }
+  const k0 = 6.283 / (acc - ang[0]); for (let i = 0; i < N; i++) ang[i] = ang[0] + (ang[i] - ang[0]) * k0;
+  const pt = (i, j) => { const a = ang[i % N] + (j && j < rings.length ? (Math.random() - .5) * .08 : 0), r = (j ? rings[j - 1] : 0) * RR * (j ? .9 + Math.random() * .2 : 1); return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
+  const G = []; for (let j = 0; j <= rings.length; j++) { G.push([]); for (let i = 0; i < N; i++) G[j].push(pt(i, j)); }
+  for (let j = 0; j < rings.length; j++) for (let i = 0; i < N; i++) { const a = G[j][i], b = G[j][(i + 1) % N], c2 = G[j + 1][(i + 1) % N], d = G[j + 1][i];
+    polys.push(j ? [a, b, c2, d] : [a, c2, d]); }
+  const pieces = polys.map(pg => { const sh = document.createElement("div"); sh.className = "tr-shard"; sh.style.clipPath = `polygon(${pg.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(",")})`;
+    for (const [n, r] of parts) { const k = n.cloneNode(true); k.querySelectorAll(".dcard.on").forEach(e => e.style.visibility = "hidden");
+      k.hidden = false; Object.assign(k.style, {position: "absolute", left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px", margin: "0", pointerEvents: "none"}); sh.appendChild(k); }
+    el.appendChild(sh); const mx = pg.reduce((s, q) => s + q[0], 0) / pg.length, my = pg.reduce((s, q) => s + q[1], 0) / pg.length; return {sh, mx, my}; });
+  /* lignes de fissure */
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("class", "tr-cracks"); svg.setAttribute("width", W); svg.setAttribute("height", H);
+  /* fissures : rayons puis anneaux, tracés depuis le centre */
+  for (let i = 0; i < N; i++) { const pl = document.createElementNS("http://www.w3.org/2000/svg", "polyline"); pl.setAttribute("points", G.map(r => r[i].join(",")).join(" ")); svg.appendChild(pl); }
+  for (let j = 1; j < rings.length; j++) { const pl = document.createElementNS("http://www.w3.org/2000/svg", "polygon"); pl.setAttribute("points", G[j].map(q => q.join(",")).join(" ")); pl.style.transitionDelay = (j * .07) + "s"; svg.appendChild(pl); }
+  el.appendChild(svg);
+  return {el,
+    crack(){ svg.classList.add("on"); pieces.forEach(q => { const dx = (q.mx - cx) / W, dy = (q.my - cy) / H; q.sh.style.transform = `translate(${(dx * 6).toFixed(1)}px,${(dy * 6).toFixed(1)}px)`; }); },
+    blow(){ svg.classList.add("off"); pieces.forEach(q => { const dx = q.mx - cx, dy = q.my - cy, dist = Math.hypot(dx / W, dy / H), sp = .55 + Math.random() * .5;
+      q.sh.style.transition = `transform ${(1 + Math.random() * .35).toFixed(2)}s cubic-bezier(.3,.1,.2,1) ${(dist * .22).toFixed(2)}s, opacity .8s ease ${(.25 + dist * .22).toFixed(2)}s`;
+      q.sh.style.transform = `perspective(900px) translate3d(${(dx * sp * 1.4).toFixed(0)}px,${(dy * sp * 1.4 + 120).toFixed(0)}px,${(250 + Math.random() * 450).toFixed(0)}px) rotateX(${((Math.random() - .5) * 120).toFixed(0)}deg) rotateY(${((Math.random() - .5) * 120).toFixed(0)}deg) rotateZ(${((Math.random() - .5) * 60).toFixed(0)}deg)`;
+      q.sh.style.opacity = "0"; }); } };
+}
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
-  const ov = document.createElement("div"); ov.className = "troph hall";
+  const card = !reduced && document.querySelector("#certGrid .dcard.on"), from = card ? card.getBoundingClientRect() : null;
+  const shards = from ? buildShards() : null;
+  const ov = document.createElement("div"); ov.className = "troph hall" + (from ? " intro" : "");
   ov.innerHTML = `
     <canvas class="tr-sky"></canvas>
     <div class="tr-stage"><div class="tr-float">
@@ -2226,6 +2272,7 @@ function openTrophy(c){
     <canvas class="tr-fore"></canvas>
     <div class="tr-hint">Glissez pour faire tourner le certificat</div>
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
+  if (shards) ov.appendChild(shards.el);
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore"), stage = ov.querySelector(".tr-stage");
   const bx = sky.getContext("2d"), fx = fore.getContext("2d"), A = getLand();
@@ -2313,7 +2360,7 @@ function openTrophy(c){
           gr.addColorStop(0, `rgba(235,240,255,${(.3 * f * kb).toFixed(3)})`); gr.addColorStop(.3, `rgba(200,212,245,${(.2 * f * kb).toFixed(3)})`); gr.addColorStop(1, "rgba(180,195,230,0)");
           bx.globalCompositeOperation = "lighter"; bx.fillStyle = gr; bx.fillRect(gx - R, gy - R, R * 2, R * 2); bx.globalCompositeOperation = "source-over"; } }
       bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
-    const kr = ease((now - t0 - 250) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
+    const kr = ease((now - t0 - (from ? 900 : 250)) / 1100); if (A.ready) windTo(bx, now, kr); hazeTo(bx, now, false, kr); rocksTo(bx, now, false, kr);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr); hazeTo(fx, now, true, kr);
     if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
       if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2800) * 14, tx = 4 + Math.sin(now / 3400) * 4;
@@ -2326,7 +2373,16 @@ function openTrophy(c){
   }
   raf = requestAnimationFrame(frame);
   requestAnimationFrame(() => ov.classList.add("go"));
-  setTimeout(() => ov.classList.add("show"), reduced ? 0 : 600);
+  if (from) {
+    /* le certificat part de la carte cliquée et glisse à sa place ; le plexi se construit autour pendant le trajet */
+    rx = 0; const s0 = from.width / (BW * .9), dx = from.left + from.width / 2 - W / 2, dy = from.top + from.height / 2 - CYs;
+    stage.style.transition = "none"; stage.style.transform = `translate(-50%,-50%) translate(${dx}px,${dy}px) scale(${s0})`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { stage.style.transition = "transform 1.3s cubic-bezier(.6,0,.2,1) .28s"; stage.style.transform = "translate(-50%,-50%)"; }));
+    shards.crack(); setTimeout(() => shards.blow(), 320);
+    setTimeout(() => ov.classList.add("build"), 420);
+    setTimeout(() => ov.classList.add("show"), 1500);
+    setTimeout(() => { shards.el.remove(); ov.classList.remove("intro", "build"); stage.style.transition = ""; stage.style.transform = ""; }, 1900);
+  } else setTimeout(() => ov.classList.add("show"), reduced ? 0 : 600);
   const close = () => { ov.classList.remove("show", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
     setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); };
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
@@ -4377,7 +4433,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-52";
+const APP_VERSION = "2026-10-27-53";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
