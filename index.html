@@ -1281,6 +1281,32 @@ body.light .mphoto{display:block;position:fixed;right:0;bottom:0;width:min(70vw,
   mask-image:linear-gradient(90deg,transparent 0,#000 40%),linear-gradient(180deg,transparent 0,#000 30%);mask-composite:intersect;transition:opacity .3s}
 body.light .mphoto ~ .orb.o1.mtn{display:none}
 body.mfade .mphoto{opacity:0!important}
+
+/* --- v48 : transitions de pages --- */
+@keyframes vUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes cellIn{0%{opacity:0;transform:scale(.7) translateY(8px)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes barUp{from{transform:scaleY(0)}to{transform:none}}
+section.view.venter > *{animation:vUp .5s cubic-bezier(.2,.8,.2,1) both}
+section.view.venter > *:nth-child(2){animation-delay:.05s}
+section.view.venter > *:nth-child(3){animation-delay:.1s}
+section.view.venter > *:nth-child(4){animation-delay:.15s}
+section.view.venter .cell:not(.blank){animation:cellIn .55s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(.12s + var(--d,0s))}
+section.view.venter .wdb .up i{transform-origin:bottom;animation:barUp .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,.4s)}
+section.view.venter .wdb .dn2 i{transform-origin:top;animation:barUp .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,.4s)}
+/* --- bouton « Lancer mon mois » : ondes qui donnent envie de cliquer --- */
+#btnPlay{position:relative;overflow:visible;isolation:isolate;padding:12px 20px!important;border-radius:999px!important}
+#btnPlay .bp-t{position:relative;z-index:1}
+#btnPlay .bp-w{position:absolute;inset:0;z-index:-1;pointer-events:none}
+#btnPlay .bp-w i{position:absolute;inset:0;border-radius:999px;border:1.5px solid currentColor;opacity:0;animation:bpWave 2.4s cubic-bezier(.2,.6,.3,1) infinite}
+body.light #btnPlay .bp-w i{border-color:#0b0b0c}
+body:not(.light) #btnPlay .bp-w i{border-color:#fff}
+#btnPlay .bp-w i:nth-child(2){animation-delay:.8s}
+#btnPlay .bp-w i:nth-child(3){animation-delay:1.6s}
+@keyframes bpWave{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.45,1.9);opacity:0}}
+#btnPlay:hover{transform:translateY(-1px) scale(1.03)}
+#btnPlay{transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+#btnPlay:disabled .bp-w{display:none}
+@media (prefers-reduced-motion:reduce){#btnPlay .bp-w{display:none}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -1347,7 +1373,7 @@ body.mfade .mphoto{opacity:0!important}
     </header>
     <section class="ready">
       <div class="l"><span class="ic"></span><div><b id="readyTitle"></b><span id="readyLine"></span></div></div>
-      <button type="button" class="primary" id="btnPlay">Lancer mon mois</button>
+      <button type="button" class="primary" id="btnPlay"><span class="bp-w" aria-hidden="true"><i></i><i></i><i></i></span><span class="bp-t">▶ Lancer mon mois</span></button>
     </section>
     <div class="grid rgrid">
       <section class="cal" id="calSec">
@@ -2806,6 +2832,14 @@ function setView(v, keepScroll){
   if (v === "certs") loadCerts();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
+  /* entrée animée de la page */
+  const sec = document.querySelector(`section.view[data-view="${v}"]`);
+  if (sec && !reduced) {
+    sec.querySelectorAll(".cell").forEach(c => c.style.setProperty("--d", (Math.random() * .45).toFixed(3) + "s"));
+    sec.querySelectorAll(".wdb").forEach((c, i) => c.style.setProperty("--d", (.35 + i * .06).toFixed(2) + "s"));
+    sec.classList.remove("venter"); void sec.offsetWidth; sec.classList.add("venter");
+    clearTimeout(sec._vt); sec._vt = setTimeout(() => sec.classList.remove("venter"), 1600);
+  }
   if (!keepScroll) window.scrollTo(0, 0);
 }
 document.addEventListener("click", e => { const b = e.target.closest(".tn[data-view],.dk[data-view]"); if (b) setView(b.dataset.view); });
@@ -3742,7 +3776,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-7";
+const APP_VERSION = "2026-10-27-8";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
