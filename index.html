@@ -2533,7 +2533,7 @@ async function openGlass(c){
     const ref = Math.abs(sd.y) < .9 ? new V3(0, 1, 0) : new V3(1, 0, 0), e1 = ref.clone().cross(sd).normalize(), e2 = sd.clone().cross(e1);
     poly.sort((p, q) => Math.atan2(p.dot(e2), p.dot(e1)) - Math.atan2(q.dot(e2), q.dot(e1)));
     /* point de la coque : rayon légèrement irrégulier ; les bords sont rongés vers l'intérieur de la plaque (fissure irrégulière) */
-    const surf = (dir, edge) => { const d = dir.clone().normalize(); if (edge) { d.lerp(sd, .025 + .055 * hsh(d.clone().multiplyScalar(9))).normalize(); }
+    const surf = (dir, edge) => { const d = dir.clone().normalize(); if (edge) { d.lerp(sd, .004 + .009 * hsh(d.clone().multiplyScalar(9))).normalize(); }
       return d.multiplyScalar(R * (1 + .02 * nz3(d))); };
     const thick = d => .18 + .22 * (.5 + .5 * nz3(d.clone().multiplyScalar(2.3)));
     const outer = [], inner = [], loop = [];
@@ -2575,7 +2575,7 @@ async function openGlass(c){
   const chunkMat = breakMat.clone(); chunkMat.color.set(0x4a4d53);
   const perV = Math.round((low ? 150 : 380) / variants.length), chunks = variants.map(g => new THREE.InstancedMesh(g, chunkMat, perV)), cd = [];
   chunks.forEach((im2, vi) => { scene.add(im2); for (let i = 0; i < perV; i++) { const d = new V3(rnd() - .5, rnd() - .5, rnd() - .5).normalize();
-    cd.push({im: im2, i, d, r: R + .2 + Math.pow(rnd(), .7) * 13, s: rnd() < .08 ? .22 + rnd() * .3 : .025 + rnd() * .09, ax: new V3(rnd() - .5, rnd() - .5, rnd() - .5).normalize(), sp: (rnd() - .5) * 1.2, ph: rnd() * 7}); } });
+    const inner = rnd() < .22; cd.push({im: im2, i, d, inner, r0: rnd() * 1.6, r: inner ? 1.2 + rnd() * 3.5 : R + .2 + Math.pow(rnd(), .7) * 13, s: rnd() < .08 ? .22 + rnd() * .3 : .025 + rnd() * .09, ax: new V3(rnd() - .5, rnd() - .5, rnd() - .5).normalize(), sp: (rnd() - .5) * 1.2, ph: rnd() * 7}); } });
   const mtx = new THREE.Matrix4(), qq = new THREE.Quaternion(), scv = new V3();
   /* ---- lumière : étoile en X floue + halo, et fumée volumétrique ---- */
   const core = new THREE.PointLight(0xffffff, 0, 16, 1.5); scene.add(core);
@@ -2607,7 +2607,7 @@ async function openGlass(c){
     g.putImageData(d, 0, 0); const t = new THREE.CanvasTexture(c2); t.colorSpace = THREE.SRGBColorSpace; return t; })();
   const smokes = Array.from({length: low ? 10 : 22}, () => { const m = new THREE.Sprite(new THREE.SpriteMaterial({map: smokeT, transparent: true, depthWrite: false, opacity: 0, color: 0xc9ccd3, fog: false}));
     const s2 = 5 + rnd() * 9; m.scale.set(s2, s2 * (.6 + rnd() * .4), 1); scene.add(m);
-    return {m, base: new V3((rnd() - .3) * 14, (rnd() - .5) * 7, -2 - rnd() * 9), op: .05 + rnd() * .1, rs: (rnd() - .5) * .05, dr: new V3(rnd() - .5, (rnd() - .5) * .3, 0).multiplyScalar(.25), ph: rnd() * 7}; });
+    return {m, base: new V3((rnd() - .3) * 14, (rnd() - .5) * 7, -2 - rnd() * 9), op: .07 + rnd() * .13, rs: (rnd() - .5) * .05, dr: new V3(rnd() - .5, (rnd() - .5) * .3, 0).multiplyScalar(.25), ph: rnd() * 7}; });
   let composer = null, bloom = null, bokeh = null, rays = null, dirt = null;
   if (!low) { composer = new EffectComposer(renderer); composer.addPass(new RenderPass(scene, cam));
     rays = new ShaderPass({uniforms: {tDiffuse: {value: null}, lightPos: {value: new THREE.Vector2(.5, .5)}, exposure: {value: .5}, decay: {value: .955}, density: {value: .9}, weight: {value: .06}, thr: {value: .95}},
@@ -2653,7 +2653,7 @@ async function openGlass(c){
     cam.position.set(cx, cy, cz); look.set(cx * .15, cy * .15, 0); cam.lookAt(look);
     /* coquille : la boule tourne, chaque plaque respire et pivote un peu sur elle-même, puis s'envole */
     const rot = t * .08 + p * .6;
-    for (const s of shards) { const k = sm(s.delay, s.delay + .6, p), e = 1 - Math.pow(1 - k, 2.4), breathe = (1 - e) * (.045 * Math.sin(t * s.ws * 2 + s.ph));
+    for (const s of shards) { const k = sm(s.delay, s.delay + .6, p), e = 1 - Math.pow(1 - k, 2.4), breathe = (1 - e) * (.008 * Math.sin(t * s.ws * 2 + s.ph));
       const d = s.dir.clone().applyAxisAngle(Y, rot);
       s.m.position.copy(s.home).applyAxisAngle(Y, rot).addScaledVector(d, breathe + e * s.dist).addScaledVector(s.drift, e * 2.5).add(new V3(0, Math.sin(t * s.ws + s.ph) * .15 * e, 0));
       { const toCam = cam.position.clone().sub(block.position).normalize(), v = s.m.position.clone().sub(block.position), along = v.dot(toCam), side = v.clone().addScaledVector(toCam, -along), sl = side.length(), need = 2.6 * rev;
@@ -2661,15 +2661,15 @@ async function openGlass(c){
       s.m.quaternion.setFromAxisAngle(Y, rot); tmpQ.setFromAxisAngle(s.wob, (1 - e) * .035 * Math.sin(t * s.ws * 1.6 + s.ph)); s.m.quaternion.multiply(tmpQ);
       tmpQ.setFromAxisAngle(s.axis, e * s.spin * 1.8 + t * .12 * s.spin * e); s.m.quaternion.multiply(tmpQ); }
     /* éclats et cailloux, écartés de la zone du certificat */
-    for (const d of cd) { const k = sm(.12, .7, p), r = lerp(R * .9, d.r, k);
+    for (const d of cd) { const k = sm(.12, .7, p), r = d.inner ? lerp(d.r0, d.r, sm(.05, .8, p)) : lerp(R * .9, d.r, k);
       const pos = d.d.clone().multiplyScalar(r).applyAxisAngle(Y, t * .025 + d.ph * .02); pos.y += Math.sin(t * .35 + d.ph) * .25 * k;
       const dv = pos.clone().sub(block.position), dl = dv.length(), need = 2.1 * rev; if (dl < need) pos.copy(block.position).addScaledVector(dv.normalize(), need);
-      qq.setFromAxisAngle(d.ax, t * d.sp + d.ph); scv.setScalar(d.s * k); mtx.compose(pos, qq, scv); d.im.setMatrixAt(d.i, mtx); }
+      qq.setFromAxisAngle(d.ax, t * d.sp + d.ph); scv.setScalar(d.inner ? Math.min(d.s, .1) : d.s * k); mtx.compose(pos, qq, scv); d.im.setMatrixAt(d.i, mtx); }
     chunks.forEach(c2 => c2.instanceMatrix.needsUpdate = true);
     /* le certificat : caché dans la boule, puis présenté à gauche, plus petit, de trois-quarts */
     printM.color.setScalar(lerp(.08, .9, rev)); back.material.color.setScalar(lerp(.04, .2, rev));
     block.position.set(lerp(0, wide ? -1.25 : 0, rev), lerp(0, wide ? .15 : .55, rev) + Math.sin(t * .8) * .05 * rev, lerp(0, .3, rev));
-    block.rotation.set(lerp(0, .12, rev) + Math.sin(t * .45) * .03 + my * .08 * rev, lerp(-.9, .6, rev) + Math.sin(t * .3) * .06 + mx * .15 * rev, lerp(0, .09, rev));
+    const wob = 1 - .55 * rev; block.rotation.set(lerp(.38, .12, rev) + Math.sin(t * .37) * .22 * wob + my * .08 * rev, lerp(-.9, .6, rev) + Math.sin(t * .23) * .38 * wob + mx * .15 * rev, lerp(.3, .09, rev) + Math.sin(t * .29 + 1) * .12 * wob);
     block.scale.setScalar(lerp(.6, wide ? .72 : .85, rev));
     /* la lumière : au centre de la boule, puis derrière le certificat (en haut à droite de lui) */
     lightP.set(-Wd * .05, Hd * .18, -1.3).applyEuler(block.rotation).multiplyScalar(block.scale.x).add(block.position);
@@ -2677,14 +2677,14 @@ async function openGlass(c){
     star.visible = false;
     const fadeIn = Math.min(1, t / 1.4), mass = 1 - sm(.06, .32, p), starK = sm(.45, .9, p);
     /* l'amas : enfermé dans la boule (on ne le voit que par les fissures), il se dissipe pendant que les plaques s'écartent */
-    const shut = 1 - sm(.01, .07, p); glowBall.scale.setScalar(1); glowM.color.setScalar(1.3 * shut * fadeIn); glowBall.visible = shut > .01; 
+    glowBall.visible = false; 
     /* l'étoile : naît au centre, puis se pose derrière le certificat */
-    const sPos = lightP.clone(); star3.position.copy(sPos); star3.scale.setScalar(lerp(.75, 1.1, sm(.05, .85, p)) * (1 + .025 * Math.sin(t * 1.4)));
-    star3.quaternion.copy(cam.quaternion); star3.rotateZ(-.06 + .02 * Math.sin(t * .3)); starM.color.setScalar(lerp(1.1, 1.8, sm(.1, .8, p)) * (.92 + .08 * Math.sin(t * 2.3)) * fadeIn); star3.visible = true;
+    const tgt = lightP.clone().add(new V3(Math.sin(t * .31) * .35, Math.sin(t * .23 + 2) * .28, Math.sin(t * .17) * .2)); if (!frame.sp) frame.sp = tgt.clone(); frame.sp.lerp(tgt, 1 - Math.exp(-dt * 1.3)); const sPos = frame.sp.clone(); star3.position.copy(sPos); star3.scale.setScalar(lerp(.75, 1.1, sm(.05, .85, p)) * (1 + .025 * Math.sin(t * 1.4)));
+    star3.quaternion.copy(cam.quaternion); star3.rotateZ(-.06 + .12 * Math.sin(t * .21) + .04 * Math.sin(t * .53)); starM.color.setScalar(lerp(1.1, 1.8, sm(.1, .8, p)) * (.92 + .08 * Math.sin(t * 2.3)) * fadeIn); star3.visible = true;
     halo.position.copy(sPos); halo.scale.setScalar(lerp(3.5, 5.2, starK)); halo.material.opacity = (.15 * leak + .3 * burst) * mass * fadeIn + .1 + .1 * starK;
     core.position.copy(sPos); core.intensity = (7 + 20 * burst) * mass * fadeIn + 6 + 5 * starK;
     if (rays || dirt) { const sp = sPos.clone().project(cam), lx = sp.x * .5 + .5, ly = sp.y * .5 + .5;
-      if (rays) { rays.uniforms.lightPos.value.set(lx, ly); rays.uniforms.exposure.value = (.45 + .5 * burst) * mass * fadeIn + .16 + .06 * starK; rays.uniforms.thr.value = lerp(.95, 1.45, starK); }
+      if (rays) { rays.uniforms.lightPos.value.set(lx, ly); rays.uniforms.exposure.value = ((.55 + .5 * burst) * mass + .3 + .08 * starK) * fadeIn; rays.uniforms.thr.value = lerp(.95, 1.45, starK); }
       if (dirt) { dirt.uniforms.lightPos.value.set(lx, ly); dirt.uniforms.aspect.value = innerWidth / innerHeight; dirt.uniforms.amount.value = (.5 * burst + .25 * leak) * mass + .45 * starK; } }
     motesM.opacity = (.35 + .4 * sm(.2, .9, p)) * Math.min(1, t / 2); motes.rotation.y = t * .012; motes.position.y = Math.sin(t * .1) * .3;
     for (const s of smokes) { const k = .35 + .65 * sm(.05, .6, p); s.m.position.copy(s.base).addScaledVector(s.dr, t); s.m.position.x = ((s.m.position.x + 14) % 28 + 28) % 28 - 14;
@@ -5176,7 +5176,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-80";
+const APP_VERSION = "2026-10-27-81";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
