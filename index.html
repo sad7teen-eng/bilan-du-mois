@@ -782,6 +782,40 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .tn-act{display:flex;align-items:center;gap:6px;justify-self:end}
 .tn-act button{padding:7px 11px;border-radius:999px!important;font-size:12px;white-space:nowrap}
 .tn-act svg{width:16px;height:16px;display:block}
+/* ---------- La vitrine du certificat ---------- */
+.vit{position:fixed;inset:0;z-index:75;background:#050506;opacity:0;transition:opacity .6s ease;overflow:hidden;color:#f2f2f2}
+.vit.on{opacity:1}
+.vit.out{opacity:0;transition:opacity .45s ease}
+.vt-beam{position:absolute;left:50%;top:-8vh;width:min(76vw,980px);height:114vh;transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity 1.6s ease .1s;filter:blur(28px)}
+.vt-beam i{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.17),rgba(255,255,255,.06) 60%,rgba(255,255,255,.025));clip-path:polygon(42% 0,58% 0,84% 100%,16% 100%)}
+.vit.lit .vt-beam{opacity:1}
+.vt-floor{position:absolute;left:50%;bottom:6vh;width:min(70vw,900px);height:18vh;transform:translateX(-50%);border-radius:50%;opacity:0;transition:opacity 1.6s ease .3s;background:radial-gradient(closest-side,rgba(255,255,255,.14),transparent)}
+.vit.lit .vt-floor{opacity:1}
+.vt-stage{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;perspective:1200px}
+.vt-cert{position:relative;width:min(42vw,580px);margin-bottom:-2px;border-radius:4px;transform-style:preserve-3d;transition:transform 1.25s cubic-bezier(.6,0,.2,1) .15s,box-shadow 1s ease .6s,rotate .5s ease-out;
+  rotate:x var(--rx,0deg);box-shadow:0 0 0 1px rgba(255,255,255,.18),0 30px 60px rgba(0,0,0,.55)}
+.vt-cert{transform-origin:50% 100%}
+.vt-cert img{display:block;width:100%;border-radius:4px;transform:rotateY(var(--ry,0deg));transition:transform .5s ease-out}
+.vt-glare{position:absolute;inset:0;border-radius:4px;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) var(--gx,45%),transparent 62%);opacity:0;transition:opacity 1s ease 1.2s}
+.vit.lit .vt-glare{opacity:1}
+.vit.lit .vt-cert{box-shadow:0 0 0 1px rgba(255,255,255,.28),0 0 60px rgba(255,255,255,.08),0 40px 70px rgba(0,0,0,.6)}
+.vt-socle{position:relative;width:min(34vw,460px);height:min(9vh,78px);margin-top:0;opacity:0;transform:translateY(16px);transition:opacity .9s ease .5s,transform .9s cubic-bezier(.2,.8,.2,1) .5s}
+.vit.lit .vt-socle{opacity:1;transform:none}
+.vt-socle .top{position:absolute;left:0;right:0;top:0;height:10px;border-radius:2px 2px 0 0;background:linear-gradient(180deg,#ffffff,#e4e5e8)}
+.vt-socle .front{position:absolute;left:0;right:0;top:10px;bottom:0;background:linear-gradient(180deg,#dfe0e3 0%,#a9abb0 60%,#5b5d61 100%);box-shadow:0 34px 60px rgba(0,0,0,.65)}
+.vt-cartel{position:absolute;right:max(5vw,24px);bottom:max(12vh,90px);width:min(300px,70vw);padding:18px 20px;background:#f4f4f2;color:#141414;border-radius:2px;box-shadow:0 20px 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease;font-family:var(--display)}
+.vit.cartel .vt-cartel{opacity:1;transform:none}
+.vt-cartel > div{min-height:1.2em}
+.vt-firm{font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.vt-kind{font-size:12px;color:#6b6b6b;margin-top:2px;text-transform:uppercase;letter-spacing:.14em}
+.vt-amt{font-size:26px;font-weight:600;margin-top:12px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.vt-date{font-size:12.5px;color:#6b6b6b;margin-top:4px}
+.vt-acts{position:absolute;left:50%;bottom:calc(26px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .6s ease 1.2s}
+.vit.lit .vt-acts{opacity:1}
+.vt-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important}
+@media (max-width:760px){.vt-cert{width:86vw}.vt-socle{width:60vw}.vt-cartel{left:50%;right:auto;transform:translate(-50%,10px);bottom:90px}.vit.cartel .vt-cartel{transform:translate(-50%,0)}}
+
 /* ---------- Qualité d'affichage (pour les machines qui rament) ---------- */
 .qwrap{position:relative}
 .qpop{position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:290px;padding:14px;border-radius:16px;background:var(--panel-solid,#fff);color:#0b0b0c;border:1px solid rgba(0,0,0,.08);box-shadow:0 24px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:8px;text-align:left;animation:qIn .22s ease both}
@@ -2357,9 +2391,40 @@ function layoutDeck(){
   st.parentElement.querySelectorAll("[data-dkstep]").forEach(b => { b.disabled = (+b.dataset.dkstep < 0 && !deckSel) || (+b.dataset.dkstep > 0 && deckSel === deckList.length - 1); });
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
-/* scène du certificat (openTrophy) mise de côté pour l'instant : simple affichage en grand */
-function openDeckCard(){ const c = deckList[deckSel]; if (!c) return; const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
-  if (!im) { certEdit = {...c}; drawCerts(); return; } lbId = c.id; $("lbEdit").hidden = false; $("lightImg").src = im; $("lightbox").hidden = false; }
+function openDeckCard(){ const c = deckList[deckSel]; if (c) openVitrine(c); }
+/* ===== La vitrine : un faisceau doux, un socle blanc, le certificat posé dessus et son cartel de musée ===== */
+function openVitrine(c){
+  const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
+  if (!im) { certEdit = {...c}; drawCerts(); return; }
+  const card = document.querySelector("#certGrid .dcard.on"), from = card && !reduced ? card.getBoundingClientRect() : null;
+  const A = certAmt(c), amt = A.v != null ? frN(A.v, 2) + (A.c ? " " + A.c : "") : (c.amount || "");
+  const date = c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : "";
+  const lines = [[c.firm || "", "vt-firm"], [c.kind || "", "vt-kind"], [amt, "vt-amt"], [date, "vt-date"]].filter(x => x[0]);
+  const ov = document.createElement("div"); ov.className = "vit";
+  ov.innerHTML = `<div class="vt-beam"><i></i></div><div class="vt-floor"></div>
+    <div class="vt-stage"><div class="vt-cert" id="vtCert"><img src="${im}" alt="Certificat ${esc(c.firm)}"><span class="vt-glare"></span></div>
+      <div class="vt-socle"><i class="top"></i><i class="front"></i></div></div>
+    <div class="vt-cartel" aria-label="${esc(lines.map(x => x[0]).join(", "))}">${lines.map(([t, k]) => `<div class="${k}" data-t="${esc(t)}"></div>`).join("")}</div>
+    <div class="vt-acts"><button type="button" data-vt="edit">Modifier</button><button type="button" data-vt="close">Fermer</button></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  const cert = ov.querySelector("#vtCert"), img = cert.querySelector("img"), T = reduced ? 0 : 1;
+  /* le certificat part de la carte cliquée et vient se poser sur le socle */
+  const place = () => { if (!from) return; const r = cert.getBoundingClientRect(); if (!r.width) return;
+    cert.style.transition = "none"; cert.style.transform = `translate(${from.left + from.width / 2 - (r.left + r.width / 2)}px,${from.top + from.height / 2 - (r.top + r.height / 2)}px) scale(${from.width / r.width})`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { cert.style.transition = ""; cert.style.transform = ""; })); };
+  requestAnimationFrame(() => { ov.classList.add("on"); if (img.complete) place(); else img.onload = place; });
+  setTimeout(() => ov.classList.add("lit"), 350 * T);
+  /* cartel : écrit lettre par lettre, ligne après ligne */
+  let typing = 0; setTimeout(() => { ov.classList.add("cartel"); let d = 0;
+    ov.querySelectorAll(".vt-cartel > div").forEach(el => { const t = el.dataset.t; for (let i = 1; i <= t.length; i++) typing = setTimeout(() => { el.textContent = t.slice(0, i); }, (d += (T ? 28 : 0))); d += 160 * T; }); }, 1500 * T);
+  /* légère inclinaison à la souris, sans boucle permanente */
+  let tk = 0, mx = 0, my = 0; const tilt = () => { tk = 0; cert.style.setProperty("--ry", (mx * 10).toFixed(2) + "deg"); cert.style.setProperty("--rx", (-my * 6).toFixed(2) + "deg"); cert.style.setProperty("--gx", (50 + mx * 60) + "%"); };
+  ov.addEventListener("pointermove", e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; if (!tk) tk = requestAnimationFrame(tilt); });
+  const close = () => { clearTimeout(typing); ov.classList.remove("on", "lit"); ov.classList.add("out"); removeEventListener("keydown", onEsc); setTimeout(() => { ov.remove(); document.body.style.overflow = ""; }, 500); };
+  const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
+  ov.addEventListener("click", e => { const b = e.target.closest("[data-vt]"); if (!b) return;
+    if (b.dataset.vt === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 500); } else close(); });
+}
 /* ===== Trophée : paysage gris (nuages qui défilent), cailloux en lévitation autour du certificat, qu'on fait tourner à 360° ===== */
 const ROCK_CELLS = [[132, 24, 39, 53], [219, 24, 38, 34], [305, 24, 43, 44], [486, 24, 41, 32], [575, 24, 34, 36], [657, 24, 32, 33], [737, 24, 32, 35], [817, 24, 33, 35], [898, 24, 33, 38], [1058, 24, 32, 37], [1138, 24, 31, 30], [1217, 24, 31, 32], [1296, 24, 32, 30], [24, 125, 31, 28], [258, 125, 31, 26], [479, 125, 30, 24], [557, 125, 27, 25], [632, 125, 23, 29], [703, 125, 28, 24], [856, 125, 26, 24], [930, 125, 20, 28], [1074, 125, 22, 26], [1144, 125, 22, 28], [1288, 125, 30, 20], [24, 215, 25, 23], [97, 215, 29, 25], [174, 215, 25, 20], [247, 215, 21, 17], [316, 215, 19, 22], [383, 215, 18, 21]];
 let landAssets = null;
@@ -4807,7 +4872,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-67";
+const APP_VERSION = "2026-10-27-68";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
