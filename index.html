@@ -1414,6 +1414,10 @@ html:has(body:not(.light)){scrollbar-color:#f4f4f6 #0a0a0a}
 ::-webkit-scrollbar-button{display:none;height:0;width:0}
 body:not(.light)::-webkit-scrollbar-track,body:not(.light) ::-webkit-scrollbar-track{background:#0a0a0a}
 body:not(.light) ::-webkit-scrollbar-thumb{background:#f4f4f6;border-color:#0a0a0a}
+
+/* --- v57 : barre de défilement masquée partout (la page défile toujours à la molette / au doigt) --- */
+html,body,*{scrollbar-width:none!important;-ms-overflow-style:none!important}
+::-webkit-scrollbar,*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -4066,7 +4070,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-17";
+const APP_VERSION = "2026-10-27-18";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
