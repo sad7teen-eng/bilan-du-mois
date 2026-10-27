@@ -1496,46 +1496,73 @@ body.incerts .dcard.on{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 80px rgba(120,
 body.incerts .ripple i{border-color:rgba(245,245,247,.8)}
 body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22%2F%3E%3C%2Fsvg%3E") 8 8, auto!important}
 
-.troph{position:fixed;inset:0;z-index:75;background:#000;overflow:hidden;opacity:0;transition:opacity .35s}
+.troph{position:fixed;inset:0;z-index:75;background:#000;overflow:hidden;opacity:0;transition:opacity .3s}
 .troph.go{opacity:1}
 .troph.out{opacity:0;transition:opacity .4s}
-/* couloir : des cadres qui défilent vers nous */
-.tr-hall{position:absolute;inset:0;perspective:600px;perspective-origin:50% 48%}
-.tr-cam{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(-1800px);transition:transform 1.35s cubic-bezier(.55,0,.2,1)}
-.troph.go .tr-cam{transform:translateZ(520px)}
-.tr-cam i{position:absolute;left:50%;top:50%;width:70vw;height:56vh;margin:-28vh 0 0 -35vw;border:1px solid rgba(255,255,255,.14);border-radius:6px;transform:translateZ(var(--z));box-shadow:inset 0 0 60px rgba(255,255,255,.03)}
-.troph.lit .tr-hall{opacity:0;transition:opacity .6s}
-/* lumières qui s'allument une par une */
-.tr-lights b{position:absolute;top:-10vh;width:46vw;height:90vh;left:27vw;opacity:0;background:radial-gradient(50% 100% at 50% 0%,rgba(255,255,255,.22),rgba(255,255,255,.04) 55%,transparent 75%);filter:blur(14px);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)}
-.tr-lights .l2{left:2vw;transform:rotate(14deg)}.tr-lights .l3{left:52vw;transform:rotate(-14deg)}
-.troph.lit .tr-lights .l1{animation:lamp .9s .05s both}
-.troph.lit .tr-lights .l2{animation:lamp .9s .3s both;opacity:.6}
-.troph.lit .tr-lights .l3{animation:lamp .9s .5s both;opacity:.6}
-@keyframes lamp{0%{opacity:0}18%{opacity:.9}26%{opacity:.2}38%{opacity:1}48%{opacity:.5}100%{opacity:1}}
-.troph::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34vh;background:linear-gradient(180deg,transparent,rgba(255,255,255,.035));opacity:0;transition:opacity 1s}
-.troph.lit::after{opacity:1}
-/* le bloc de verre */
-.tr-stage{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);perspective:1300px;--d:44px}
-.tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.86;transition:opacity .8s,scale 1s cubic-bezier(.2,.8,.2,1)}
+/* la pièce : large, lumineuse au centre, sol brillant — on respire */
+.tr-room{position:absolute;inset:0;opacity:0;transition:opacity 1.2s;background:
+  radial-gradient(60% 45% at 50% 38%,rgba(150,165,210,.16),transparent 70%),
+  linear-gradient(180deg,#0b0c10 0%,#14161c 55%,#0c0d11 56%,#050507 100%)}
+.tr-room::after{content:"";position:absolute;left:-20%;right:-20%;bottom:0;height:44%;transform-origin:50% 0;transform:perspective(500px) rotateX(62deg);
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:80px 80px;
+  -webkit-mask-image:radial-gradient(60% 90% at 50% 0%,#000,transparent 75%);mask-image:radial-gradient(60% 90% at 50% 0%,#000,transparent 75%)}
+.troph.show .tr-room{opacity:1}
+/* le couloir façon ouverture de pack : anneaux lumineux qui accélèrent */
+.tr-tunnel{position:absolute;inset:0;perspective:520px;perspective-origin:50% 46%;transition:opacity .25s}
+.tr-cam{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(-7000px);transition:transform 1.5s cubic-bezier(.7,0,.85,.25)}
+.troph.go .tr-cam{transform:translateZ(900px)}
+.tr-cam i{position:absolute;left:50%;top:46%;width:64vw;height:64vw;max-width:900px;max-height:900px;transform:translate(-50%,-50%) translateZ(var(--z));border-radius:50%;
+  border:2px solid hsla(var(--h),70%,80%,.55);box-shadow:0 0 30px hsla(var(--h),80%,70%,.35),inset 0 0 40px hsla(var(--h),80%,70%,.25)}
+.tr-streaks{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg at 50% 46%,rgba(255,255,255,.0) 0deg 6deg,rgba(255,255,255,.09) 6.4deg 7deg);
+  -webkit-mask-image:radial-gradient(circle at 50% 46%,transparent 8%,#000 40%);mask-image:radial-gradient(circle at 50% 46%,transparent 8%,#000 40%);opacity:0;animation:none}
+.troph.go .tr-streaks{animation:streak 1.5s ease-in both}
+@keyframes streak{0%{opacity:0;transform:rotate(0)}60%{opacity:.9}100%{opacity:1;transform:rotate(25deg) scale(1.3)}}
+.troph.flash .tr-tunnel{opacity:0}
+.tr-flash{position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,#fff 0%,rgba(220,230,255,.9) 25%,rgba(160,180,255,0) 70%);opacity:0;pointer-events:none}
+.troph.flash .tr-flash{animation:flash .9s ease-out both}
+@keyframes flash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+/* rayons derrière le trophée, puis lumière douce d'en haut */
+.tr-rays{position:absolute;left:50%;top:44%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;opacity:0;pointer-events:none;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.045) 0deg 4deg,transparent 4deg 14deg);-webkit-mask-image:radial-gradient(circle,#000 0,transparent 45%);mask-image:radial-gradient(circle,#000 0,transparent 45%);animation:spin 60s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.troph.show .tr-rays{opacity:1;transition:opacity 1.5s}
+.tr-spot{position:absolute;left:50%;top:-20vh;width:90vw;height:110vh;transform:translateX(-50%);opacity:0;pointer-events:none;
+  background:radial-gradient(40% 65% at 50% 0%,rgba(255,255,255,.18),rgba(255,255,255,.05) 55%,transparent 75%);filter:blur(10px);transition:opacity 1.6s .2s}
+.tr-pool{position:absolute;left:50%;top:calc(46% + var(--bh,400px) / 2 + 20px);width:calc(var(--bw,560px) * 1.5);height:120px;transform:translateX(-50%);opacity:0;pointer-events:none;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(200,215,255,.22),transparent 70%);filter:blur(8px);transition:opacity 1.6s .4s}
+.troph.show .tr-spot,.troph.show .tr-pool{opacity:1}
+.tr-dust i{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 0 6px #fff;opacity:0;animation:dust var(--t) linear infinite;animation-delay:var(--dl)}
+.troph.show .tr-dust{opacity:1}
+.tr-dust{opacity:0;transition:opacity 2s 1s}
+@keyframes dust{0%{transform:translateY(0);opacity:0}20%{opacity:.6}100%{transform:translate(20px,-120px);opacity:0}}
+/* le trophée : impression du certificat dans un bloc de verre épais, sur un socle noir */
+.tr-stage{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);perspective:1400px;--d:64px}
+.tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.6;transition:opacity .6s,scale 1.1s cubic-bezier(.16,1.2,.3,1)}
 .troph.show .tr-block{opacity:1;scale:1}
 .tr-face{position:absolute;backface-visibility:visible}
-.tr-front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:6px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.04) 40%,rgba(255,255,255,.1));box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),inset 0 0 30px rgba(255,255,255,.08)}
-.tr-front img{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6))}
-.tr-shine{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at var(--sx,50%) var(--sy,35%),rgba(255,255,255,.28),transparent 60%),linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,transparent 55%);mix-blend-mode:screen}
-.tr-back{inset:0;transform:translateZ(calc(var(--d) / -2)) rotateY(180deg);border-radius:6px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
-.tr-l,.tr-r{top:0;height:100%;width:var(--d);left:50%;margin-left:calc(var(--d) / -2);background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(200,215,255,.12),rgba(255,255,255,.3))}
+.tr-print{inset:6%;transform:translateZ(-6px)}
+.tr-print img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 1px rgba(255,255,255,.2))}
+.tr-front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:4px;
+  background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.03) 28%,rgba(255,255,255,0) 60%,rgba(190,210,255,.08) 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 0 0 5px rgba(255,255,255,.08),inset 0 0 26px rgba(170,195,255,.25)}
+.tr-shine{position:absolute;inset:0;border-radius:4px;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(45% 40% at var(--sx,50%) var(--sy,30%),rgba(255,255,255,.32),transparent 65%),linear-gradient(118deg,transparent 34%,rgba(255,255,255,.18) 44%,rgba(255,255,255,.04) 52%,transparent 60%)}
+.tr-back{inset:0;transform:translateZ(calc(var(--d) / -2)) rotateY(180deg);border-radius:4px;background:rgba(150,170,220,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.tr-l,.tr-r{top:0;height:100%;width:var(--d);left:50%;margin-left:calc(var(--d) / -2);
+  background:linear-gradient(90deg,rgba(255,255,255,.55),rgba(160,190,255,.18) 30%,rgba(120,150,230,.10) 70%,rgba(255,255,255,.45));box-shadow:inset 0 0 12px rgba(255,255,255,.25)}
 .tr-l{transform:translateX(calc(var(--bw,560px) / -2)) rotateY(-90deg)}
 .tr-r{transform:translateX(calc(var(--bw,560px) / 2)) rotateY(90deg)}
-.tr-t,.tr-b{left:0;width:100%;height:var(--d);top:50%;margin-top:calc(var(--d) / -2);background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(200,215,255,.12),rgba(255,255,255,.3))}
+.tr-t,.tr-b{left:0;width:100%;height:var(--d);top:50%;margin-top:calc(var(--d) / -2);
+  background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(160,190,255,.2) 35%,rgba(120,150,230,.1) 70%,rgba(255,255,255,.4))}
 .tr-t{transform:translateY(calc(var(--bh,420px) / -2)) rotateX(90deg)}
 .tr-b{transform:translateY(calc(var(--bh,420px) / 2)) rotateX(-90deg)}
-.tr-refl{position:absolute;left:0;top:100%;width:var(--bw,560px);height:calc(var(--bh,420px) * .5);margin-top:26px;transform:scaleY(-1);opacity:0;transition:opacity 1s .3s;-webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,.28),transparent 70%);mask-image:linear-gradient(0deg,rgba(0,0,0,.28),transparent 70%);overflow:hidden;filter:blur(2px)}
-.tr-refl img{width:100%;height:auto;display:block;transform:translateY(-50%)}
-.troph.show .tr-refl{opacity:1}
-.tr-acts{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .5s .6s}
+.tr-base{position:absolute;left:50%;top:100%;width:calc(var(--bw,560px) * .7);height:22px;transform-style:preserve-3d;transform:translateX(-50%)}
+.tr-base .bf{position:absolute;inset:0;transform:translateZ(calc(var(--d) / 2 + 14px));background:linear-gradient(180deg,#2a2b30,#0a0a0c);border-radius:3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.tr-base .bt{position:absolute;left:0;right:0;top:0;height:calc(var(--d) + 28px);transform-origin:50% 0;transform:translateZ(calc(var(--d) / 2 + 14px)) rotateX(90deg);background:linear-gradient(180deg,#3a3b40,#16171a)}
+.tr-acts{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .5s .9s}
 .troph.show .tr-acts{opacity:1}
 .tr-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important}
-@media (prefers-reduced-motion:reduce){.tr-cam,.tr-block{transition:none}.tr-lights b{animation:none!important;opacity:1}}
+@media (prefers-reduced-motion:reduce){.tr-cam,.tr-block{transition:none}.tr-rays{animation:none}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2170,26 +2197,30 @@ function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
   const ov = document.createElement("div"); ov.className = "troph";
-  const frames = Array.from({length: 9}, (_, i) => `<i style="--z:${-i * 420}px"></i>`).join("");
-  ov.innerHTML = `<div class="tr-hall"><div class="tr-cam">${frames}</div></div>
-    <div class="tr-lights"><b class="l1"></b><b class="l2"></b><b class="l3"></b></div>
+  const rings = Array.from({length: 16}, (_, i) => `<i style="--z:${-i * 520}px;--h:${(i * 23) % 360}"></i>`).join("");
+  const dust = Array.from({length: 18}, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;top:${(20 + Math.random() * 70).toFixed(1)}%;--t:${(6 + Math.random() * 8).toFixed(1)}s;--dl:${(-Math.random() * 8).toFixed(1)}s"></i>`).join("");
+  ov.innerHTML = `<div class="tr-room"></div>
+    <div class="tr-tunnel"><div class="tr-cam">${rings}</div><div class="tr-streaks"></div></div>
+    <div class="tr-flash"></div>
+    <div class="tr-rays"></div><div class="tr-spot"></div><div class="tr-pool"></div><div class="tr-dust">${dust}</div>
     <div class="tr-stage">
       <div class="tr-block" id="trBlock">
-        <div class="tr-face tr-front"><img src="${im}" alt="Certificat ${esc(c.firm)}"><span class="tr-shine"></span></div>
+        <div class="tr-face tr-print"><img src="${im}" alt="Certificat ${esc(c.firm)}"></div>
+        <div class="tr-face tr-front"><span class="tr-shine"></span></div>
         <div class="tr-face tr-back"></div><div class="tr-face tr-l"></div><div class="tr-face tr-r"></div><div class="tr-face tr-t"></div><div class="tr-face tr-b"></div>
+        <div class="tr-base"><i class="bf"></i><i class="bt"></i></div>
       </div>
-      <div class="tr-refl"><img src="${im}" alt=""></div>
     </div>
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
-  const img = ov.querySelector(".tr-front img");
+  const img = ov.querySelector(".tr-print img");
   const fit = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3;
-    const h = Math.min(innerHeight * .5, (innerWidth * .72) / r), w = h * r; ov.style.setProperty("--bw", w + "px"); ov.style.setProperty("--bh", h + "px"); };
+    const h = Math.min(innerHeight * .4, (innerWidth * .56) / r), w = h * r; ov.style.setProperty("--bw", w + "px"); ov.style.setProperty("--bh", h + "px"); };
   img.complete ? fit() : img.addEventListener("load", fit); addEventListener("resize", fit);
   requestAnimationFrame(() => ov.classList.add("go"));
   const T = reduced ? 0 : 1;
-  setTimeout(() => ov.classList.add("lit"), 1250 * T);
-  setTimeout(() => ov.classList.add("show"), 1750 * T);
+  setTimeout(() => ov.classList.add("flash"), 1450 * T);
+  setTimeout(() => ov.classList.add("show"), 1600 * T);
   const blk = ov.querySelector("#trBlock"), sh = ov.querySelector(".tr-shine");
   let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, idle = performance.now();
   const loop = now => { const free = now - idle > 2500, ax = free ? Math.sin(now / 1400) * .35 : tx, ay = free ? Math.sin(now / 1900) * .15 : ty;
@@ -2201,7 +2232,7 @@ function openTrophy(c){
   const mv = (x, y) => { tx = Math.max(-1, Math.min(1, (x / innerWidth - .5) * 2)); ty = Math.max(-1, Math.min(1, (y / innerHeight - .5) * 2)); idle = performance.now(); };
   ov.addEventListener("pointermove", e => mv(e.clientX, e.clientY));
   ov.addEventListener("touchmove", e => mv(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-  const close = () => { ov.classList.remove("show", "lit", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
+  const close = () => { ov.classList.remove("show", "flash", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
     setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); };
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
   ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]");
@@ -4250,7 +4281,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-32";
+const APP_VERSION = "2026-10-27-33";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
