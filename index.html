@@ -267,7 +267,7 @@ body.light #dayModal.full .daysheet{--solid:#f6f7f9}
 .t-sum span.sc{color:var(--fg);font-weight:600}
 
 /* ---------- Assistant pas à pas ---------- */
-#dayModal.full #dayList{display:flex;justify-content:center}
+#dayModal.full #dayList{display:flex;flex-direction:column;justify-content:flex-start}
 .tedit.wz{width:min(860px,100%);display:flex;flex-direction:column;gap:10px;border:0;background:transparent;padding:4px 0 28px}
 .wz-prog{height:3px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:6px}
 .wz-prog i{display:block;height:100%;background:var(--fg);border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
@@ -4752,7 +4752,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-61";
+const APP_VERSION = "2026-10-27-62";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
