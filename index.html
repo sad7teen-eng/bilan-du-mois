@@ -265,6 +265,80 @@ body.light #dayModal.full .daysheet{--solid:#f6f7f9}
 .t-sum span.ok{color:var(--gain);border-color:rgba(255,255,255,.25)}
 .t-sum span.ko{color:var(--loss);border-color:rgba(255,77,77,.3)}
 .t-sum span.sc{color:var(--fg);font-weight:600}
+
+/* ---------- Assistant pas à pas ---------- */
+#dayModal.full #dayList{display:flex;justify-content:center}
+.tedit.wz{width:min(860px,100%);display:flex;flex-direction:column;gap:10px;border:0;background:transparent;padding:4px 0 28px}
+.wz-prog{height:3px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:6px}
+.wz-prog i{display:block;height:100%;background:var(--fg);border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.wz-step{border:1px solid var(--line);border-radius:18px;background:var(--panel-2);overflow:hidden;transition:border-color .3s,box-shadow .3s}
+.wz-step.open{border-color:color-mix(in srgb,var(--fg) 35%,transparent);box-shadow:0 18px 50px rgba(0,0,0,.08)}
+.wz-head{width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;background:transparent!important;border:0!important;border-radius:0!important;text-align:left;cursor:pointer;color:var(--fg);box-shadow:none!important}
+.wz-step.open .wz-head{padding:20px 22px 6px;cursor:default}
+.wz-n{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--muted);transition:background .3s,color .3s}
+.wz-step.done .wz-n{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.wz-step.open .wz-n{border-color:var(--fg);color:var(--fg)}
+.wz-step.open.done .wz-n{color:var(--bg)}
+.wz-t{font-size:15px;font-weight:600;white-space:nowrap}
+.wz-t b{color:var(--loss)}
+.wz-step.open .wz-t{font-size:22px;letter-spacing:-.01em}
+.wz-sum{flex:1;min-width:0;display:flex;align-items:center;gap:8px;justify-content:flex-end;font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wz-sum b.g{color:var(--gain)}.wz-sum b.r{color:var(--loss)}
+.wz-mini{width:38px;height:24px;object-fit:cover;border-radius:5px;border:1px solid var(--line)}
+.wz-edit{font-size:12px;color:var(--muted);padding:5px 10px;border-radius:999px;border:1px solid var(--line);opacity:0;transition:opacity .2s}
+.wz-head:hover .wz-edit{opacity:1}
+.wz-side.long{color:var(--gain);font-weight:600}.wz-side.short{color:var(--loss);font-weight:600}
+.wz-body{padding:10px 22px 22px;display:flex;flex-direction:column;gap:16px;animation:wzIn .45s cubic-bezier(.2,.8,.2,1) both}
+@keyframes wzIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.wz-assets{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.wz-asset{padding:18px 10px;border-radius:14px;font-size:15px;font-weight:600;letter-spacing:.03em;background:var(--bg);transition:transform .15s,background .2s}
+.wz-asset:hover{transform:translateY(-2px)}
+.wz-asset.on{background:var(--fg)!important;color:var(--bg)!important;border-color:var(--fg)!important}
+.wz-asset.add{border-style:dashed;color:var(--muted);font-weight:500}
+input.wz-asset{text-align:center;text-transform:uppercase}
+.wz-sides{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wz-sidebtn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 10px;border-radius:16px;font-size:22px;font-weight:600;background:var(--bg);transition:transform .15s}
+.wz-sidebtn i{font-style:normal;font-size:18px;opacity:.6}
+.wz-sidebtn small{font-size:12.5px;font-weight:400;color:var(--muted)}
+.wz-sidebtn:hover{transform:translateY(-2px)}
+.wz-sidebtn.long.on{background:var(--gain)!important;color:var(--on-gain)!important;border-color:var(--gain)!important}
+.wz-sidebtn.short.on{background:var(--loss)!important;color:#1a0904!important;border-color:var(--loss)!important}
+.wz-sidebtn.on small{color:inherit;opacity:.75}
+.wz .drop.dropmain{aspect-ratio:16/8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:14px;border-radius:16px}
+.wz .drop.dropmain b{font-size:18px;color:var(--fg)}
+.wz .mainph{border-radius:16px;aspect-ratio:16/8}
+.wz-row{display:flex;align-items:center;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.wz-row .tf-tv{margin:0;flex:1}
+.wz-next{padding:13px 26px;border-radius:12px;font-size:15px;font-weight:600}
+.wz-skip{padding:12px 18px;border-radius:12px;font-size:14px;background:transparent;color:var(--muted)}
+.wz-tip{flex:1;font-size:12.5px;color:var(--muted)}
+.wz-moods .tf-chip{padding:12px 18px;font-size:14.5px}
+.wz-score{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:8px}
+.wz-score button{aspect-ratio:1;border-radius:50%;font-size:16px;font-weight:600;padding:0;background:var(--bg);transition:transform .25s cubic-bezier(.2,1.6,.4,1),background .25s,color .25s;transition-delay:calc(var(--i) * 18ms)}
+.wz-score button:hover{transform:scale(1.12)}
+.wz-score button.fill{background:color-mix(in srgb,var(--fg) 14%,var(--bg))}
+.wz-score button.on{background:var(--fg)!important;color:var(--bg)!important;border-color:var(--fg)!important;transform:scale(1.18)}
+.wz-scoreword{text-align:center;font-size:15px;color:var(--muted)}
+.wz-scoreword b{color:var(--fg);font-size:20px}
+.wz-final{border-top:1px solid var(--line);padding-top:16px}
+.wz-final .save{padding:14px 26px;font-size:15px;font-weight:600;border-radius:12px}
+
+#dayModal.full #dayList{align-items:center}
+.wz-mt5 .drop{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:14px}
+.wz-mt5 .drop b{color:var(--fg)}
+.wz-mt5:has(img){display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--line);border-radius:12px}
+.wz-mt5 img{width:70px;height:44px;object-fit:cover;border-radius:6px}
+.wz-mt5 div{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--muted)}
+.wz-mt5 div b{color:var(--fg);font-size:13.5px}
+.wz-auto:empty{display:none}
+.wz-auto{font-size:13.5px;line-height:1.5;padding:11px 14px;border-radius:12px;border:1px solid var(--line);display:block;animation:wzIn .4s both}
+.wz-auto.ok{border-color:color-mix(in srgb,var(--fg) 40%,transparent)}
+.wz-auto.ko{color:var(--loss);border-color:rgba(229,72,77,.35)}
+.wz-auto .spin{display:inline-block;vertical-align:-2px;margin-right:9px;width:14px;height:14px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--fg);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wz-autotag{align-self:flex-start;font-size:12.5px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--fg) 8%,transparent);color:var(--fg)}
+.tf-grid input.auto{box-shadow:0 0 0 2px color-mix(in srgb,var(--fg) 30%,transparent)}
+@media (max-width:640px){.wz-sum{display:none}.wz-score{grid-template-columns:repeat(6,1fr)}}
 @media (max-width:900px){.tedit.tfull{grid-template-columns:1fr}.tf-left{position:static}.tf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#dayModal.full{padding:0}#dayModal.full .daysheet{width:100%;height:100%;max-height:100%}#dayModal.full #dayList{padding:12px 16px 0}#dayModal.full .daysheet .dh{padding:14px 16px 10px}}
 
 /* Tes jours : barres par jour de la semaine */
@@ -1749,6 +1823,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
     <button type="button" class="addtrade" id="addRow">+ Ajouter un trade</button>
     <input type="file" id="imgPick" accept="image/*" multiple hidden>
     <input type="file" id="mainPick" accept="image/*" hidden>
+    <input type="file" id="mt5Pick" accept="image/*" hidden>
   </div>
 </div>
 <div class="crop" id="crop" hidden>
@@ -2545,7 +2620,7 @@ function cardHTML(t){
     <div class="t-top"><div class="t-sym">${esc(t.sym)}<span class="chip2 ${String(t.side).toLowerCase()}">${esc(t.side)}</span>${t.grade ? `<span class="grade">${esc(t.grade)}</span>` : ""}</div>
       <span class="t-res ${red ? "r" : "g"}">${money(t.pnl)}</span></div>
     ${imgCache[t.id + "#main"] && imgCache[t.id + "#main"][0] ? `<div class="t-photo"><img src="${imgCache[t.id + "#main"][0]}" alt="Photo du trade"></div>` : ""}
-    ${t.lots || t.entry ? `<div class="t-meta">${t.lots ? t.lots + " lots" : ""}${t.entry ? ` · ${Number(t.entry).toFixed(2)} → ${Number(t.exit).toFixed(2)}` : ""}${t.time ? ` · ${esc(t.time)}` : ""}${t.r != null && t.r !== "" ? ` <span class="rr ${t.r < 0 ? "r" : "g"}">${t.r > 0 ? "+" : ""}${String(t.r).replace(".", ",")}R</span>` : ""}</div>` : ""}
+    ${t.lots || t.entry ? `<div class="t-meta">${t.lots ? t.lots + " lots" : ""}${t.entry ? ` · ${String(t.entry).replace(".", ",")} → ${String(t.exit).replace(".", ",")}` : ""}${t.time ? ` · ${esc(t.time)}` : ""}${t.r != null && t.r !== "" ? ` <span class="rr ${t.r < 0 ? "r" : "g"}">${t.r > 0 ? "+" : ""}${String(t.r).replace(".", ",")}R</span>` : ""}</div>` : ""}
     ${tradeSummary(t).length || (t.mood || []).length || t.score != null ? `<div class="t-sum">${t.score != null ? `<span class="sc">${t.score}/10</span>` : ""}${tradeSummary(t).map(x => `<span class="${x.ok ? "ok" : "ko"}">${esc(x.txt)}</span>`).join("")}${(t.mood || []).map(m => `<span>${esc(m)}</span>`).join("")}</div>` : ""}
     ${t.note ? `<p class="t-ana">${esc(t.note)}</p>` : ""}
     ${thumbsHTML(imgs, false)}
@@ -2566,52 +2641,181 @@ function tradeSummary(t){ const qa = t.qa || {}, out = [];
   QA.forEach(x => { if (qa[x.k] === true || qa[x.k] === false) out.push({txt: qa[x.k] ? x.y : x.n, ok: qa[x.k] === x.good}); });
   return out; }
 const assetList = () => [...new Set([...BASE_ASSETS, ...(state.assets || [])])];
+/* ---- Lecture automatique des captures (MetaTrader 5 + photo du trade) ---- */
+/* lecture d'une capture MetaTrader 5 : le texte reconnu est analysé pour retrouver le trade */
+function parseMT5(raw){
+  const T = String(raw || "").replace(/[‐-―−]/g, "-").replace(/[→⇒➝➔]/g, "->").replace(/\r/g, ""), U = T.toUpperCase(), out = {};
+  const nb = s => { if (s == null) return NaN; s = String(s).replace(/\s+/g, ""); if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, ""); else s = s.replace(",", "."); return parseFloat(s); };
+  /* actif */
+  const alias = {GOLD: "XAUUSD", XAU: "XAUUSD", US100: "NAS100", USTEC: "NAS100", NDX100: "NAS100", NQ100: "NAS100", NASDAQ: "NAS100", DJ30: "US30", DOW30: "US30", WS30: "US30", US500: "SPX500", SP500: "SPX500", DE40: "GER40", DAX40: "GER40", DE30: "GER40", BTC: "BTCUSD", BITCOIN: "BTCUSD"};
+  const known = [...new Set([...(typeof assetList === "function" ? assetList() : []), "XAUUSD", "XAGUSD", "EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "NZDUSD", "USDCAD", "EURJPY", "GBPJPY", "EURGBP", "NAS100", "US30", "SPX500", "GER40", "BTCUSD", "ETHUSD", "USOIL", "UKOIL"])];
+  let sym = null;
+  for (const k of known) { const m = U.match(new RegExp("\\b" + k + "[A-Z0-9._-]{0,4}\\b")); if (m) { sym = k; break; } }
+  if (!sym) for (const [a, k] of Object.entries(alias)) if (new RegExp("\\b" + a + "[A-Z0-9._-]{0,4}\\b").test(U)) { sym = k; break; }
+  if (!sym) { const m = U.match(/\b((?:EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY|XAU|XAG)(?:EUR|GBP|USD|AUD|NZD|CAD|CHF|JPY))\b/); if (m) sym = m[1]; }
+  if (sym) out.sym = sym;
+  /* sens et lots : « sell 6.8 », « buy limit 1.00 » */
+  const sm = U.match(/\b(BUY|SELL)\b(?:\s+(?:LIMIT|STOP))?\s*,?\s*([0-9]+(?:[.,][0-9]+)?)?/);
+  if (sm) { out.side = sm[1] === "BUY" ? "Long" : "Short"; if (sm[2] && nb(sm[2]) > 0 && nb(sm[2]) < 1000) out.lots = nb(sm[2]); }
+  /* prix : « 4182.53 -> 4150.53 » sinon les deux premiers prix à décimales */
+  const P = "(\\d{1,3}(?:[ ,]\\d{3})*(?:[.,]\\d{2,5})|\\d+[.,]\\d{2,5})";
+  const am = T.match(new RegExp(P + "\\s*(?:->|>|»|-{1,2})\\s*" + P));
+  if (am) { out.entry = nb(am[1]); out.exit = nb(am[2]); }
+  else { /* ligne d'historique bureau : prix d'ouverture après les lots, prix de clôture après la 2e date */
+    const dts = [...T.matchAll(/\d{4}[.\-/]\d{2}[.\-/]\d{2}[ T]+\d{1,2}:\d{2}(?::\d{2})?/g)], pr = new RegExp(P, "g");
+    if (sm && dts.length >= 2) { const a = T.slice(T.toUpperCase().indexOf(sm[0]) + sm[0].length).match(pr), b = T.slice(dts[1].index + dts[1][0].length).match(pr);
+      if (a) out.entry = nb(a[0]); if (b) out.exit = nb(b[0]); } }
+  /* date et heure d'ouverture */
+  const dm = T.match(/(\d{4})[.\-/](\d{2})[.\-/](\d{2})[ T]+(\d{1,2}):(\d{2})/);
+  if (dm) { out.time = dm[4].padStart(2, "0") + ":" + dm[5]; out.day = +dm[3]; out.month = +dm[2]; out.year = +dm[1]; }
+  else { const tm = T.match(/\b(\d{1,2}):(\d{2})(?::\d{2})?\b/); if (tm) out.time = tm[1].padStart(2, "0") + ":" + tm[2]; }
+  /* résultat : sur la ligne du sens, le dernier montant ; sinon « profit » ; sinon le dernier montant signé */
+  const money2 = /(-?\s?\d{1,3}(?:[ ,]\d{3})*[.,]\d{2}|-?\d+[.,]\d{2})(?!\d)/g;
+  const lines = T.split("\n"), li = lines.findIndex(l => /\b(buy|sell)\b/i.test(l));
+  const pick = arr => arr.map(x => nb(x)).filter(v => isFinite(v) && v !== out.lots && v !== out.entry && v !== out.exit);
+  let pr = null;
+  const pl = U.match(/PROFIT[^0-9-]*(-?\s?[0-9][0-9 ,]*[.,][0-9]{2})/); if (pl) pr = nb(pl[1]);
+  if (pr == null && li >= 0) { const c = pick(lines[li].match(money2) || []); if (c.length) pr = c[c.length - 1]; }
+  if (pr == null && li >= 0 && lines[li + 1]) { const c = pick(lines[li + 1].match(money2) || []).filter(v => !(out.entry && Math.abs(v - out.entry) / out.entry < .2)); if (c.length) pr = c[c.length - 1]; }
+  if (pr != null && isFinite(pr)) out.pnl = pr;
+  if (/\[TP\]|\bTP\b/.test(U)) out.close = "TP"; else if (/\[SL\]|\bSL\b/.test(U)) out.close = "SL";
+  if (!out.close && out.pnl != null) out.close = out.pnl >= 0 ? "TP" : "SL";
+  return out;
+}
+
+/* reconnaissance de texte (chargée seulement quand on en a besoin) */
+let ocrWorker = null;
+function loadScript(src){ return new Promise((res, rej) => { const sc = document.createElement("script"); sc.src = src; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); }); }
+async function ocrImage(url, onStep){
+  if (!window.Tesseract) { onStep && onStep("Préparation de la lecture…"); await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"); }
+  if (!ocrWorker) { onStep && onStep("Préparation de la lecture… (la première fois peut prendre quelques secondes)"); ocrWorker = await Tesseract.createWorker("eng"); }
+  /* image agrandie, en niveaux de gris, texte sombre sur fond clair (meilleure lecture) */
+  const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  const k = Math.min(3, Math.max(1, 1800 / im.naturalWidth)), c = document.createElement("canvas"); c.width = im.naturalWidth * k; c.height = im.naturalHeight * k;
+  const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(im, 0, 0, c.width, c.height);
+  const d = g.getImageData(0, 0, c.width, c.height), D = d.data; let sum = 0; for (let i = 0; i < D.length; i += 4) sum += D[i] * .3 + D[i + 1] * .59 + D[i + 2] * .11;
+  const inv = sum / (D.length / 4) < 115; for (let i = 0; i < D.length; i += 4) { let v = D[i] * .3 + D[i + 1] * .59 + D[i + 2] * .11; if (inv) v = 255 - v; v = v < 128 ? Math.max(0, v * .7) : Math.min(255, v * 1.15); D[i] = D[i + 1] = D[i + 2] = v; }
+  g.putImageData(d, 0, 0); onStep && onStep("Lecture de ta capture…");
+  const r = await ocrWorker.recognize(c); return r.data.text || "";
+}
+/* outil position TradingView : la zone verte au-dessus de la rouge = Long (les bougies, trop fines, sont ignorées) */
+async function sideFromChart(url){
+  const im = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+  const w = 360, h = Math.round(w * im.naturalHeight / im.naturalWidth), c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d"); g.drawImage(im, 0, 0, w, h);
+  const D = g.getImageData(0, 0, w, h).data, minRun = w * .1; let gy = 0, gn = 0, ry = 0, rn = 0;
+  for (let y = 0; y < h; y++) { let run = 0, kind = 0;
+    for (let x = 0; x <= w; x++) { let k = 0; if (x < w) { const i = (y * w + x) * 4, R = D[i], G = D[i + 1], B = D[i + 2]; if (G > R + 22 && G > B - 10) k = 1; else if (R > G + 30 && R > B + 15) k = 2; }
+      if (k && k === kind) run++; else { if (run >= minRun) { if (kind === 1) { gy += y * run; gn += run; } else { ry += y * run; rn += run; } } run = k ? 1 : 0; kind = k; } } }
+  if (gn < w * 3 || rn < w * 3) return null; return gy / gn < ry / rn ? "Long" : "Short";
+}
+let autoBusy = 0;
+function autoSay(html, kind){ if (!edit) return; edit.autoMsg = {html, kind}; const el = document.getElementById("autoMsg"); if (el) { el.className = "wz-auto " + (kind || ""); el.innerHTML = html; } }
+/* remplit le trade avec ce qui a été trouvé ; on montre quand même chaque étape pour vérifier */
+function applyAuto(f, src){ if (!edit) return []; const got = []; edit.auto = edit.auto || {};
+  const put = (k, v, label) => { if (v == null || v === "" || (typeof v === "number" && !isFinite(v))) return; edit[k] = v; edit.auto[k] = src; got.push(label); };
+  if (f.sym) put("sym", f.sym, f.sym);
+  if (f.side) put("side", f.side, f.side);
+  if (f.pnl != null) put("pnl", String(f.pnl).replace(".", ","), money(f.pnl));
+  if (f.lots != null) put("lotsTxt", String(f.lots).replace(".", ","), String(f.lots).replace(".", ",") + " lots");
+  if (f.entry != null) put("entryTxt", String(f.entry).replace(".", ","), "entrée " + String(f.entry).replace(".", ","));
+  if (f.exit != null) put("exitTxt", String(f.exit).replace(".", ","), "sortie " + String(f.exit).replace(".", ","));
+  if (f.time) put("time", f.time, f.time);
+  if (f.r != null) put("rTxt", String(f.r).replace(".", ","), f.r + "R");
+  if (f.close) { edit.closeType = f.close; got.push(f.close === "TP" ? "fermé au TP" : "fermé au SL"); }
+  if (f.sym) state.lastSym = f.sym; return got; }
+async function readMT5(url){
+  if (!edit) return; const id = edit.id; autoBusy++; autoSay(`<span class="spin"></span>Lecture de ta capture MetaTrader 5…`, "busy");
+  try { const txt = await ocrImage(url, m => autoSay(`<span class="spin"></span>${m}`, "busy")); if (!edit || edit.id !== id) return;
+    const f = parseMT5(txt); if (f.close === "SL" && !edit.rTxt) f.r = -1;
+    const got = applyAuto(f, "mt5");
+    autoSay(got.length ? `✓ Trouvé automatiquement : <b>${got.join(" · ")}</b>. Vérifie à chaque étape.` : "Je n'ai pas réussi à lire cette capture. Remplis les étapes à la main.", got.length ? "ok" : "ko");
+  } catch (e) { autoSay("Lecture impossible pour le moment (connexion ?). Remplis les étapes à la main.", "ko"); }
+  finally { autoBusy--; if (edit && edit.id === id) drawDay(); } }
+async function readChart(url){
+  if (!edit) return; const id = edit.id;
+  try { const side = await sideFromChart(url); if (!edit || edit.id !== id) return; const f = {};
+    if (side && !(edit.auto && edit.auto.side === "mt5")) f.side = side;
+    try { const txt = await ocrImage(url, () => {}); const m = txt.replace(/,/g, ".").match(/RATIO[^0-9]{0,6}([0-9]+(?:\.[0-9]+)?)/i);
+      if (m && !(edit.rTxt && String(edit.rTxt).trim())) f.r = edit.closeType === "SL" ? -1 : +m[1]; } catch (e) {}
+    if (!edit || edit.id !== id) return; const got = applyAuto(f, "chart");
+    if (got.length && !(edit.autoMsg && edit.autoMsg.kind === "ok")) autoSay(`✓ Repéré sur ta photo : <b>${got.join(" · ")}</b>. Vérifie à chaque étape.`, "ok");
+    drawDay(); } catch (e) {} }
+
+/* ---- Saisie pas à pas : une étape ouverte à la fois, les étapes faites se replient (on peut y revenir) ---- */
+const WZ = [
+  {k: "photo", t: "Photo du trade", need: true}, {k: "sym", t: "Actif", need: true}, {k: "side", t: "Sens", need: true},
+  {k: "nums", t: "Les chiffres", need: true}, {k: "qa", t: "Tes réponses"}, {k: "mood", t: "Ton ressenti"}, {k: "score", t: "Ta note"}, {k: "end", t: "Captures et enregistrement"}];
+const SCORE_WORD = v => v == null ? "" : v <= 2 ? "À oublier" : v <= 4 ? "Moyen" : v <= 6 ? "Correct" : v <= 8 ? "Très bon" : v === 9 ? "Excellent" : "Parfait";
+function numsOK(t){ return ["pnl", "rTxt", "lotsTxt", "entryTxt", "exitTxt"].every(k => String(t[k] ?? "").trim() && isFinite(num(t[k]))) && !!t.time; }
+function wzDone(t, k){ const main = (imgCache[t.id + "#main"] || []).length;
+  return k === "sym" ? !!(t.sym || "").trim() : k === "side" ? (t.side === "Long" || t.side === "Short") : k === "photo" ? !!main : k === "nums" ? numsOK(t)
+    : k === "qa" ? Object.values(t.qa || {}).some(v => v === true || v === false) : k === "mood" ? (t.mood || []).length > 0 : k === "score" ? t.score != null && t.score !== "" : false; }
+function wzSum(t, k){ const qa = t.qa || {}, n = QA.filter(x => qa[x.k] === true || qa[x.k] === false).length;
+  if (k === "sym") return esc(t.sym || ""); if (k === "side") return t.side ? `<span class="wz-side ${t.side.toLowerCase()}">${t.side}</span>` : "";
+  if (k === "photo") { const m = (imgCache[t.id + "#main"] || [])[0]; return m ? `<img class="wz-mini" src="${m}" alt="">Photo ajoutée` : ""; }
+  if (k === "nums") { const v = num(t.pnl); return numsOK(t) ? `<b class="${v < 0 ? "r" : "g"}">${money(v)}</b> · ${esc(String(t.rTxt).replace(".", ","))}R · ${esc(String(t.lotsTxt).replace(".", ","))} lots · ${esc(t.time)}` : ""; }
+  if (k === "qa") return n ? `${n}/${QA.length} · ${tradeSummary(t).map(x => x.txt).slice(0, 2).join(" · ")}${n > 2 ? "…" : ""}` : "Passé";
+  if (k === "mood") return (t.mood || []).length ? esc(t.mood.join(", ")) : "Passé";
+  if (k === "score") return t.score != null && t.score !== "" ? `${t.score}/10 · ${SCORE_WORD(+t.score)}` : "Passé";
+  return ""; }
+function prepEdit(t){ const e = {...t, qa: {...(t.qa || {})}, mood: [...(t.mood || [])]};
+  [["r", "rTxt"], ["lots", "lotsTxt"], ["entry", "entryTxt"], ["exit", "exitTxt"]].forEach(([a, b]) => { if (e[b] === undefined) e[b] = e[a] != null && e[a] !== "" ? String(e[a]).replace(".", ",") : ""; });
+  e.pnl = e.pnl !== "" && e.pnl != null ? String(e.pnl).replace(".", ",") : ""; e.step = WZ.length - 1; return e; }
 function editHTML(){
   const t = edit, imgs = imgCache[t.id] || [], main = (imgCache[t.id + "#main"] || [])[0], qa = t.qa || {}, moods = t.mood || [], sym = (t.sym || "").toUpperCase();
   const assets = assetList(); if (sym && !assets.includes(sym)) assets.push(sym);
-  const val = (k, d) => t[k + "Txt"] !== undefined ? t[k + "Txt"] : (t[k] != null && t[k] !== "" ? String(t[k]).replace(".", ",") : (d || ""));
   const tv = "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(TV_SYM[sym] || sym || "OANDA:XAUUSD");
-  const sc = t.score != null && t.score !== "" ? +t.score : null;
-  return `<form class="tedit tfull" id="editForm" novalidate>
-    <div class="tf-left">
-      <div class="tf-lab">Photo du trade <b>*</b></div>
-      ${main ? `<div class="mainph"><img src="${main}" alt="Photo du trade"><div class="ph-acts"><button type="button" id="mainCrop">Rogner</button><button type="button" id="mainRm">Retirer</button></div></div>`
-             : `<div class="drop dropmain" id="dropMain" tabindex="0" role="button"><b>Glissez la photo du trade ici</b><span>ou cliquez pour la choisir</span></div>`}
-      <div class="tf-lab">Autres captures <small>H4, H1, analyse… · facultatif</small></div>
-      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou cliquez pour les ajouter</div>
-      ${thumbsHTML(imgs, true)}
-      <a class="tf-tv" href="${tv}" target="_blank" rel="noopener">Ouvrir ${esc(sym || "le graphique")} sur TradingView <span aria-hidden="true">↗</span></a>
-    </div>
-    <div class="tf-right">
-      <section class="tf-sec"><div class="tf-lab">Actif <b>*</b></div>
-        <div class="tf-chips">${assets.map(a => `<button type="button" class="tf-chip${a === sym ? " on" : ""}" data-sym="${esc(a)}">${esc(a)}</button>`).join("")}
-          ${t.addAsset ? `<input class="tf-newasset" id="e-newsym" placeholder="Ex. USOIL" autocomplete="off" spellcheck="false" maxlength="14">` : `<button type="button" class="tf-chip add" data-symadd="1">+ Autre</button>`}</div></section>
-      <section class="tf-sec"><div class="tf-lab">Sens <b>*</b></div><div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></section>
-      <section class="tf-sec tf-grid">
-        <label class="fld" for="e-pnl"><span>Résultat <b>*</b></span><input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
-        <label class="fld" for="e-r"><span>Nombre de R <b>*</b></span><input class="pnl" id="e-r" type="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${esc(val("r"))}"></label>
-        <label class="fld" for="e-lots"><span>Lots <b>*</b></span><input class="pnl" id="e-lots" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" value="${esc(val("lots"))}"></label>
-        <label class="fld" for="e-time"><span>Heure d'entrée <b>*</b></span><input class="pnl" id="e-time" type="time" value="${esc(t.time || "")}"></label>
-        <label class="fld" for="e-entry"><span>Prix d'entrée <b>*</b></span><input class="pnl" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${esc(val("entry"))}"></label>
-        <label class="fld" for="e-exit"><span>Prix de sortie <b>*</b></span><input class="pnl" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${esc(val("exit"))}"></label>
-      </section>
-      <section class="tf-sec"><div class="tf-lab">Ton trade en ${QA.length} questions <small>facultatif · un clic par question</small></div>
-        <div class="tf-qa">${QA.map(x => `<div class="tf-q"><span>${x.q}</span><div class="tf-yn">${[["oui", true], ["non", false]].map(([l, v]) => `<button type="button" class="${qa[x.k] === v ? "on " + (v === x.good ? "ok" : "ko") : ""}" data-qa="${x.k}" data-v="${v ? 1 : 0}">${l === "oui" ? "Oui" : "Non"}</button>`).join("")}</div></div>`).join("")}</div></section>
-      <section class="tf-sec"><div class="tf-lab">Comment tu te sentais <small>facultatif · plusieurs choix possibles</small></div>
-        <div class="tf-chips">${MOODS.map(m => `<button type="button" class="tf-chip mood${moods.includes(m) ? " on" : ""}" data-mood="${m}">${m}</button>`).join("")}</div></section>
-      <section class="tf-sec"><div class="tf-lab">Note du trade <small>facultatif · de 0 à 10</small></div>
-        <div class="tf-score"><input type="range" id="e-score" min="0" max="10" step="1" value="${sc != null ? sc : 5}" class="${sc != null ? "set" : ""}" style="--v:${(sc != null ? sc : 5) * 10}%"><output id="e-scoreV">${sc != null ? sc + "<small>/10</small>" : "—"}</output></div></section>
+  const sc = t.score != null && t.score !== "" ? +t.score : null, step = t.step ?? 0;
+  const doneN = WZ.filter(w => w.need && wzDone(t, w.k)).length, needN = WZ.filter(w => w.need).length;
+  const body = k => {
+    const autoTag = f => t.auto && t.auto[f] ? `<div class="wz-autotag">✓ Rempli automatiquement depuis ${t.auto[f] === "mt5" ? "ta capture MetaTrader 5" : "ta photo"} · vérifie</div>` : "";
+    const cont = ok => ok ? `<div class="wz-row"><button type="button" class="go wz-next" data-next="1">Continuer</button></div>` : "";
+    if (k === "sym") return autoTag("sym") + `<div class="wz-assets">${assets.map(a => `<button type="button" class="wz-asset${a === sym ? " on" : ""}" data-sym="${esc(a)}">${esc(a)}</button>`).join("")}
+      ${t.addAsset ? `<input class="tf-newasset wz-asset" id="e-newsym" placeholder="Ex. USOIL" autocomplete="off" spellcheck="false" maxlength="14">` : `<button type="button" class="wz-asset add" data-symadd="1">+ Autre</button>`}</div>` + cont(!!sym);
+    if (k === "side") return autoTag("side") + `<div class="wz-sides">${["Long", "Short"].map(o => `<button type="button" class="wz-sidebtn ${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}"><i>${o === "Long" ? "▲" : "▼"}</i>${o}<small>${o === "Long" ? "Achat" : "Vente"}</small></button>`).join("")}</div>` + cont(!!t.side);
+    if (k === "photo") { const mt = (imgCache[t.id + "#mt5"] || [])[0], am = t.autoMsg;
+      return `${main ? `<div class="mainph"><img src="${main}" alt="Photo du trade"><div class="ph-acts"><button type="button" id="mainCrop">Rogner</button><button type="button" id="mainRm">Retirer</button></div></div>`
+        : `<div class="drop dropmain" id="dropMain" tabindex="0" role="button"><b>Glissez la photo du trade ici</b><span>ou cliquez pour la choisir</span></div>`}
+        <div class="wz-mt5">${mt ? `<img src="${mt}" alt="Capture MetaTrader 5"><div><b>Capture MetaTrader 5</b><span>Lue automatiquement</span></div><button type="button" class="mini ghost" id="mt5Rm">Retirer</button>`
+          : `<div class="drop" id="dropMT5" tabindex="0" role="button"><b>+ Capture MetaTrader 5</b> <span>facultatif · on remplit le trade pour toi (actif, sens, lots, prix, heure, résultat)</span></div>`}</div>
+        <div id="autoMsg" class="wz-auto ${am ? am.kind : ""}">${am ? am.html : ""}</div>
+        <div class="wz-row"><a class="tf-tv" href="${tv}" target="_blank" rel="noopener">${main ? "Ouvrir" : "Pas encore de capture ? Ouvrir"} ${esc(sym || "le graphique")} sur TradingView ↗</a>${main ? `<button type="button" class="go wz-next" data-next="1">Continuer</button>` : ""}</div>`; }
+    if (k === "nums") return (["pnl", "rTxt", "lotsTxt", "time", "entryTxt", "exitTxt"].some(f => t.auto && t.auto[f]) ? `<div class="wz-autotag">✓ Rempli automatiquement en partie · vérifie et complète</div>` : "") + `<div class="tf-grid${t.auto ? " hasauto" : ""}">
+        <label class="fld" for="e-pnl"><span>Résultat <b>*</b></span><input class="pnl${t.auto && t.auto.pnl ? " auto" : ""}" id="e-pnl" type="text" autocomplete="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
+        <label class="fld" for="e-r"><span>Nombre de R <b>*</b></span><input class="pnl${t.auto && t.auto.rTxt ? " auto" : ""}" id="e-r" type="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${esc(t.rTxt ?? "")}"></label>
+        <label class="fld" for="e-lots"><span>Lots <b>*</b></span><input class="pnl${t.auto && t.auto.lotsTxt ? " auto" : ""}" id="e-lots" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" value="${esc(t.lotsTxt ?? "")}"></label>
+        <label class="fld" for="e-time"><span>Heure d'entrée <b>*</b></span><input class="pnl${t.auto && t.auto.time ? " auto" : ""}" id="e-time" type="time" value="${esc(t.time || "")}"></label>
+        <label class="fld" for="e-entry"><span>Prix d'entrée <b>*</b></span><input class="pnl${t.auto && t.auto.entryTxt ? " auto" : ""}" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${esc(t.entryTxt ?? "")}"></label>
+        <label class="fld" for="e-exit"><span>Prix de sortie <b>*</b></span><input class="pnl${t.auto && t.auto.exitTxt ? " auto" : ""}" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${esc(t.exitTxt ?? "")}"></label></div>
+      <div class="wz-row"><span class="wz-tip">Entrée pour passer au champ suivant</span><button type="button" class="go wz-next" data-next="nums">Continuer</button></div>`;
+    if (k === "qa") return `<div class="tf-qa">${QA.map(x => `<div class="tf-q"><span>${x.q}</span><div class="tf-yn">${[true, false].map(v => `<button type="button" class="${qa[x.k] === v ? "on " + (v === x.good ? "ok" : "ko") : ""}" data-qa="${x.k}" data-v="${v ? 1 : 0}">${v ? "Oui" : "Non"}</button>`).join("")}</div></div>`).join("")}</div>
+      <div class="wz-row"><button type="button" class="ghost wz-skip" data-next="1">Passer</button><button type="button" class="go wz-next" data-next="1">Continuer</button></div>`;
+    if (k === "mood") return `<div class="tf-chips wz-moods">${MOODS.map(m => `<button type="button" class="tf-chip mood${moods.includes(m) ? " on" : ""}" data-mood="${m}">${m}</button>`).join("")}</div>
+      <div class="wz-row"><button type="button" class="ghost wz-skip" data-next="1">Passer</button><button type="button" class="go wz-next" data-next="1">Continuer</button></div>`;
+    if (k === "score") return `<div class="wz-score">${Array.from({length: 11}, (_, v) => `<button type="button" class="${sc === v ? "on" : ""}${sc != null && v < sc ? " fill" : ""}" data-score="${v}" style="--i:${v}">${v}</button>`).join("")}</div>
+      <div class="wz-scoreword">${sc != null ? `<b>${sc}/10</b> · ${SCORE_WORD(sc)}` : "Touchez une note de 0 à 10"}</div>
+      <div class="wz-row"><button type="button" class="ghost wz-skip" data-next="1">Passer</button></div>`;
+    return `<div class="tf-lab">Autres captures <small>H4, H1, analyse… · facultatif</small></div>
+      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou cliquez pour les ajouter</div>${thumbsHTML(imgs, true)}
       <p class="err" id="dayErr" hidden></p>
-      <div class="e-acts">
-        <button type="button" class="mini go" id="ePlay">▶ Lancer l'animation</button>
-        <span class="grow"></span>
+      <div class="wz-row wz-final">
+        <button type="button" class="mini go" id="ePlay">▶ Lancer l'animation</button><span class="grow"></span>
         ${state.trades.some(x => x.id === t.id) ? `<button type="button" class="mini del" id="eDel">Supprimer</button>` : ""}
         <button type="button" class="mini ghost" id="eCancel">Annuler</button>
-        <button type="submit" class="go save">Enregistrer le trade</button>
-      </div>
-    </div>
+        <button type="submit" class="go save">Enregistrer le trade</button></div>`;
+  };
+  return `<form class="tedit wz" id="editForm" novalidate>
+    <div class="wz-prog"><i style="width:${(doneN / needN * 100).toFixed(0)}%"></i></div>
+    ${WZ.map((w, i) => { const open = i === step, done = wzDone(t, w.k), sum = i < step || done ? wzSum(t, w.k) : "";
+      return `<section class="wz-step${open ? " open" : ""}${done ? " done" : ""}" data-wz="${i}">
+        <button type="button" class="wz-head" data-goto="${i}"><span class="wz-n">${done ? "✓" : i + 1}</span><span class="wz-t">${w.t}${w.need ? " <b>*</b>" : ""}</span><span class="wz-sum">${open ? "" : sum}</span>${!open && (done || i < step) ? `<span class="wz-edit">Modifier</span>` : ""}</button>
+        ${open ? `<div class="wz-body">${body(w.k)}</div>` : ""}</section>`; }).join("")}
+    ${step < WZ.length - 1 ? `<p class="err" id="dayErr" hidden></p>` : ""}
   </form>`;
 }
+/* passe à l'étape suivante : la prochaine étape obligatoire non faite, sinon la suivante */
+function wzNext(){ const t = edit, s0 = t.step ?? 0; let n = s0 + 1;
+  t.step = Math.min(WZ.length - 1, n); drawDay(); }
 function drawDay(){
   const ts = dayTrades(), tot = ts.reduce((a, t) => a + t.pnl, 0);
   $("daySum").innerHTML = ts.length ? `${ts.length} trade${ts.length > 1 ? "s" : ""} · <span class="${tot < 0 ? "r" : "g"}">${money(tot)}</span>` : "Aucun trade ce jour";
@@ -2620,16 +2824,16 @@ function drawDay(){
   $("dayList").innerHTML = html;
   $("addRow").hidden = !!editId;
   const na = document.getElementById("e-newsym"); if (na) { na.focus(); return; }
-  const f = document.getElementById("e-pnl"); if (f && !String(edit.pnl).trim() && !f.dataset.done) f.focus();
+  const f = document.getElementById("e-pnl"); if (f && !String(edit.pnl).trim()) f.focus();
 }
 async function openDay(d){
   dayOpen = d;
   $("dayTitle").textContent = `${d} ${MONTHS[state.month].toLowerCase()} ${state.year}`;
-  await Promise.all(dayTrades().flatMap(t => [idb.get(t.id), idb.get(t.id + "#main"), idb.get(t.id + "#orig")]));
+  await Promise.all(dayTrades().flatMap(t => [idb.get(t.id), idb.get(t.id + "#main"), idb.get(t.id + "#orig"), idb.get(t.id + "#mt5")]));
   if (!dayTrades().length) startNew(); else { editId = null; edit = null; }
   drawDay(); $("dayModal").hidden = false;
 }
-function startNew(){ const last = [...state.trades].reverse()[0]; edit = {id: uid(), pnl: "", sym: state.lastSym || (last && last.sym) || "XAUUSD", side: "", setup: "", grade: "", note: "", qa: {}, mood: [], score: null}; editId = edit.id; }
+function startNew(){ edit = {id: uid(), pnl: "", sym: "", side: "", setup: "", grade: "", note: "", qa: {}, mood: [], score: null, step: 0}; editId = edit.id; }
 function readForm(){
   if (!edit) return;
   const g = id => document.getElementById(id);
@@ -2696,11 +2900,13 @@ async function finishCrop(keep){
     out = c.toDataURL("image/jpeg", .88);
   }
   await idb.set(edit.id + "#main", [out]);
-  crop = null; $("crop").hidden = true; drawDay();
+  crop = null; $("crop").hidden = true;
+  drawDay(); if (edit) readChart(out);
 }
 $("cropOk").onclick = () => finishCrop(false);
 $("cropKeep").onclick = () => finishCrop(true);
 $("mainPick").addEventListener("change", () => setMainFile($("mainPick").files[0]));
+$("mt5Pick").addEventListener("change", () => setMT5File($("mt5Pick").files[0]));
 
 function playTradeObj(t){
   const main = (imgCache[t.id + "#main"] || [])[0], imgs = imgCache[t.id] || [];
@@ -2710,12 +2916,18 @@ function playTradeObj(t){
 $("dayList").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const ds = b.dataset;
-  if (ds.edit) { const t = state.trades.find(x => x.id === ds.edit); edit = {...t}; editId = t.id; drawDay(); return; }
+  if (ds.edit) { const t = state.trades.find(x => x.id === ds.edit); edit = prepEdit(t); editId = t.id; drawDay(); return; }
   if (ds.play) { const t = state.trades.find(x => x.id === ds.play); if (t) playTradeObj(t); return; }
-  if (ds.side) { readForm(); edit.side = ds.side; drawDay(); return; }
-  if (ds.sym) { readForm(); edit.sym = ds.sym; edit.addAsset = false; state.lastSym = ds.sym; drawDay(); return; }
+  if (ds.side) { readForm(); edit.side = ds.side; if (WZ[edit.step ?? 0]?.k === "side") { wzNext(); return; } drawDay(); return; }
+  if (ds.goto) { readForm(); edit.step = +ds.goto; drawDay(); return; }
+  if (ds.next) { readForm(); if (ds.next === "nums" && !numsOK(edit)) { const er = $("dayErr"); const miss = [["e-pnl", edit.pnl], ["e-r", edit.rTxt], ["e-lots", edit.lotsTxt], ["e-time", edit.time], ["e-entry", edit.entryTxt], ["e-exit", edit.exitTxt]].find(([, v]) => !String(v ?? "").trim() || (v !== edit.time && !isFinite(num(v))));
+      if (er) { er.textContent = "Remplis les six chiffres pour continuer."; er.hidden = false; } const el = miss && document.getElementById(miss[0]); if (el) { el.focus(); el.closest(".fld")?.classList.add("bad"); setTimeout(() => el.closest(".fld")?.classList.remove("bad"), 1600); } return; }
+    wzNext(); return; }
+  if (ds.score) { readForm(); edit.score = +ds.score; drawDay(); setTimeout(() => { if (edit && (edit.step ?? 0) === WZ.findIndex(w => w.k === "score")) wzNext(); }, 650); return; }
+  if (ds.sym) { readForm(); edit.sym = ds.sym; edit.addAsset = false; state.lastSym = ds.sym; if (WZ[edit.step ?? 0]?.k === "sym") { wzNext(); return; } drawDay(); return; }
   if (ds.symadd) { readForm(); edit.addAsset = true; drawDay(); return; }
-  if (ds.qa) { readForm(); edit.qa = {...(edit.qa || {})}; const v = ds.v === "1"; edit.qa[ds.qa] = edit.qa[ds.qa] === v ? undefined : v; drawDay(); return; }
+  if (ds.qa) { readForm(); edit.qa = {...(edit.qa || {})}; const v = ds.v === "1"; edit.qa[ds.qa] = edit.qa[ds.qa] === v ? undefined : v; drawDay();
+    if (QA.every(x => edit.qa[x.k] === true || edit.qa[x.k] === false)) setTimeout(() => { if (edit && WZ[edit.step]?.k === "qa") wzNext(); }, 500); return; }
   if (ds.mood) { readForm(); const m = new Set(edit.mood || []); m.has(ds.mood) ? m.delete(ds.mood) : m.add(ds.mood); edit.mood = [...m]; drawDay(); return; }
   if (ds.rmimg) { readForm(); const a = [...(imgCache[edit.id] || [])]; a.splice(+ds.rmimg, 1); idb.set(edit.id, a).then(drawDay); return; }
   if (b.id === "ePlay") {
@@ -2724,23 +2936,28 @@ $("dayList").addEventListener("click", e => {
     const rv = num(edit.rTxt); playTradeObj({...edit, day: dayOpen, pnl: v, r: isFinite(rv) ? rv : edit.r}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
-  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
+  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); idb.set(edit.id + "#mt5", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
 });
+async function setMT5File(file){ if (!file || !file.type.startsWith("image/") || !edit) return; readForm();
+  const url = await shrink(file); if (!url) return; await idb.set(edit.id + "#mt5", [url]); drawDay(); readMT5(url); }
 $("dayList").addEventListener("click", e => {
+  if (e.target.closest("#dropMT5")) { $("mt5Pick").value = ""; $("mt5Pick").click(); }
+  if (e.target.closest("#mt5Rm")) { readForm(); idb.set(edit.id + "#mt5", []).then(drawDay); }
   if (e.target.closest("#drop")) { $("imgPick").value = ""; $("imgPick").click(); }
   if (e.target.closest("#dropMain")) { $("mainPick").value = ""; $("mainPick").click(); }
   if (e.target.closest("#mainCrop")) { readForm(); const o = (imgCache[edit.id + "#orig"] || imgCache[edit.id + "#main"] || [])[0]; if (o) openCrop(o); }
   if (e.target.closest("#mainRm")) { readForm(); Promise.all([idb.set(edit.id + "#main", []), idb.set(edit.id + "#orig", [])]).then(drawDay); }
 });
 $("dayList").addEventListener("keydown", e => { if (e.target.id === "drop" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); $("imgPick").click(); } });
-["dragenter", "dragover"].forEach(ev => $("dayList").addEventListener(ev, e => { const d = e.target.closest("#drop,#dropMain"); if (d) { e.preventDefault(); d.classList.add("over"); } }));
-$("dayList").addEventListener("dragleave", e => { const d = e.target.closest("#drop,#dropMain"); if (d) d.classList.remove("over"); });
+["dragenter", "dragover"].forEach(ev => $("dayList").addEventListener(ev, e => { const d = e.target.closest("#drop,#dropMain,#dropMT5"); if (d) { e.preventDefault(); d.classList.add("over"); } }));
+$("dayList").addEventListener("dragleave", e => { const d = e.target.closest("#drop,#dropMain,#dropMT5"); if (d) d.classList.remove("over"); });
 /* glisser une image n'importe où sur la fiche : la photo du trade d'abord, puis les autres captures */
 $("dayModal").addEventListener("dragover", e => { if (editId) e.preventDefault(); });
 $("dayModal").addEventListener("drop", e => {
   if (!editId) return; e.preventDefault();
   document.querySelectorAll(".drop.over").forEach(d => d.classList.remove("over"));
   const files = [...e.dataTransfer.files].filter(f => f.type.startsWith("image/")); if (!files.length) return;
+  if (e.target.closest("#dropMT5")) { setMT5File(files[0]); return; }
   const onOthers = e.target.closest("#drop"), hasMain = (imgCache[edit.id + "#main"] || []).length;
   if (onOthers || hasMain) { addImages(files); return; }
   setMainFile(files[0]); if (files.length > 1) addImages(files.slice(1));
@@ -2748,7 +2965,10 @@ $("dayModal").addEventListener("drop", e => {
 $("imgPick").addEventListener("change", () => addImages($("imgPick").files));
 function addAsset(v){ const a = String(v).toUpperCase().replace(/[^A-Z0-9.!_-]/g, "").slice(0, 14); if (!a || !edit) return;
   state.assets = [...new Set([...(state.assets || []), a])].filter(x => !BASE_ASSETS.includes(x)); edit.sym = a; state.lastSym = a; edit.addAsset = false; save(); }
-$("dayList").addEventListener("keydown", e => { if (e.target.id === "e-newsym" && e.key === "Enter") { e.preventDefault(); addAsset(e.target.value); edit.addAsset = false; drawDay(); }
+$("dayList").addEventListener("keydown", e => {
+  const order = ["e-pnl", "e-r", "e-lots", "e-time", "e-entry", "e-exit"], oi = order.indexOf(e.target.id);
+  if (oi >= 0 && e.key === "Enter") { e.preventDefault(); if (oi < order.length - 1) document.getElementById(order[oi + 1]).focus(); else document.querySelector('[data-next="nums"]')?.click(); return; }
+  if (e.target.id === "e-newsym" && e.key === "Enter") { e.preventDefault(); addAsset(e.target.value); edit.addAsset = false; drawDay(); }
   if (e.target.id === "e-newsym" && e.key === "Escape") { e.stopPropagation(); edit.addAsset = false; drawDay(); } });
 $("dayList").addEventListener("focusout", e => { if (e.target.id === "e-newsym") setTimeout(() => { if (!edit || !document.getElementById("e-newsym")) return; readForm(); edit.addAsset = false; drawDay(); }, 120); });
 $("dayList").addEventListener("input", e => { if (e.target.id !== "e-score" || !edit) return; const v = +e.target.value; edit.score = v; e.target.classList.add("set"); e.target.style.setProperty("--v", v * 10 + "%"); document.getElementById("e-scoreV").innerHTML = v + "<small>/10</small>"; });
@@ -2771,7 +2991,7 @@ $("dayList").addEventListener("submit", e => {
   const qa = {}; Object.entries(edit.qa || {}).forEach(([k, x]) => { if (x === true || x === false) qa[k] = x; });
   const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim().toUpperCase() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade || "", note: (edit.note || "").trim(),
     qa, mood: edit.mood || [], score: edit.score != null && edit.score !== "" ? +edit.score : null, tags: [...(edit.mood || []), ...tradeSummary({qa}).map(x => x.txt)].slice(0, 10)};
-  delete row.addAsset;
+  ["addAsset", "auto", "autoMsg", "step"].forEach(k => delete row[k]);
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
   state.trades.sort((a, b) => a.day - b.day);
@@ -4532,7 +4752,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-59";
+const APP_VERSION = "2026-10-27-61";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
