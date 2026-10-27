@@ -1418,6 +1418,18 @@ body:not(.light) ::-webkit-scrollbar-thumb{background:#f4f4f6;border-color:#0a0a
 /* --- v57 : barre de défilement masquée partout (la page défile toujours à la molette / au doigt) --- */
 html,body,*{scrollbar-width:none!important;-ms-overflow-style:none!important}
 ::-webkit-scrollbar,*::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;background:transparent!important}
+
+/* --- v58 : cartes du tableau en escalier, le plan en dernier --- */
+section.view[data-view="tableau"].venter .bmain > .perf,section.view[data-view="tableau"].venter .bmain > .row3{animation:none!important}
+section.view[data-view="tableau"].venter .perf .tile,section.view[data-view="tableau"].venter .row3 .tile{animation:liquidUp .75s cubic-bezier(.22,.9,.25,1) both!important}
+section.view[data-view="tableau"].venter .perf .tile:nth-child(1){animation-delay:.35s!important}
+section.view[data-view="tableau"].venter .perf .tile:nth-child(2){animation-delay:.48s!important}
+section.view[data-view="tableau"].venter .perf .tile:nth-child(3){animation-delay:.61s!important}
+section.view[data-view="tableau"].venter .row3 .tile:nth-child(1){animation-delay:.74s!important}
+section.view[data-view="tableau"].venter .row3 .tile:nth-child(2){animation-delay:.87s!important}
+section.view[data-view="tableau"].venter .row3 .tile:nth-child(3){animation-delay:1s!important}
+section.view[data-view="tableau"].venter .plan{animation:planIn .7s 1.12s cubic-bezier(.2,.8,.2,1) both!important}
+section.view[data-view="tableau"].venter .plan .psec{animation:vUp .5s cubic-bezier(.2,.8,.2,1) both!important;animation-delay:calc(1.2s + var(--pi,0) * .08s)!important}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2949,8 +2961,9 @@ function setView(v, keepScroll){
     sec.querySelectorAll(".cell").forEach(c => c.style.setProperty("--d", (Math.random() * .45).toFixed(3) + "s"));
     sec.querySelectorAll(".wdb").forEach((c, i) => c.style.setProperty("--d", (.35 + i * .06).toFixed(2) + "s"));
     sec.querySelectorAll(".bmain > *, .plan .psec").forEach((c, i) => c.style.setProperty("--d", (.25 + i * .07).toFixed(2) + "s"));
+    sec.querySelectorAll(".plan .psec").forEach((c, i) => c.style.setProperty("--pi", i));
     sec.classList.remove("venter"); void sec.offsetWidth; sec.classList.add("venter");
-    clearTimeout(sec._vt); sec._vt = setTimeout(() => sec.classList.remove("venter"), 1600);
+    clearTimeout(sec._vt); sec._vt = setTimeout(() => sec.classList.remove("venter"), 2600);
   }
   if (!keepScroll) window.scrollTo(0, 0);
 }
@@ -4070,7 +4083,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-18";
+const APP_VERSION = "2026-10-27-19";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
