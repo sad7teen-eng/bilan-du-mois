@@ -2206,7 +2206,7 @@ function openTrophy(c){
       </div></div>
     </div>
     <canvas class="tr-fore"></canvas>
-    <div class="tr-hint">Glissez ou utilisez la molette pour tourner dans l'espace</div>
+    <div class="tr-hint">Glissez pour faire tourner le certificat</div>
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore");
@@ -2227,28 +2227,29 @@ function openTrophy(c){
   let mx = 0, my = 0, smx = 0, smy = 0;
   /* anneaux d'énergie : traînées de lumière sur une ellipse inclinée, poussière d'étoiles, halo (bloom) */
   const gauss = () => (rnd() + rnd() + rnd() - 1.5) / 1.5, TILT = -.36, FL = .36;
-  const bands = [{k: .9, sp: .5, col: [120, 185, 255]}, {k: 1.0, sp: .44, col: [150, 165, 255]}, {k: 1.09, sp: .38, col: [175, 145, 255]}, {k: 1.18, sp: .32, col: [205, 165, 255]}];
+  const bands = [{k: .86, sp: .5, col: [120, 185, 255], t: -.50, f: .30, dy: -.09}, {k: 1.0, sp: .44, col: [150, 165, 255], t: -.34, f: .38, dy: .03},
+    {k: 1.1, sp: .38, col: [175, 145, 255], t: -.22, f: .27, dy: .11}, {k: 1.22, sp: .32, col: [205, 165, 255], t: -.42, f: .44, dy: -.04}];
   const streaks = [], dust = [];
-  bands.forEach(B => { for (let i = 0; i < 14; i++) streaks.push({k: B.k * (1 + gauss() * .03), a: rnd() * 6.283, span: 1.4 + rnd() * 3, sp: B.sp * (.85 + rnd() * .3), w: .5 + rnd() * 1.3, al: .3 + rnd() * .6, col: B.col});
-    for (let i = 0; i < 800; i++) { const out = rnd() < .45; dust.push({k: B.k * (1 + (out ? Math.abs(gauss()) * .16 : gauss() * .03)), a: rnd() * 6.283, sp: B.sp * (.8 + rnd() * .4), v: gauss() * (out ? .25 : .06), r: rnd() < .06 ? 2 + rnd() * 3 : .5 + rnd() * 1.1, al: .45 + rnd() * .55, big: 0}); } });
+  bands.forEach(B => { for (let i = 0; i < 14; i++) streaks.push({B, k: B.k * (1 + gauss() * .03), a: rnd() * 6.283, span: 1.4 + rnd() * 3, sp: B.sp * (.85 + rnd() * .3), w: .5 + rnd() * 1.3, al: .3 + rnd() * .6, col: B.col});
+    for (let i = 0; i < 800; i++) { const out = rnd() < .45; dust.push({B, k: B.k * (1 + (out ? Math.abs(gauss()) * .16 : gauss() * .03)), a: rnd() * 6.283, sp: B.sp * (.8 + rnd() * .4), v: gauss() * (out ? .25 : .06), r: rnd() < .06 ? 2 + rnd() * 3 : .5 + rnd() * 1.1, al: .45 + rnd() * .55, big: 0}); } });
   dust.forEach(p => p.big = p.r > 1.8);
   const layer = [document.createElement("canvas"), document.createElement("canvas")], small = document.createElement("canvas"), tiny = document.createElement("canvas");
   /* éclat selon la position sur l'orbite : plus fort à l'avant et à droite, comme éclairé */
   const lum = a => .28 + .72 * Math.max(0, Math.sin(a) * .55 + Math.cos(a) * .55 + .3);
   function ringsTo(ctx, now, intro, front){
-    const cx = W / 2 + smx * 12, cy = H * .5 + smy * 8, A0 = BW * .8 * (.4 + .6 * intro), ct = Math.cos(TILT), st = Math.sin(TILT);
-    const P = (a, k, v) => { const x = A0 * k * Math.cos(a), y = A0 * k * FL * Math.sin(a) + (v || 0) * A0 * FL; return [cx + x * ct - y * st, cy + x * st + y * ct]; };
+    const cx = W / 2 + smx * 12, cy = H * .5 + smy * 8, A0 = BW * .8 * (.4 + .6 * intro);
+    const P = (a, k, v, B) => { const ct = Math.cos(B.t), st = Math.sin(B.t), x = A0 * k * Math.cos(a), y = A0 * k * B.f * Math.sin(a) + (v || 0) * A0 * B.f; return [cx + x * ct - y * st, cy + B.dy * A0 + x * st + y * ct]; };
     ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "butt";
     /* chaque traînée = 3 tracés continus superposés (effilés aux bouts), sans points de jonction */
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     for (const S of streaks) { const base = S.a + now / 1000 * S.sp, [r, g, b] = S.col, mid = lum(base + S.span / 2);
       ctx.strokeStyle = `rgba(${Math.min(255, r + 80)},${Math.min(255, g + 70)},255,${(S.al * mid * intro / 2.4).toFixed(3)})`; ctx.lineWidth = S.w;
       for (const [t0s, t1s] of [[.04, .96], [.2, .8], [.36, .64]]) { ctx.beginPath(); let started = false;
-        for (let a = base + t0s * S.span; a <= base + t1s * S.span + 1e-6; a += .04) { const on = (Math.sin(a) > 0) === front, pt = P(a, S.k);
+        for (let a = base + t0s * S.span; a <= base + t1s * S.span + 1e-6; a += .04) { const on = (Math.sin(a) > 0) === front, pt = P(a, S.k, 0, S.B);
           if (on) { started ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]); started = true; } else started = false; }
         ctx.stroke(); } }
     for (const p of dust) { const a = p.a + now / 1000 * p.sp; if ((Math.sin(a) > 0) !== front) continue;
-      const [x, y] = P(a, p.k, p.v), al = p.al * lum(a) * intro * (.6 + .4 * Math.sin(now / 240 + p.a * 17));
+      const [x, y] = P(a, p.k, p.v, p.B), al = p.al * lum(a) * intro * (.6 + .4 * Math.sin(now / 240 + p.a * 17));
       if (p.big) { ctx.globalAlpha = al; const z = p.r * 4; ctx.drawImage(spr, x - z / 2, y - z / 2, z, z); ctx.globalAlpha = 1; }
       else { ctx.fillStyle = `rgba(228,234,255,${al.toFixed(3)})`; ctx.fillRect(x, y, p.r, p.r); } }
     ctx.globalCompositeOperation = "source-over";
@@ -2263,23 +2264,23 @@ function openTrophy(c){
     target.globalAlpha = 1; target.drawImage(tiny, 0, 0, W, H); target.drawImage(tiny, 0, 0, W, H); target.globalAlpha = .9; target.drawImage(small, 0, 0, W, H); target.globalAlpha = .85; target.drawImage(L, 0, 0, W, H); target.globalAlpha = 1;
     target.globalCompositeOperation = "source-over";
   }
-  /* c'est nous qui tournons dans l'espace : l'univers défile, le certificat reste en lévitation */
+  /* l'univers tourne tout seul derrière ; c'est le certificat qu'on fait tourner (inertie, léger zoom) */
   const blk = ov.querySelector("#trBlock"), flo = ov.querySelector(".tr-float"), sh = ov.querySelector(".tr-shine");
-  let ox = Math.random() * 4000, oy = 0, oyInit = false, vxu = 0, vyu = 0, drag = null, last = performance.now(), idleAt = performance.now(), raf = 0;
-  ov.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; drag = {x: e.clientX, y: e.clientY}; vxu = vyu = 0; ov.classList.add("grab", "used"); ov.setPointerCapture(e.pointerId); });
+  let ox = Math.random() * 4000, oy = 0, oyInit = false, ry = 0, rx = 6, vy = 0, vx = 0, zoom = 1, zt = 1, drag = null, last = performance.now(), idleAt = performance.now() - 9e3, raf = 0;
+  ov.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; drag = {x: e.clientX, y: e.clientY}; vy = vx = 0; ov.classList.add("grab", "used"); ov.setPointerCapture(e.pointerId); });
   ov.addEventListener("pointermove", e => { mx = e.clientX / W - .5; my = e.clientY / H - .5;
     if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
-    ox -= dx; oy -= dy; vxu = -dx; vyu = -dy; idleAt = performance.now(); });
+    ry += dx * .45; rx = Math.max(-70, Math.min(70, rx - dy * .35)); vy = dx * .45; vx = -dy * .35; idleAt = performance.now(); });
   const up = () => { if (drag) { drag = null; ov.classList.remove("grab"); idleAt = performance.now(); } };
   ov.addEventListener("pointerup", up); ov.addEventListener("pointercancel", up);
-  ov.addEventListener("wheel", e => { e.preventDefault(); ov.classList.add("used"); vxu += (e.deltaX + e.deltaY) * .12; vxu = Math.max(-60, Math.min(60, vxu)); idleAt = performance.now(); }, {passive: false});
+  ov.addEventListener("wheel", e => { e.preventDefault(); zt = Math.max(.9, Math.min(1.15, zt - e.deltaY * .0008)); }, {passive: false});
   function frame(now){
     if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
     const intro = ease((now - t0 - 150) / 1600), introStars = ease((now - t0) / 900);
     smx += (mx - smx) * .05; smy += (my - smy) * .05;
     /* fond : nébuleuse + étoiles en parallaxe */
     /* déplacement dans l'univers : inertie + lente dérive quand on ne touche à rien */
-    if (!drag) { ox += vxu; oy += vyu; vxu *= .95; vyu *= .9; if (now - idleAt > 2500) ox += 10 * dt; }
+    ox += 14 * dt;
     const PW = neb.width, PH = neb.height, maxY = PH - H; if (!oyInit) { oy = maxY / 2; oyInit = true; } oy = Math.max(0, Math.min(maxY, oy));
     const nx = ((ox % PW) + PW) % PW;
     bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.globalAlpha = 1; bx.drawImage(neb, -nx, -oy); if (PW - nx < W) bx.drawImage(neb, PW - nx, -oy);
@@ -2294,10 +2295,13 @@ function openTrophy(c){
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H);
     drawRings(fx, now, intro, true);
     /* certificat : en lévitation, léger balancement, il ne tourne pas avec nous */
-    const ry = Math.sin(now / 2600) * 16 + smx * 8, rx = 6 + Math.sin(now / 3300) * 5 - smy * 5;
+    if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-70, Math.min(70, rx));
+      if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2600) * 16, tx = 6 + Math.sin(now / 3300) * 5;
+        ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
+    zoom += (zt - zoom) * .12;
     blk.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    flo.style.transform = `translateY(${(Math.sin(now / 1100) * 9).toFixed(2)}px)`;
-    sh.style.setProperty("--sx", (50 - ry * 2.5) + "%"); sh.style.setProperty("--sy", (35 + rx) + "%");
+    flo.style.transform = `translateY(${(Math.sin(now / 1100) * 9).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
+    sh.style.setProperty("--sx", (50 - Math.sin(ry * Math.PI / 180) * 60) + "%"); sh.style.setProperty("--sy", (35 + rx) + "%");
     raf = requestAnimationFrame(frame);
   }
   raf = requestAnimationFrame(frame);
@@ -4352,7 +4356,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-39";
+const APP_VERSION = "2026-10-27-40";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
