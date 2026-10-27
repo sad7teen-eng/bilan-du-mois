@@ -213,6 +213,60 @@ textarea{min-height:160px;line-height:1.55;resize:vertical;white-space:pre;overf
 .e-acts .mini{padding:9px 12px;border-radius:10px}
 .e-acts .del{color:var(--loss);background:transparent}
 .addtrade{padding:12px;border-style:dashed;border-radius:12px;font-size:14px;background:transparent}
+/* ---------- Saisie d'un trade en plein écran ---------- */
+#dayModal.full{padding:2.5vh 2.5vw}
+#dayModal.full .daysheet{max-width:none;width:min(1240px,95vw);height:95vh;max-height:95vh;padding:0;display:flex;flex-direction:column;overflow:hidden;--solid:#0c0c0d}
+body.light #dayModal.full .daysheet{--solid:#f6f7f9}
+#dayModal.full .daysheet .dh{position:static;margin:0;padding:18px 26px 14px;flex:none;background:var(--solid)}
+#dayModal.full #dayList{flex:1;min-height:0;overflow:auto;padding:16px 26px 0}
+#dayModal.full #addRow{display:none}
+#dayModal.full .dh h2{font-size:24px}
+.tedit.tfull{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:28px;border:0;background:transparent;padding:6px 0 0;align-items:start}
+.tf-left{position:sticky;top:0;display:flex;flex-direction:column;gap:10px}
+.tf-right{display:flex;flex-direction:column;gap:22px}
+.tf-lab{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tf-lab b,.tfull .fld b{color:var(--loss);font-weight:600}
+.tf-lab small{text-transform:none;letter-spacing:0;font-weight:400;margin-left:6px}
+.tfull .drop.dropmain{aspect-ratio:16/10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:14px;border-radius:16px}
+.tfull .drop.dropmain b{font-size:17px;color:var(--fg);font-weight:600}
+.tfull .mainph{border-radius:16px}
+.tf-tv{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;padding:12px;border-radius:12px;border:1px solid var(--line);color:var(--fg);text-decoration:none;font-size:14px;font-weight:500;background:var(--panel-2);transition:background .15s,border-color .15s}
+.tf-tv:hover{border-color:var(--fg)}
+.tf-sec{display:flex;flex-direction:column;gap:10px}
+.tf-chips{display:flex;flex-wrap:wrap;gap:8px}
+.tf-chip{padding:9px 14px;border-radius:999px;font-size:13.5px;font-weight:500;background:var(--panel-2);border:1px solid var(--line);color:var(--fg);letter-spacing:.02em}
+.tf-chip.on{background:var(--fg)!important;color:var(--bg)!important;border-color:var(--fg)!important}
+.tf-chip.add{border-style:dashed;color:var(--muted)}
+.tf-chip.mood.on{background:var(--panel);color:var(--fg);border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.tf-newasset{width:130px;padding:8px 14px!important;border-radius:999px!important;font:500 13.5px var(--display)!important;text-transform:uppercase}
+.tfull .seg2 button{padding:13px;font-size:15px;font-weight:600}
+.tf-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tfull .fld{font-size:12px}
+.tfull .fld.bad input{border-color:var(--loss);box-shadow:0 0 0 3px rgba(255,77,77,.18)}
+.tfull .pnl{font-size:19px;padding:12px 13px}
+.tf-qa{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tf-q{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 14px;font-size:14px;color:var(--fg)}
+.tf-q + .tf-q{border-top:1px solid var(--line)}
+.tf-yn{display:flex;gap:6px;flex:none}
+.tf-yn button{min-width:58px;padding:7px 12px;border-radius:9px;font-size:13px;background:var(--panel-2)}
+.tf-yn button.on.ok{background:var(--gain);border-color:var(--gain);color:var(--on-gain)}
+.tf-yn button.on.ko{background:var(--loss);border-color:var(--loss);color:#1a0904}
+.tf-score{display:flex;align-items:center;gap:18px}
+.tf-score input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:8px;border-radius:999px;padding:0!important;border:0!important;background:linear-gradient(90deg,var(--fg) var(--v,50%),var(--line) var(--v,50%))!important;opacity:.45;cursor:pointer}
+.tf-score input[type=range].set{opacity:1}
+.tf-score input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--fg);border:4px solid var(--bg);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.tf-score input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--fg);border:4px solid var(--bg)}
+.tf-score output{min-width:74px;text-align:right;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tf-score output small{font-size:14px;color:var(--muted);font-weight:500}
+.tfull .e-acts{position:sticky;bottom:0;background:var(--solid);margin:0 -26px 0 0;padding:14px 26px 18px 0;border-top:1px solid var(--line);z-index:2}
+.tfull .e-acts .save{padding:13px 24px;font-size:15px}
+.t-sum{display:flex;flex-wrap:wrap;gap:6px}
+.t-sum span{font-size:11.5px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.t-sum span.ok{color:var(--gain);border-color:rgba(255,255,255,.25)}
+.t-sum span.ko{color:var(--loss);border-color:rgba(255,77,77,.3)}
+.t-sum span.sc{color:var(--fg);font-weight:600}
+@media (max-width:900px){.tedit.tfull{grid-template-columns:1fr}.tf-left{position:static}.tf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#dayModal.full{padding:0}#dayModal.full .daysheet{width:100%;height:100%;max-height:100%}#dayModal.full #dayList{padding:12px 16px 0}#dayModal.full .daysheet .dh{padding:14px 16px 10px}}
+
 /* Tes jours : barres par jour de la semaine */
 .wdbars{display:grid;grid-template-columns:repeat(var(--n,5),minmax(0,1fr));gap:10px;align-items:stretch;height:120px}
 .wdb{display:flex;flex-direction:column;align-items:center;min-width:0}
@@ -2485,61 +2539,82 @@ function cardHTML(t){
       <span class="t-res ${red ? "r" : "g"}">${money(t.pnl)}</span></div>
     ${imgCache[t.id + "#main"] && imgCache[t.id + "#main"][0] ? `<div class="t-photo"><img src="${imgCache[t.id + "#main"][0]}" alt="Photo du trade"></div>` : ""}
     ${t.lots || t.entry ? `<div class="t-meta">${t.lots ? t.lots + " lots" : ""}${t.entry ? ` · ${Number(t.entry).toFixed(2)} → ${Number(t.exit).toFixed(2)}` : ""}${t.time ? ` · ${esc(t.time)}` : ""}${t.r != null && t.r !== "" ? ` <span class="rr ${t.r < 0 ? "r" : "g"}">${t.r > 0 ? "+" : ""}${String(t.r).replace(".", ",")}R</span>` : ""}</div>` : ""}
+    ${tradeSummary(t).length || (t.mood || []).length || t.score != null ? `<div class="t-sum">${t.score != null ? `<span class="sc">${t.score}/10</span>` : ""}${tradeSummary(t).map(x => `<span class="${x.ok ? "ok" : "ko"}">${esc(x.txt)}</span>`).join("")}${(t.mood || []).map(m => `<span>${esc(m)}</span>`).join("")}</div>` : ""}
     ${t.note ? `<p class="t-ana">${esc(t.note)}</p>` : ""}
     ${thumbsHTML(imgs, false)}
     <div class="t-acts"><button type="button" class="go play" data-play="${t.id}">▶ Lancer l'animation</button></div>
   </article>`;
 }
+/* ---- Saisie d'un trade : plein écran, rapide, questionnaire au lieu d'étiquettes ---- */
+const BASE_ASSETS = ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "NAS100", "US30", "SPX500", "GER40", "BTCUSD"];
+const TV_SYM = {XAUUSD: "OANDA:XAUUSD", EURUSD: "FX:EURUSD", GBPUSD: "FX:GBPUSD", USDJPY: "FX:USDJPY", NAS100: "OANDA:NAS100USD", US30: "OANDA:US30USD", SPX500: "OANDA:SPX500USD", GER40: "OANDA:DE30EUR", BTCUSD: "BITSTAMP:BTCUSD"};
+const QA = [
+  {k: "plan", q: "As-tu respecté ton plan ?", good: true, y: "Plan respecté", n: "Plan non respecté"},
+  {k: "confirm", q: "As-tu attendu ta confirmation avant d'entrer ?", good: true, y: "Patient à l'entrée", n: "Entrée précipitée"},
+  {k: "risk", q: "As-tu respecté ton risque (lots, stop) ?", good: true, y: "Risque respecté", n: "Risque dépassé"},
+  {k: "moved", q: "As-tu déplacé ton stop ou ton objectif ?", good: false, y: "Stop / objectif déplacé", n: "Gestion tenue"},
+  {k: "emo", q: "As-tu tradé sous le coup d'une émotion (peur, FOMO, revanche) ?", good: false, y: "Trade émotionnel", n: "Tête froide"},
+  {k: "happy", q: "Es-tu content de ce trade ?", good: true, y: "Content du trade", n: "Pas content du trade"}];
+const MOODS = ["Patient", "Discipliné", "Confiant", "Calme", "Concentré", "Impatient", "Stressé", "Frustré", "Euphorique", "Fatigué"];
+function tradeSummary(t){ const qa = t.qa || {}, out = [];
+  QA.forEach(x => { if (qa[x.k] === true || qa[x.k] === false) out.push({txt: qa[x.k] ? x.y : x.n, ok: qa[x.k] === x.good}); });
+  return out; }
+const assetList = () => [...new Set([...BASE_ASSETS, ...(state.assets || [])])];
 function editHTML(){
-  const t = edit, imgs = imgCache[t.id] || [];
-  const main = (imgCache[t.id + "#main"] || [])[0];
-  return `<form class="tedit" id="editForm">
-    <div class="fld">Photo du trade
+  const t = edit, imgs = imgCache[t.id] || [], main = (imgCache[t.id + "#main"] || [])[0], qa = t.qa || {}, moods = t.mood || [], sym = (t.sym || "").toUpperCase();
+  const assets = assetList(); if (sym && !assets.includes(sym)) assets.push(sym);
+  const val = (k, d) => t[k + "Txt"] !== undefined ? t[k + "Txt"] : (t[k] != null && t[k] !== "" ? String(t[k]).replace(".", ",") : (d || ""));
+  const tv = "https://www.tradingview.com/chart/?symbol=" + encodeURIComponent(TV_SYM[sym] || sym || "OANDA:XAUUSD");
+  const sc = t.score != null && t.score !== "" ? +t.score : null;
+  return `<form class="tedit tfull" id="editForm" novalidate>
+    <div class="tf-left">
+      <div class="tf-lab">Photo du trade <b>*</b></div>
       ${main ? `<div class="mainph"><img src="${main}" alt="Photo du trade"><div class="ph-acts"><button type="button" id="mainCrop">Rogner</button><button type="button" id="mainRm">Retirer</button></div></div>`
-             : `<div class="drop dropmain" id="dropMain" tabindex="0" role="button">Glissez la photo du trade ici, ou touchez pour l'ajouter</div>`}
-    </div>
-    <div class="fld">Autres captures (H4, H1, analyse…)
-      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou touchez pour les ajouter</div>
+             : `<div class="drop dropmain" id="dropMain" tabindex="0" role="button"><b>Glissez la photo du trade ici</b><span>ou cliquez pour la choisir</span></div>`}
+      <div class="tf-lab">Autres captures <small>H4, H1, analyse… · facultatif</small></div>
+      <div class="drop" id="drop" tabindex="0" role="button">Glissez vos captures ici, ou cliquez pour les ajouter</div>
       ${thumbsHTML(imgs, true)}
+      <a class="tf-tv" href="${tv}" target="_blank" rel="noopener">Ouvrir ${esc(sym || "le graphique")} sur TradingView <span aria-hidden="true">↗</span></a>
     </div>
-    <div class="row2">
-      <label class="fld" for="e-pnl">Résultat<input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
-      <label class="fld" for="e-r">Nombre de R *<input class="pnl" id="e-r" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${t.r != null ? esc(String(t.r).replace(".", ",")) : ""}"></label>
-    </div>
-    <div class="row2">
-      <label class="fld" for="e-time">Heure d'entrée *<input id="e-time" type="time" value="${esc(t.time || "")}"></label>
-      <label class="fld" for="e-lots">Lots<input class="pnl" id="e-lots" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" value="${t.lots != null ? esc(String(t.lots).replace(".", ",")) : ""}"></label>
-    </div>
-    <div class="row2">
-      <label class="fld" for="e-entry">Prix d'entrée<input class="pnl" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${t.entry != null ? esc(String(t.entry).replace(".", ",")) : ""}"></label>
-      <label class="fld" for="e-exit">Prix de sortie<input class="pnl" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${t.exit != null ? esc(String(t.exit).replace(".", ",")) : ""}"></label>
-    </div>
-    <div class="row2">
-      <label class="fld" for="e-sym">Actif<input id="e-sym" value="${esc(t.sym)}"></label>
-      <div class="fld">Sens<div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></div>
-    </div>
-    <label class="fld" for="e-tags">Étiquettes <small class="muted">(séparées par des virgules)</small><input id="e-tags" autocomplete="off" placeholder="Patient, Discipliné, FVG H1" value="${esc((t.tags || []).join(", "))}"></label>
-    <label class="fld" for="e-note">Explique ton analyse<textarea id="e-note" placeholder="Pourquoi ce trade, ce que tu as vu, ce que tu en retiens">${esc(t.note)}</textarea></label>
-    <div class="fld">Note<div class="seg2">${["A+", "A", "B", "C"].map(o => `<button type="button" class="${t.grade === o ? "on" : ""}" data-grade="${o}">${o}</button>`).join("")}</div></div>
-    <p class="err" id="dayErr" hidden></p>
-    <div class="e-acts">
-      <button type="button" class="mini" id="eImgs">Images</button>
-      <button type="button" class="mini go" id="ePlay">▶ Lancer</button>
-      <span class="grow"></span>
-      ${state.trades.some(x => x.id === t.id) ? `<button type="button" class="mini del" id="eDel">Supprimer</button>` : ""}
-      <button type="button" class="mini ghost" id="eCancel">Annuler</button>
-      <button type="submit" class="go save">Enregistrer</button>
+    <div class="tf-right">
+      <section class="tf-sec"><div class="tf-lab">Actif <b>*</b></div>
+        <div class="tf-chips">${assets.map(a => `<button type="button" class="tf-chip${a === sym ? " on" : ""}" data-sym="${esc(a)}">${esc(a)}</button>`).join("")}
+          ${t.addAsset ? `<input class="tf-newasset" id="e-newsym" placeholder="Ex. USOIL" autocomplete="off" spellcheck="false" maxlength="14">` : `<button type="button" class="tf-chip add" data-symadd="1">+ Autre</button>`}</div></section>
+      <section class="tf-sec"><div class="tf-lab">Sens <b>*</b></div><div class="seg2">${["Long", "Short"].map(o => `<button type="button" class="${o.toLowerCase()}${t.side === o ? " on" : ""}" data-side="${o}">${o}</button>`).join("")}</div></section>
+      <section class="tf-sec tf-grid">
+        <label class="fld" for="e-pnl"><span>Résultat <b>*</b></span><input class="pnl" id="e-pnl" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="250 ou -250" value="${esc(t.pnl)}"></label>
+        <label class="fld" for="e-r"><span>Nombre de R <b>*</b></span><input class="pnl" id="e-r" type="text" autocomplete="off" spellcheck="false" placeholder="2,5 ou -1" value="${esc(val("r"))}"></label>
+        <label class="fld" for="e-lots"><span>Lots <b>*</b></span><input class="pnl" id="e-lots" type="text" inputmode="decimal" autocomplete="off" placeholder="3,5" value="${esc(val("lots"))}"></label>
+        <label class="fld" for="e-time"><span>Heure d'entrée <b>*</b></span><input class="pnl" id="e-time" type="time" value="${esc(t.time || "")}"></label>
+        <label class="fld" for="e-entry"><span>Prix d'entrée <b>*</b></span><input class="pnl" id="e-entry" type="text" inputmode="decimal" autocomplete="off" placeholder="4 182,53" value="${esc(val("entry"))}"></label>
+        <label class="fld" for="e-exit"><span>Prix de sortie <b>*</b></span><input class="pnl" id="e-exit" type="text" inputmode="decimal" autocomplete="off" placeholder="4 150,53" value="${esc(val("exit"))}"></label>
+      </section>
+      <section class="tf-sec"><div class="tf-lab">Ton trade en 6 questions <small>facultatif · un clic par question</small></div>
+        <div class="tf-qa">${QA.map(x => `<div class="tf-q"><span>${x.q}</span><div class="tf-yn">${[["oui", true], ["non", false]].map(([l, v]) => `<button type="button" class="${qa[x.k] === v ? "on " + (v === x.good ? "ok" : "ko") : ""}" data-qa="${x.k}" data-v="${v ? 1 : 0}">${l === "oui" ? "Oui" : "Non"}</button>`).join("")}</div></div>`).join("")}</div></section>
+      <section class="tf-sec"><div class="tf-lab">Comment tu te sentais <small>facultatif · plusieurs choix possibles</small></div>
+        <div class="tf-chips">${MOODS.map(m => `<button type="button" class="tf-chip mood${moods.includes(m) ? " on" : ""}" data-mood="${m}">${m}</button>`).join("")}</div></section>
+      <section class="tf-sec"><div class="tf-lab">Note du trade <small>facultatif · de 0 à 10</small></div>
+        <div class="tf-score"><input type="range" id="e-score" min="0" max="10" step="1" value="${sc != null ? sc : 5}" class="${sc != null ? "set" : ""}" style="--v:${(sc != null ? sc : 5) * 10}%"><output id="e-scoreV">${sc != null ? sc + "<small>/10</small>" : "—"}</output></div></section>
+      <p class="err" id="dayErr" hidden></p>
+      <div class="e-acts">
+        <button type="button" class="mini go" id="ePlay">▶ Lancer l'animation</button>
+        <span class="grow"></span>
+        ${state.trades.some(x => x.id === t.id) ? `<button type="button" class="mini del" id="eDel">Supprimer</button>` : ""}
+        <button type="button" class="mini ghost" id="eCancel">Annuler</button>
+        <button type="submit" class="go save">Enregistrer le trade</button>
+      </div>
     </div>
   </form>`;
 }
 function drawDay(){
   const ts = dayTrades(), tot = ts.reduce((a, t) => a + t.pnl, 0);
   $("daySum").innerHTML = ts.length ? `${ts.length} trade${ts.length > 1 ? "s" : ""} · <span class="${tot < 0 ? "r" : "g"}">${money(tot)}</span>` : "Aucun trade ce jour";
-  let html = ts.map(t => editId === t.id ? editHTML() : cardHTML(t)).join("");
-  if (editId && !ts.some(t => t.id === editId)) html += editHTML();
+  $("dayModal").classList.toggle("full", !!editId);
+  const html = editId ? editHTML() : ts.map(cardHTML).join("");
   $("dayList").innerHTML = html;
   $("addRow").hidden = !!editId;
-  const f = document.getElementById("e-pnl"); if (f && !String(edit.pnl).trim()) f.focus();
+  const na = document.getElementById("e-newsym"); if (na) { na.focus(); return; }
+  const f = document.getElementById("e-pnl"); if (f && !String(edit.pnl).trim() && !f.dataset.done) f.focus();
 }
 async function openDay(d){
   dayOpen = d;
@@ -2548,11 +2623,12 @@ async function openDay(d){
   if (!dayTrades().length) startNew(); else { editId = null; edit = null; }
   drawDay(); $("dayModal").hidden = false;
 }
-function startNew(){ edit = {id: uid(), pnl: "", sym: "XAUUSD", side: "Long", setup: "", grade: "", note: ""}; editId = edit.id; }
+function startNew(){ const last = [...state.trades].reverse()[0]; edit = {id: uid(), pnl: "", sym: state.lastSym || (last && last.sym) || "XAUUSD", side: "", setup: "", grade: "", note: "", qa: {}, mood: [], score: null}; editId = edit.id; }
 function readForm(){
   if (!edit) return;
   const g = id => document.getElementById(id);
-  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.entryTxt = g("e-entry").value; edit.exitTxt = g("e-exit").value; edit.lotsTxt = g("e-lots").value; edit.tags = g("e-tags").value.split(",").map(x => x.trim()).filter(Boolean).slice(0, 8); edit.sym = g("e-sym").value; edit.note = g("e-note").value; }
+  if (g("e-pnl")) { edit.pnl = g("e-pnl").value; edit.rTxt = g("e-r").value; edit.time = g("e-time").value; edit.entryTxt = g("e-entry").value; edit.exitTxt = g("e-exit").value; edit.lotsTxt = g("e-lots").value; }
+  const na = g("e-newsym"); if (na && na.value.trim()) addAsset(na.value);
 }
 async function addImages(files){
   files = [...files].filter(f => f.type.startsWith("image/")).slice(0, 6);
@@ -2631,9 +2707,11 @@ $("dayList").addEventListener("click", e => {
   if (ds.edit) { const t = state.trades.find(x => x.id === ds.edit); edit = {...t}; editId = t.id; drawDay(); return; }
   if (ds.play) { const t = state.trades.find(x => x.id === ds.play); if (t) playTradeObj(t); return; }
   if (ds.side) { readForm(); edit.side = ds.side; drawDay(); return; }
-  if (ds.grade) { readForm(); edit.grade = edit.grade === ds.grade ? "" : ds.grade; drawDay(); return; }
+  if (ds.sym) { readForm(); edit.sym = ds.sym; edit.addAsset = false; state.lastSym = ds.sym; drawDay(); return; }
+  if (ds.symadd) { readForm(); edit.addAsset = true; drawDay(); return; }
+  if (ds.qa) { readForm(); edit.qa = {...(edit.qa || {})}; const v = ds.v === "1"; edit.qa[ds.qa] = edit.qa[ds.qa] === v ? undefined : v; drawDay(); return; }
+  if (ds.mood) { readForm(); const m = new Set(edit.mood || []); m.has(ds.mood) ? m.delete(ds.mood) : m.add(ds.mood); edit.mood = [...m]; drawDay(); return; }
   if (ds.rmimg) { readForm(); const a = [...(imgCache[edit.id] || [])]; a.splice(+ds.rmimg, 1); idb.set(edit.id, a).then(drawDay); return; }
-  if (b.id === "eImgs") { $("imgPick").value = ""; $("imgPick").click(); return; }
   if (b.id === "ePlay") {
     readForm(); const v = num(edit.pnl);
     if (!isFinite(v)) { const er = $("dayErr"); er.textContent = "Écris d'abord le résultat, par exemple 250 ou -120."; er.hidden = false; return; }
@@ -2662,17 +2740,32 @@ $("dayModal").addEventListener("drop", e => {
   setMainFile(files[0]); if (files.length > 1) addImages(files.slice(1));
 });
 $("imgPick").addEventListener("change", () => addImages($("imgPick").files));
+function addAsset(v){ const a = String(v).toUpperCase().replace(/[^A-Z0-9.!_-]/g, "").slice(0, 14); if (!a || !edit) return;
+  state.assets = [...new Set([...(state.assets || []), a])].filter(x => !BASE_ASSETS.includes(x)); edit.sym = a; state.lastSym = a; edit.addAsset = false; save(); }
+$("dayList").addEventListener("keydown", e => { if (e.target.id === "e-newsym" && e.key === "Enter") { e.preventDefault(); addAsset(e.target.value); edit.addAsset = false; drawDay(); }
+  if (e.target.id === "e-newsym" && e.key === "Escape") { e.stopPropagation(); edit.addAsset = false; drawDay(); } });
+$("dayList").addEventListener("focusout", e => { if (e.target.id === "e-newsym") setTimeout(() => { if (!edit || !document.getElementById("e-newsym")) return; readForm(); edit.addAsset = false; drawDay(); }, 120); });
+$("dayList").addEventListener("input", e => { if (e.target.id !== "e-score" || !edit) return; const v = +e.target.value; edit.score = v; e.target.classList.add("set"); e.target.style.setProperty("--v", v * 10 + "%"); document.getElementById("e-scoreV").innerHTML = v + "<small>/10</small>"; });
 $("dayList").addEventListener("submit", e => {
   e.preventDefault(); readForm();
   const v = num(edit.pnl);
   const er = $("dayErr");
-  if (!(imgCache[edit.id + "#main"] || []).length) { er.textContent = "Ajoute la photo du trade pour pouvoir le valider."; er.hidden = false; document.querySelector(".tedit").scrollIntoView({block: "start", behavior: "smooth"}); return; }
-  if (!isFinite(v)) { er.textContent = "Résultat illisible. Écris un nombre, par exemple 250 ou -120."; er.hidden = false; return; }
+  if (!(imgCache[edit.id + "#main"] || []).length) { er.textContent = "Ajoute la photo du trade pour pouvoir le valider."; er.hidden = false; document.getElementById("dayList").scrollTo({top: 0, behavior: "smooth"}); return; }
+  const need = (cond, msg, id) => { if (cond) return false; er.textContent = msg; er.hidden = false; const el = id && document.getElementById(id); if (el) { el.focus(); el.closest(".fld")?.classList.add("bad"); setTimeout(() => el.closest(".fld")?.classList.remove("bad"), 1600); } return true; };
+  if (need(!!(edit.sym || "").trim(), "Choisis l'actif tradé.")) return;
+  if (need(edit.side === "Long" || edit.side === "Short", "Choisis le sens : Long ou Short.")) return;
+  if (need(isFinite(v), "Résultat illisible. Écris un nombre, par exemple 250 ou -120.", "e-pnl")) return;
+  if (need(String(edit.lotsTxt || "").trim() && isFinite(num(edit.lotsTxt)), "Indique le nombre de lots, par exemple 3,5.", "e-lots")) return;
+  if (need(String(edit.entryTxt || "").trim() && isFinite(num(edit.entryTxt)), "Indique le prix d'entrée.", "e-entry")) return;
+  if (need(String(edit.exitTxt || "").trim() && isFinite(num(edit.exitTxt)), "Indique le prix de sortie.", "e-exit")) return;
   if (!edit.time) { er.textContent = "Indique l'heure d'entrée : sans elle, le trade ne s'affiche pas au bon endroit sur le graphique."; er.hidden = false; document.getElementById("e-time")?.focus(); return; }
   [["entryTxt", "entry"], ["exitTxt", "exit"], ["lotsTxt", "lots"]].forEach(([a, b]) => { if (edit[a] !== undefined) { const v = num(edit[a]); edit[b] = String(edit[a]).trim() && isFinite(v) ? v : null; delete edit[a]; } });
   if (edit.rTxt !== undefined && (!String(edit.rTxt).trim() || !isFinite(num(edit.rTxt)))) { er.textContent = "Indique le nombre de R (par exemple 2,5 ou -1) : il est obligatoire pour tes statistiques."; er.hidden = false; return; }
   if (edit.rTxt !== undefined) { const rv = num(edit.rTxt); edit.r = String(edit.rTxt).trim() && isFinite(rv) ? rv : null; delete edit.rTxt; }
-  const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade, note: (edit.note || "").trim()};
+  const qa = {}; Object.entries(edit.qa || {}).forEach(([k, x]) => { if (x === true || x === false) qa[k] = x; });
+  const row = {...edit, id: edit.id, day: dayOpen, pnl: v, sym: (edit.sym || "").trim().toUpperCase() || "XAUUSD", side: edit.side, setup: edit.setup || "", grade: edit.grade || "", note: (edit.note || "").trim(),
+    qa, mood: edit.mood || [], score: edit.score != null && edit.score !== "" ? +edit.score : null, tags: [...(edit.mood || []), ...tradeSummary({qa}).map(x => x.txt)].slice(0, 10)};
+  delete row.addAsset;
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
   state.trades.sort((a, b) => a.day - b.day);
@@ -4431,7 +4524,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-55";
+const APP_VERSION = "2026-10-27-56";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
