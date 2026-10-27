@@ -1496,51 +1496,38 @@ body.incerts .dcard.on{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 80px rgba(120,
 body.incerts .ripple i{border-color:rgba(245,245,247,.8)}
 body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22%2F%3E%3C%2Fsvg%3E") 8 8, auto!important}
 
-.troph{position:fixed;inset:0;z-index:75;background:#000;overflow:hidden;opacity:0;transition:opacity .3s}
+.troph{position:fixed;inset:0;z-index:75;background:#02030a;overflow:hidden;opacity:0;transition:opacity .4s;cursor:grab;touch-action:none;user-select:none}
+.troph.grab,.troph.grab *{cursor:grabbing!important}
 .troph.go{opacity:1}
 .troph.out{opacity:0;transition:opacity .4s}
-/* la porte : deux battants qui s'écartent sur un filet de lumière */
-.tr-door{position:absolute;inset:0;z-index:3;pointer-events:none}
-.tr-door b{position:absolute;top:0;bottom:0;width:50%;background:#000;transition:transform .9s cubic-bezier(.7,0,.3,1) .25s}
-.tr-door .dl{left:0;box-shadow:inset -1px 0 0 rgba(255,255,255,.35)}
-.tr-door .dr{right:0;box-shadow:inset 1px 0 0 rgba(255,255,255,.35)}
-.troph.go .tr-door .dl{transform:translateX(-101%)}
-.troph.go .tr-door .dr{transform:translateX(101%)}
-/* le couloir */
-.tr-corr{position:absolute;inset:0;perspective:700px;perspective-origin:50% 50%;transition:opacity .5s}
-.tr-cam{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(0);transition:transform 2.5s cubic-bezier(.45,0,.25,1)}
-.troph.walk .tr-cam{transform:translateZ(2950px)}
-.tr-far{position:absolute;left:50%;top:50%;width:min(48vw,640px);transform:translate(-50%,-50%) translateZ(-3200px)}
-.tr-far img{width:100%;display:block;filter:blur(14px) brightness(.25);transition:filter 2.4s cubic-bezier(.4,0,.2,1)}
-.troph.walk .tr-far img{filter:blur(6px) brightness(.45)}
-.troph.lit .tr-far img{filter:blur(0) brightness(1);transition:filter 1.3s cubic-bezier(.4,0,.2,1)}
-.troph.show .tr-corr{opacity:0}
-/* le bloc de plexi qui pop */
-.tr-stage{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);perspective:1400px;--d:46px;z-index:1}
-.tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.9;transition:opacity .35s,scale .7s cubic-bezier(.2,1.5,.4,1)}
-.troph.show .tr-block{opacity:1;scale:1}
+.tr-sky,.tr-fore{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.tr-fore{z-index:2}
+.tr-stage{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);perspective:1600px;--d:40px;z-index:1}
+.tr-float{transform-style:preserve-3d}
+.tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.35;filter:blur(10px);
+  transition:opacity .6s,scale 1.3s cubic-bezier(.16,1.12,.3,1),filter 1s}
+.troph.show .tr-block{opacity:1;scale:1;filter:none}
 .tr-face{position:absolute;backface-visibility:visible}
-.tr-print{inset:5%;transform:translateZ(-4px)}
-.tr-print img{width:100%;height:100%;object-fit:contain;display:block}
-.tr-front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:3px;
-  background:linear-gradient(135deg,rgba(255,255,255,.2) 0%,rgba(255,255,255,.02) 30%,rgba(255,255,255,0) 65%,rgba(255,255,255,.06) 100%);
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6),inset 0 0 18px rgba(255,255,255,.12)}
-.tr-shine{position:absolute;inset:0;border-radius:3px;pointer-events:none;mix-blend-mode:screen;
-  background:radial-gradient(45% 40% at var(--sx,50%) var(--sy,30%),rgba(255,255,255,.26),transparent 65%),linear-gradient(118deg,transparent 36%,rgba(255,255,255,.14) 45%,transparent 56%)}
-.tr-back{inset:0;transform:translateZ(calc(var(--d) / -2)) rotateY(180deg);border-radius:3px;background:rgba(255,255,255,.03);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
-.tr-l,.tr-r{top:0;height:100%;width:var(--d);left:50%;margin-left:calc(var(--d) / -2);background:linear-gradient(90deg,rgba(255,255,255,.5),rgba(255,255,255,.12) 35%,rgba(255,255,255,.08) 65%,rgba(255,255,255,.4))}
+.tr-print{inset:5%;transform:translateZ(-3px)}
+.tr-print img{width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;pointer-events:none}
+.tr-front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:4px;
+  background:linear-gradient(135deg,rgba(200,215,255,.22) 0%,rgba(255,255,255,.03) 32%,rgba(255,255,255,0) 64%,rgba(170,190,255,.10) 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(225,232,255,.75),inset 0 0 26px rgba(140,165,255,.22),0 0 40px rgba(110,140,255,.25)}
+.tr-shine{position:absolute;inset:0;border-radius:4px;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(45% 40% at var(--sx,50%) var(--sy,30%),rgba(255,255,255,.28),transparent 65%),linear-gradient(118deg,transparent 36%,rgba(255,255,255,.13) 45%,transparent 56%)}
+.tr-back{inset:0;transform:translateZ(calc(var(--d) / -2)) rotateY(180deg);border-radius:4px;background:rgba(140,160,255,.05);box-shadow:inset 0 0 0 1.5px rgba(210,220,255,.5),inset 0 0 26px rgba(140,165,255,.18)}
+.tr-l,.tr-r{top:0;height:100%;width:var(--d);left:50%;margin-left:calc(var(--d) / -2);background:linear-gradient(90deg,rgba(220,230,255,.6),rgba(150,170,255,.16) 35%,rgba(150,170,255,.12) 65%,rgba(220,230,255,.5))}
 .tr-l{transform:translateX(calc(var(--bw,560px) / -2)) rotateY(-90deg)}
 .tr-r{transform:translateX(calc(var(--bw,560px) / 2)) rotateY(90deg)}
-.tr-t,.tr-b{left:0;width:100%;height:var(--d);top:50%;margin-top:calc(var(--d) / -2);background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.12) 40%,rgba(255,255,255,.08) 70%,rgba(255,255,255,.35))}
+.tr-t,.tr-b{left:0;width:100%;height:var(--d);top:50%;margin-top:calc(var(--d) / -2);background:linear-gradient(180deg,rgba(225,232,255,.65),rgba(150,170,255,.16) 40%,rgba(150,170,255,.12) 70%,rgba(220,230,255,.45))}
 .tr-t{transform:translateY(calc(var(--bh,420px) / -2)) rotateX(90deg)}
 .tr-b{transform:translateY(calc(var(--bh,420px) / 2)) rotateX(-90deg)}
-.tr-pool{position:absolute;left:50%;top:calc(100% + 26px);width:calc(var(--bw,560px) * 1.3);height:70px;transform:translateX(-50%);opacity:0;
-  background:radial-gradient(50% 50% at 50% 50%,rgba(255,255,255,.14),transparent 70%);filter:blur(6px);transition:opacity 1s .2s}
-.troph.show .tr-pool{opacity:1}
-.tr-acts{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .5s .5s;z-index:4}
+.tr-hint{position:absolute;left:50%;top:calc(22px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:3;font-size:12px;letter-spacing:.08em;color:rgba(220,228,255,.55);opacity:0;transition:opacity .6s 1.6s}
+.troph.show .tr-hint{opacity:1}.troph.used .tr-hint{opacity:0;transition:opacity .4s}
+.tr-acts{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .6s 1.2s;z-index:4}
 .troph.show .tr-acts{opacity:1}
-.tr-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important}
-@media (prefers-reduced-motion:reduce){.tr-cam,.tr-block,.tr-door b{transition:none}}
+.tr-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.2)!important;backdrop-filter:blur(8px);cursor:pointer!important}
+@media (prefers-reduced-motion:reduce){.tr-block{transition:none}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2172,50 +2159,113 @@ function layoutDeck(){
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
-/* ===== Salle des trophées : couloir → lumières → certificat dans un bloc de verre, inclinable ===== */
+/* ===== Trophée : le certificat en lévitation dans l'espace, anneaux d'énergie, rotation libre ===== */
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
   const ov = document.createElement("div"); ov.className = "troph";
   ov.innerHTML = `
-    <div class="tr-corr"><div class="tr-cam"><div class="tr-far"><img src="${im}" alt=""></div></div></div>
-    <div class="tr-door"><b class="dl"></b><b class="dr"></b></div>
-    <div class="tr-stage">
+    <canvas class="tr-sky"></canvas>
+    <div class="tr-stage"><div class="tr-float">
       <div class="tr-block" id="trBlock">
         <div class="tr-face tr-print"><img src="${im}" alt="Certificat ${esc(c.firm)}"></div>
         <div class="tr-face tr-front"><span class="tr-shine"></span></div>
         <div class="tr-face tr-back"></div><div class="tr-face tr-l"></div><div class="tr-face tr-r"></div><div class="tr-face tr-t"></div><div class="tr-face tr-b"></div>
-      </div>
-      <div class="tr-pool"></div>
+      </div></div>
     </div>
+    <canvas class="tr-fore"></canvas>
+    <div class="tr-hint">Glissez pour faire tourner</div>
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
-  const img = ov.querySelector(".tr-print img");
+  const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore");
+  const bx = sky.getContext("2d"), fx = fore.getContext("2d");
+  let W = 0, H = 0, dpr = 1, BW = 560, BH = 420, neb = null;
   const fit = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3;
-    const h = Math.min(innerHeight * .4, (innerWidth * .56) / r), w = h * r; ov.style.setProperty("--bw", w + "px"); ov.style.setProperty("--bh", h + "px"); };
-  img.complete ? fit() : img.addEventListener("load", fit); addEventListener("resize", fit);
+    BH = Math.min(innerHeight * .42, (innerWidth * .5) / r); BW = BH * r; ov.style.setProperty("--bw", BW + "px"); ov.style.setProperty("--bh", BH + "px");
+    W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
+    for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
+    /* nébuleuse pré-rendue une fois */
+    neb = document.createElement("canvas"); neb.width = W; neb.height = H; const n = neb.getContext("2d");
+    n.fillStyle = "#03040c"; n.fillRect(0, 0, W, H);
+    const blob = (x, y, r, col) => { const g = n.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, "rgba(0,0,0,0)"); n.fillStyle = g; n.fillRect(0, 0, W, H); };
+    blob(W * .5, H * .5, Math.max(W, H) * .6, "rgba(28,36,110,.55)");
+    blob(W * .08, H * .35, W * .28, "rgba(60,90,200,.35)"); blob(W * .05, H * .45, W * .12, "rgba(150,90,220,.25)");
+    blob(W * .95, H * .55, W * .25, "rgba(50,100,220,.32)"); blob(W * .8, H * .15, W * .18, "rgba(90,60,180,.18)");
+    blob(W * .3, H * .9, W * .3, "rgba(30,50,140,.25)"); };
+  img.complete ? fit() : img.addEventListener("load", fit); fit(); addEventListener("resize", fit);
+  /* étoiles sur plusieurs profondeurs */
+  const rnd = Math.random, stars = Array.from({length: 900}, () => ({x: rnd(), y: rnd(), z: .15 + rnd() * .85, r: rnd() < .03 ? 1.6 + rnd() : .3 + rnd() * .9, p: rnd() * 7, h: rnd() < .25 ? 1 : 0}));
+  /* anneaux d'énergie : ellipses inclinées, particules qui y circulent */
+  const rings = [
+    {k: 1.0, f: .30, t: -.24, sp: .55, col: [150, 170, 255], w: 2.2},
+    {k: 1.18, f: .27, t: -.20, sp: -.38, col: [190, 150, 255], w: 1.4},
+    {k: .86, f: .34, t: -.30, sp: .8, col: [120, 200, 255], w: 1.2},
+    {k: 1.34, f: .24, t: -.17, sp: .25, col: [210, 200, 255], w: .9}];
+  rings.forEach(R => R.parts = Array.from({length: 260}, () => ({a: rnd() * 6.283, j: (rnd() - .5) * .12, s: .6 + rnd() * .8, r: rnd() < .1 ? 1.8 : .5 + rnd() * 1})));
+  const t0 = performance.now(), ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  let mx = 0, my = 0, smx = 0, smy = 0;
+  function drawRing(ctx, R, now, intro, front){
+    const cx = W / 2, cy = H * .5, A = BW * .78 * R.k * (.35 + .65 * intro), B = A * R.f, ct = Math.cos(R.t + smy * .05), st = Math.sin(R.t + smy * .05);
+    const P = a => { const x = A * Math.cos(a), y = B * Math.sin(a); return [cx + x * ct - y * st + smx * 14, cy + x * st + y * ct + smy * 10]; };
+    const head = now / 1000 * R.sp * 1.6, [r, g, b] = R.col;
+    ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+    /* traînée lumineuse par segments, plus intense près de la tête de comète */
+    for (let i = 0; i < 160; i++) { const a0 = i / 160 * 6.283, a1 = (i + 1) / 160 * 6.283;
+      if ((Math.sin(a0) > 0) !== front) continue;
+      let d = ((a0 - head) % 6.283 + 6.283) % 6.283; if (R.sp < 0) d = 6.283 - d;
+      const glow = .25 + .75 * Math.pow(1 - d / 6.283, 2.2), al = glow * intro;
+      const [x0, y0] = P(a0), [x1, y1] = P(a1);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(al * .07).toFixed(3)})`; ctx.lineWidth = R.w * 22; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      ctx.strokeStyle = `rgba(${r},${g},${b},${(al * .22).toFixed(3)})`; ctx.lineWidth = R.w * 7; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      ctx.strokeStyle = `rgba(${Math.min(255, r + 60)},${Math.min(255, g + 60)},255,${(al * .85).toFixed(3)})`; ctx.lineWidth = R.w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+    for (const p of R.parts) { const a = p.a + now / 1000 * R.sp * p.s; if ((Math.sin(a) > 0) !== front) continue;
+      const [x, y] = P(a), off = p.j * A; const tw = .5 + .5 * Math.sin(now / 300 + p.a * 9);
+      ctx.fillStyle = `rgba(230,235,255,${(intro * (.35 + .6 * tw)).toFixed(3)})`; ctx.beginPath(); ctx.arc(x + off * .3, y + off * .5, p.r, 0, 6.283); ctx.fill(); }
+    ctx.globalCompositeOperation = "source-over";
+  }
+  /* rotation libre à la souris, inertie, petit zoom */
+  const blk = ov.querySelector("#trBlock"), flo = ov.querySelector(".tr-float"), sh = ov.querySelector(".tr-shine");
+  let ry = -25, rx = 8, vy = 0, vx = 0, drag = null, last = performance.now(), idleAt = performance.now(), zoom = 1, zt = 1, raf = 0;
+  ov.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; drag = {x: e.clientX, y: e.clientY}; vy = vx = 0; ov.classList.add("grab"); ov.setPointerCapture(e.pointerId); ov.classList.add("used"); });
+  ov.addEventListener("pointermove", e => { mx = e.clientX / W - .5; my = e.clientY / H - .5;
+    if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+    ry += dx * .45; rx = Math.max(-75, Math.min(75, rx - dy * .35)); vy = dx * .45; vx = -dy * .35; idleAt = performance.now(); });
+  const up = () => { if (drag) { drag = null; ov.classList.remove("grab"); idleAt = performance.now(); } };
+  ov.addEventListener("pointerup", up); ov.addEventListener("pointercancel", up);
+  ov.addEventListener("wheel", e => { e.preventDefault(); zt = Math.max(.88, Math.min(1.18, zt - e.deltaY * .0008)); }, {passive: false});
+  function frame(now){
+    if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const intro = ease((now - t0 - 150) / 1600), introStars = ease((now - t0) / 900);
+    smx += (mx - smx) * .05; smy += (my - smy) * .05;
+    /* fond : nébuleuse + étoiles en parallaxe */
+    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.globalAlpha = 1; bx.drawImage(neb, 0, 0, W, H);
+    for (const s of stars) { const x = (s.x * W - smx * 40 * s.z + W) % W, y = (s.y * H - smy * 30 * s.z + H) % H, tw = .55 + .45 * Math.sin(now / 900 * (1 + s.z) + s.p);
+      bx.fillStyle = s.h ? `rgba(170,190,255,${(tw * s.z * introStars).toFixed(3)})` : `rgba(255,255,255,${(tw * s.z * introStars).toFixed(3)})`;
+      bx.fillRect(x, y, s.r * s.z * 1.4, s.r * s.z * 1.4); }
+    const cg = bx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, BW * 1.1); cg.addColorStop(0, `rgba(110,130,255,${(.32 * intro).toFixed(3)})`); cg.addColorStop(1, "rgba(0,0,0,0)");
+    bx.fillStyle = cg; bx.fillRect(0, 0, W, H);
+    for (const R of rings) drawRing(bx, R, now, intro, false);
+    fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H);
+    for (const R of rings) drawRing(fx, R, now, intro, true);
+    /* certificat : inertie, retour doux face caméra quand on le laisse */
+    if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94;
+      if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2600) * 22, tx = 6 + Math.sin(now / 3300) * 6;
+        ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
+    zoom += (zt - zoom) * .12;
+    blk.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+    flo.style.transform = `translateY(${(Math.sin(now / 1100) * 9).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
+    const k = ((ry % 360) + 360) % 360; sh.style.setProperty("--sx", (50 - Math.sin(k * Math.PI / 180) * 60) + "%"); sh.style.setProperty("--sy", (35 + rx) + "%");
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
   requestAnimationFrame(() => ov.classList.add("go"));
-  const T = reduced ? 0 : 1;
-  setTimeout(() => ov.classList.add("walk"), 700 * T);   /* la porte est ouverte, on avance */
-  setTimeout(() => ov.classList.add("lit"), 1900 * T);    /* à mi-couloir, le certificat devient net */
-  setTimeout(() => ov.classList.add("show"), 3150 * T);   /* au bout : le certificat apparaît dans son bloc de plexi */
-  const blk = ov.querySelector("#trBlock"), sh = ov.querySelector(".tr-shine");
-  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, idle = performance.now();
-  const loop = now => { const free = now - idle > 2500, ax = free ? Math.sin(now / 1400) * .35 : tx, ay = free ? Math.sin(now / 1900) * .15 : ty;
-    cx += (ax - cx) * .08; cy += (ay - cy) * .08;
-    blk.style.transform = `rotateY(${(cx * 32).toFixed(2)}deg) rotateX(${(-cy * 18).toFixed(2)}deg)`;
-    sh.style.setProperty("--sx", (50 - cx * 70) + "%"); sh.style.setProperty("--sy", (35 - cy * 50) + "%");
-    if (ov.isConnected) raf = requestAnimationFrame(loop); };
-  raf = requestAnimationFrame(loop);
-  const mv = (x, y) => { tx = Math.max(-1, Math.min(1, (x / innerWidth - .5) * 2)); ty = Math.max(-1, Math.min(1, (y / innerHeight - .5) * 2)); idle = performance.now(); };
-  ov.addEventListener("pointermove", e => mv(e.clientX, e.clientY));
-  ov.addEventListener("touchmove", e => mv(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
-  const close = () => { ov.classList.remove("show", "lit", "walk", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
+  setTimeout(() => ov.classList.add("show"), reduced ? 0 : 350);
+  const close = () => { ov.classList.remove("show", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
     setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); };
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
-  ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]");
-    if (b && b.dataset.tr === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 460); return; }
-    if (b && b.dataset.tr === "close") close(); });
+  ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]"); if (!b) return;
+    if (b.dataset.tr === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 460); return; }
+    if (b.dataset.tr === "close") close(); });
 }
 
 (() => {
@@ -4259,7 +4309,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-35";
+const APP_VERSION = "2026-10-27-36";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
