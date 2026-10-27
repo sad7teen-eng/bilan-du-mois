@@ -1297,16 +1297,27 @@ section.view.venter .wdb .dn2 i{transform-origin:top;animation:barUp .6s cubic-b
 #btnPlay{position:relative;overflow:visible;isolation:isolate;padding:12px 20px!important;border-radius:999px!important}
 #btnPlay .bp-t{position:relative;z-index:1}
 #btnPlay .bp-w{position:absolute;inset:0;z-index:-1;pointer-events:none}
-#btnPlay .bp-w i{position:absolute;inset:0;border-radius:999px;border:1.5px solid currentColor;opacity:0;animation:bpWave 2.4s cubic-bezier(.2,.6,.3,1) infinite}
+#btnPlay .bp-w i{position:absolute;inset:0;border-radius:999px;border:1.2px solid currentColor;opacity:0;animation:bpWave 4.2s cubic-bezier(.2,.6,.3,1) infinite}
 body.light #btnPlay .bp-w i{border-color:#0b0b0c}
 body:not(.light) #btnPlay .bp-w i{border-color:#fff}
-#btnPlay .bp-w i:nth-child(2){animation-delay:.8s}
-#btnPlay .bp-w i:nth-child(3){animation-delay:1.6s}
-@keyframes bpWave{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.45,1.9);opacity:0}}
+#btnPlay .bp-w i:nth-child(2){animation-delay:1.4s}
+#btnPlay .bp-w i:nth-child(3){animation-delay:2.8s}
+@keyframes bpWave{0%{transform:scale(1);opacity:.4}100%{transform:scale(1.22,1.55);opacity:0}}
 #btnPlay:hover{transform:translateY(-1px) scale(1.03)}
 #btnPlay{transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 #btnPlay:disabled .bp-w{display:none}
 @media (prefers-reduced-motion:reduce){#btnPlay .bp-w{display:none}}
+
+/* --- v49 : icône « lecture » + le tableau du calendrier qui monte comme un liquide --- */
+.ready .ic{border-radius:9px!important;background:#fff!important;box-shadow:0 6px 16px rgba(255,255,255,.15)}
+body:not(.light) .ready .ic::after{border-left-color:#000!important}
+body.light .ready .ic{background:#0b0b0c!important;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.ready .ic::after{border-left-color:#fff!important;border-left-width:10px!important;border-top-width:6.5px!important;border-bottom-width:6.5px!important;margin-left:3px}
+@keyframes liquidUp{0%{opacity:0;transform:translateY(46px);clip-path:inset(92% 0 0 0 round 20px)}45%{opacity:1}100%{opacity:1;transform:none;clip-path:inset(0 0 0 0 round 20px)}}
+section.view.venter .cal,section.view.venter .rgrid > .tiles > .tile{animation:liquidUp .9s cubic-bezier(.22,.9,.25,1) both!important}
+section.view.venter .rgrid > .tiles > .tile{animation-delay:.12s!important}
+section.view.venter .cell:not(.blank){animation-delay:calc(.35s + var(--d,0s))!important}
+section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:calc(.45s + var(--d,0s))!important}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3776,7 +3787,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-8";
+const APP_VERSION = "2026-10-27-9";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
