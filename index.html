@@ -782,6 +782,24 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .tn-act{display:flex;align-items:center;gap:6px;justify-self:end}
 .tn-act button{padding:7px 11px;border-radius:999px!important;font-size:12px;white-space:nowrap}
 .tn-act svg{width:16px;height:16px;display:block}
+/* ---------- Qualité d'affichage (pour les machines qui rament) ---------- */
+.qwrap{position:relative}
+.qpop{position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:290px;padding:14px;border-radius:16px;background:var(--panel-solid,#fff);color:#0b0b0c;border:1px solid rgba(0,0,0,.08);box-shadow:0 24px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:8px;text-align:left;animation:qIn .22s ease both}
+body:not(.light) .qpop,body.incerts .qpop{background:#141416;color:#f2f2f2;border-color:#2a2a2a}
+@keyframes qIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.qpop b{font-size:14px}
+.qpop p{margin:0 0 4px;font-size:12.5px;opacity:.7;line-height:1.45}
+.qpop button{display:flex!important;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px!important;border-radius:12px!important;font-size:13.5px!important;text-align:left;white-space:normal!important;background:transparent!important;color:inherit!important;border:1px solid rgba(127,127,127,.25)!important}
+.qpop button small{font-size:11.5px;opacity:.65}
+.qpop button.on{border-color:currentColor!important;box-shadow:inset 0 0 0 1px currentColor}
+/* équilibrée : flou du verre plus léger */
+body.q-mid.light .tile,body.q-mid.light .cal,body.q-mid.light .plan,body.q-mid.light .chcard,body.q-mid.light .chside,body.q-mid.light .ready,body.q-mid.light .crow,body.q-mid.light .jc,body.q-mid.light .jsheet,body.q-mid.light .sheet,body.q-mid.light .ckread,body.q-mid.light .kvs > div,body.q-mid.light .rk > div,body.q-mid.light .tf,body.q-mid.light .ch-kpis > div{-webkit-backdrop-filter:blur(8px)!important;backdrop-filter:blur(8px)!important}
+/* légère : plus de flou du tout, cartes un peu plus opaques pour rester lisibles */
+body.q-low .tile,body.q-low .cal,body.q-low .plan,body.q-low .chcard,body.q-low .chside,body.q-low .ready,body.q-low .crow,body.q-low .jc,body.q-low .jsheet,body.q-low .sheet,body.q-low .ckread,body.q-low .kvs > div,body.q-low .rk > div,body.q-low .tf,body.q-low .ch-kpis > div,body.q-low .topnav,body.q-low .scope,body.q-low .di-in,body.q-low .modal,body.q-low .dock{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.q-low.light .tile,body.q-low.light .cal,body.q-low.light .plan,body.q-low.light .chcard,body.q-low.light .chside,body.q-low.light .ready,body.q-low.light .crow,body.q-low.light .jc,body.q-low.light .jsheet,body.q-low.light .sheet,body.q-low.light .ckread,body.q-low.light .kvs > div,body.q-low.light .rk > div,body.q-low.light .tf,body.q-low.light .ch-kpis > div{background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(250,250,252,.78))!important}
+body.q-low.light .modal{background:rgba(236,238,242,.82)}
+body.q-low .orb.o2{display:none}
+
 .dock{display:none}
 .dash{max-width:1320px!important;margin:0 auto!important;padding-top:26px!important}
 @media (min-width:901px){.dash{padding-left:36px!important;padding-right:36px!important}}
@@ -1728,7 +1746,11 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
     <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
     <div class="tn-brand">Kael<b>Journal</b></div>
     <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="tn" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button></div>
-    <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+    <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><span class="qwrap"><button type="button" id="btnQuality" aria-haspopup="true" aria-expanded="false">⚡ Fluidité</button>
+      <div class="qpop" id="qPop" hidden><b>Le site rame ?</b><p>Baissez la qualité des effets de verre. Les animations ne changent pas.</p>
+        <button type="button" data-q="high"><span>Haute</span><small>Rendu complet (recommandé si tout est fluide)</small></button>
+        <button type="button" data-q="mid"><span>Équilibrée</span><small>Flou du verre allégé</small></button>
+        <button type="button" data-q="low"><span>Légère</span><small>Sans flou du verre, planète en image fixe</small></button></div></span><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
   </div>
 </nav>
 <nav class="dock" aria-label="Pages"><button type="button" class="dk" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="dk" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="dk" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="dk" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="dk" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button><button type="button" class="dk" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></nav>
@@ -4310,6 +4332,7 @@ function makeGlobe(canvas, o = {}){
     raf = requestAnimationFrame(frame);
     /* page cachée (autre onglet du journal) : rien à dessiner, mais la boucle continue */
     if (!cw || !ch || !onScreen || document.body.classList.contains("covered") || (o.paused && o.paused())) return;
+    if (o.mini && document.body.classList.contains("q-low") && st.drawnLow && !st.drag) return; st.drawnLow = document.body.classList.contains("q-low");
     try { proj.rotate(st.rot); draw(now); blurPass(); } catch(e) {}
   }
   let cityPts = [];
@@ -4721,6 +4744,21 @@ mountMini();
 setTimeout(() => { try { loadGeo().then(() => buildMacroDom()).catch(() => {}); } catch(e) {} }, 1500);
 setView(view);
 
+
+/* ===== Qualité d'affichage : Haute / Équilibrée / Légère (mémorisée sur cet appareil) ===== */
+(() => {
+  const btn = $("btnQuality"), pop = $("qPop"); if (!btn) return;
+  let q = "high"; try { q = localStorage.getItem("bdm-quality") || "high"; } catch (e) {}
+  const apply = v => { q = v; document.body.classList.toggle("q-mid", v === "mid"); document.body.classList.toggle("q-low", v === "low");
+    pop.querySelectorAll("[data-q]").forEach(b => b.classList.toggle("on", b.dataset.q === v)); btn.textContent = v === "high" ? "⚡ Fluidité" : v === "mid" ? "⚡ Équilibrée" : "⚡ Légère";
+    try { localStorage.setItem("bdm-quality", v); } catch (e) {} };
+  apply(q);
+  btn.addEventListener("click", e => { e.stopPropagation(); pop.hidden = !pop.hidden; btn.setAttribute("aria-expanded", String(!pop.hidden)); });
+  pop.addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b) return; apply(b.dataset.q); setTimeout(() => { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); }, 250); });
+  document.addEventListener("click", e => { if (!pop.hidden && !e.target.closest(".qwrap")) { pop.hidden = true; btn.setAttribute("aria-expanded", "false"); } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") pop.hidden = true; });
+})();
+
 /* ===== Profondeur : la planète glisse plus lentement que le tableau ===== */
 (() => {
   const o1 = document.querySelector(".orb.o1"), o2 = document.querySelector(".orb.o2"); if (!o1) return;
@@ -4770,7 +4808,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-64";
+const APP_VERSION = "2026-10-27-65";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
