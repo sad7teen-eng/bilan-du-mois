@@ -1478,6 +1478,64 @@ section.view[data-view="resultats"].venter .ready{animation:readyIn .9s .12s cub
 section.view[data-view="resultats"].venter .ready .ic{animation:popIn .6s .45s cubic-bezier(.2,.8,.2,1) both}
 section.view[data-view="resultats"].venter .ready .l > div{animation:vUp .5s .55s cubic-bezier(.2,.8,.2,1) both}
 section.view[data-view="resultats"].venter #btnPlay{animation:popIn .6s .8s cubic-bezier(.2,.8,.2,1) both}
+
+/* ===== v67 : salle des certificats (fond noir) + trophée en verre ===== */
+body.incerts{background:#000!important}
+body.incerts .scene{opacity:0;transition:opacity .5s}
+body.incerts::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000)}
+body.incerts .topnav{color:#f2f2f2}
+body.incerts .topnav .tn{color:#8b8b8b}
+body.incerts .topnav .tn.on{background:#161616!important;color:#fff;box-shadow:inset 0 0 0 1px #262626}
+body.incerts .topnav .tn-act button{background:#121212!important;color:#ddd!important;border-color:#2a2a2a!important}
+body.incerts #certModal .vhead h1{color:#fff!important;text-shadow:0 0 30px rgba(255,255,255,.18)!important}
+body.incerts .dash > .savebar,body.incerts #certSum,body.incerts #certHero,body.incerts .deck-info,body.incerts .deck-bar,body.incerts .dc-foot{display:none!important}
+body.incerts #certAdd{background:#fff!important;color:#000!important;border-color:#fff!important;border-radius:999px!important}
+body.incerts .deck-stage{height:min(62vh,560px)!important}
+body.incerts .dcard{width:min(520px,74vw)!important;border-color:#2a2a2a!important;background:#0b0b0b!important}
+body.incerts .dcard.on{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 80px rgba(120,140,255,.08)!important}
+body.incerts .ripple i{border-color:rgba(245,245,247,.8)}
+body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22%2F%3E%3C%2Fsvg%3E") 8 8, auto!important}
+
+.troph{position:fixed;inset:0;z-index:75;background:#000;overflow:hidden;opacity:0;transition:opacity .35s}
+.troph.go{opacity:1}
+.troph.out{opacity:0;transition:opacity .4s}
+/* couloir : des cadres qui défilent vers nous */
+.tr-hall{position:absolute;inset:0;perspective:600px;perspective-origin:50% 48%}
+.tr-cam{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(-1800px);transition:transform 1.35s cubic-bezier(.55,0,.2,1)}
+.troph.go .tr-cam{transform:translateZ(520px)}
+.tr-cam i{position:absolute;left:50%;top:50%;width:70vw;height:56vh;margin:-28vh 0 0 -35vw;border:1px solid rgba(255,255,255,.14);border-radius:6px;transform:translateZ(var(--z));box-shadow:inset 0 0 60px rgba(255,255,255,.03)}
+.troph.lit .tr-hall{opacity:0;transition:opacity .6s}
+/* lumières qui s'allument une par une */
+.tr-lights b{position:absolute;top:-10vh;width:46vw;height:90vh;left:27vw;opacity:0;background:radial-gradient(50% 100% at 50% 0%,rgba(255,255,255,.22),rgba(255,255,255,.04) 55%,transparent 75%);filter:blur(14px);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)}
+.tr-lights .l2{left:2vw;transform:rotate(14deg)}.tr-lights .l3{left:52vw;transform:rotate(-14deg)}
+.troph.lit .tr-lights .l1{animation:lamp .9s .05s both}
+.troph.lit .tr-lights .l2{animation:lamp .9s .3s both;opacity:.6}
+.troph.lit .tr-lights .l3{animation:lamp .9s .5s both;opacity:.6}
+@keyframes lamp{0%{opacity:0}18%{opacity:.9}26%{opacity:.2}38%{opacity:1}48%{opacity:.5}100%{opacity:1}}
+.troph::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34vh;background:linear-gradient(180deg,transparent,rgba(255,255,255,.035));opacity:0;transition:opacity 1s}
+.troph.lit::after{opacity:1}
+/* le bloc de verre */
+.tr-stage{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);perspective:1300px;--d:44px}
+.tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.86;transition:opacity .8s,scale 1s cubic-bezier(.2,.8,.2,1)}
+.troph.show .tr-block{opacity:1;scale:1}
+.tr-face{position:absolute;backface-visibility:visible}
+.tr-front{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:6px;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.04) 40%,rgba(255,255,255,.1));box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),inset 0 0 30px rgba(255,255,255,.08)}
+.tr-front img{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.6))}
+.tr-shine{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at var(--sx,50%) var(--sy,35%),rgba(255,255,255,.28),transparent 60%),linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,transparent 55%);mix-blend-mode:screen}
+.tr-back{inset:0;transform:translateZ(calc(var(--d) / -2)) rotateY(180deg);border-radius:6px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.tr-l,.tr-r{top:0;height:100%;width:var(--d);left:50%;margin-left:calc(var(--d) / -2);background:linear-gradient(90deg,rgba(255,255,255,.35),rgba(200,215,255,.12),rgba(255,255,255,.3))}
+.tr-l{transform:translateX(calc(var(--bw,560px) / -2)) rotateY(-90deg)}
+.tr-r{transform:translateX(calc(var(--bw,560px) / 2)) rotateY(90deg)}
+.tr-t,.tr-b{left:0;width:100%;height:var(--d);top:50%;margin-top:calc(var(--d) / -2);background:linear-gradient(180deg,rgba(255,255,255,.4),rgba(200,215,255,.12),rgba(255,255,255,.3))}
+.tr-t{transform:translateY(calc(var(--bh,420px) / -2)) rotateX(90deg)}
+.tr-b{transform:translateY(calc(var(--bh,420px) / 2)) rotateX(-90deg)}
+.tr-refl{position:absolute;left:0;top:100%;width:var(--bw,560px);height:calc(var(--bh,420px) * .5);margin-top:26px;transform:scaleY(-1);opacity:0;transition:opacity 1s .3s;-webkit-mask-image:linear-gradient(0deg,rgba(0,0,0,.28),transparent 70%);mask-image:linear-gradient(0deg,rgba(0,0,0,.28),transparent 70%);overflow:hidden;filter:blur(2px)}
+.tr-refl img{width:100%;height:auto;display:block;transform:translateY(-50%)}
+.troph.show .tr-refl{opacity:1}
+.tr-acts{position:absolute;left:50%;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:8px;opacity:0;transition:opacity .5s .6s}
+.troph.show .tr-acts{opacity:1}
+.tr-acts button{border-radius:999px!important;padding:9px 18px!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.18)!important}
+@media (prefers-reduced-motion:reduce){.tr-cam,.tr-block{transition:none}.tr-lights b{animation:none!important;opacity:1}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2106,8 +2164,51 @@ function layoutDeck(){
   st.parentElement.querySelectorAll("[data-dkstep]").forEach(b => { b.disabled = (+b.dataset.dkstep < 0 && !deckSel) || (+b.dataset.dkstep > 0 && deckSel === deckList.length - 1); });
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
-function openDeckCard(){ const c = deckList[deckSel]; if (!c) return; const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
-  if (!im) { certEdit = {...c}; drawCerts(); return; } lbId = c.id; $("lbEdit").hidden = false; $("lightImg").src = im; $("lightbox").hidden = false; }
+function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
+/* ===== Salle des trophées : couloir → lumières → certificat dans un bloc de verre, inclinable ===== */
+function openTrophy(c){
+  const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
+  if (!im) { certEdit = {...c}; drawCerts(); return; }
+  const ov = document.createElement("div"); ov.className = "troph";
+  const frames = Array.from({length: 9}, (_, i) => `<i style="--z:${-i * 420}px"></i>`).join("");
+  ov.innerHTML = `<div class="tr-hall"><div class="tr-cam">${frames}</div></div>
+    <div class="tr-lights"><b class="l1"></b><b class="l2"></b><b class="l3"></b></div>
+    <div class="tr-stage">
+      <div class="tr-block" id="trBlock">
+        <div class="tr-face tr-front"><img src="${im}" alt="Certificat ${esc(c.firm)}"><span class="tr-shine"></span></div>
+        <div class="tr-face tr-back"></div><div class="tr-face tr-l"></div><div class="tr-face tr-r"></div><div class="tr-face tr-t"></div><div class="tr-face tr-b"></div>
+      </div>
+      <div class="tr-refl"><img src="${im}" alt=""></div>
+    </div>
+    <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
+  document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  const img = ov.querySelector(".tr-front img");
+  const fit = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3;
+    const h = Math.min(innerHeight * .5, (innerWidth * .72) / r), w = h * r; ov.style.setProperty("--bw", w + "px"); ov.style.setProperty("--bh", h + "px"); };
+  img.complete ? fit() : img.addEventListener("load", fit); addEventListener("resize", fit);
+  requestAnimationFrame(() => ov.classList.add("go"));
+  const T = reduced ? 0 : 1;
+  setTimeout(() => ov.classList.add("lit"), 1250 * T);
+  setTimeout(() => ov.classList.add("show"), 1750 * T);
+  const blk = ov.querySelector("#trBlock"), sh = ov.querySelector(".tr-shine");
+  let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, idle = performance.now();
+  const loop = now => { const free = now - idle > 2500, ax = free ? Math.sin(now / 1400) * .35 : tx, ay = free ? Math.sin(now / 1900) * .15 : ty;
+    cx += (ax - cx) * .08; cy += (ay - cy) * .08;
+    blk.style.transform = `rotateY(${(cx * 32).toFixed(2)}deg) rotateX(${(-cy * 18).toFixed(2)}deg)`;
+    sh.style.setProperty("--sx", (50 - cx * 70) + "%"); sh.style.setProperty("--sy", (35 - cy * 50) + "%");
+    if (ov.isConnected) raf = requestAnimationFrame(loop); };
+  raf = requestAnimationFrame(loop);
+  const mv = (x, y) => { tx = Math.max(-1, Math.min(1, (x / innerWidth - .5) * 2)); ty = Math.max(-1, Math.min(1, (y / innerHeight - .5) * 2)); idle = performance.now(); };
+  ov.addEventListener("pointermove", e => mv(e.clientX, e.clientY));
+  ov.addEventListener("touchmove", e => mv(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+  const close = () => { ov.classList.remove("show", "lit", "go"); ov.classList.add("out"); removeEventListener("keydown", onEsc); removeEventListener("resize", fit);
+    setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); document.body.style.overflow = ""; }, 450); };
+  const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
+  ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]");
+    if (b && b.dataset.tr === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 460); return; }
+    if ((b && b.dataset.tr === "close") || (!e.target.closest(".tr-block") && !b)) close(); });
+}
+
 (() => {
   const g = $("certGrid"); let wAcc = 0, wT = 0, px = null, moved = false;
   g.addEventListener("click", e => {
@@ -3017,6 +3118,7 @@ function setView(v, keepScroll){
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
+  document.body.classList.toggle("incerts", v === "certs");
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 250);
@@ -4148,7 +4250,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-31";
+const APP_VERSION = "2026-10-27-32";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
