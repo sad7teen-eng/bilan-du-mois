@@ -2936,7 +2936,7 @@ $("dayList").addEventListener("click", e => {
     const rv = num(edit.rTxt); playTradeObj({...edit, day: dayOpen, pnl: v, r: isFinite(rv) ? rv : edit.r}); return;
   }
   if (b.id === "eCancel") { editId = null; edit = null; if (!dayTrades().length) { $("dayModal").hidden = true; renderDash(); return; } drawDay(); return; }
-  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); idb.set(edit.id + "#mt5", []); editId = null; edit = null; save(); renderDash(); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
+  if (b.id === "eDel") { if (String(edit.id).startsWith("mt5-")) state.seedSkip = [...(state.seedSkip || []), edit.id]; state.trades = state.trades.filter(x => x.id !== edit.id); idb.set(edit.id, []); idb.set(edit.id + "#main", []); idb.set(edit.id + "#orig", []); idb.set(edit.id + "#mt5", []); const gone = edit.id; editId = null; edit = null; save(); renderDash(); refreshTCards(gone); if (!dayTrades().length) { $("dayModal").hidden = true; return; } drawDay(); return; }
 });
 async function setMT5File(file){ if (!file || !file.type.startsWith("image/") || !edit) return; readForm();
   const url = await shrink(file); if (!url) return; await idb.set(edit.id + "#mt5", [url]); drawDay(); readMT5(url); }
@@ -2995,7 +2995,7 @@ $("dayList").addEventListener("submit", e => {
   const i = state.trades.findIndex(x => x.id === row.id);
   if (i >= 0) state.trades[i] = row; else state.trades.push(row);
   state.trades.sort((a, b) => a.day - b.day);
-  editId = null; edit = null; save(); renderDash(); drawDay();
+  editId = null; edit = null; save(); renderDash(); drawDay(); refreshTCards(row.id);
 });
 $("addRow").onclick = () => { startNew(); drawDay(); };
 $("dayClose").onclick = () => { $("dayModal").hidden = true; editId = null; edit = null; if (state.trades.some(t => t.day === dayOpen)) openJournal(dayOpen); };
@@ -4610,6 +4610,9 @@ async function tcPrefetch(){
   const order = [tcIdx, tcIdx + 1, tcIdx - 1, ...tcList.map((_, i) => i)];
   for (const i of [...new Set(order)]) { const t = tcList[i]; if (!t || tcCurveCache[t.id]) continue; await tcCurve(t); if (view !== "resultats") return; tcDraw(i, 1); }
 }
+/* après un ajout / une modification / une suppression : la bande « Mes trades » se met à jour tout de suite */
+function refreshTCards(id){ Object.keys(tcCurveCache).forEach(k => delete tcCurveCache[k]);
+  const i = tcTrades().findIndex(x => x.id === id); if (i >= 0) tcIdx = i; try { renderTCards(false); } catch (e) {} }
 function renderTCards(animate){
   const box = $("tcards"); if (!box) return;
   tcList = tcTrades(); if (!tcList.length) { box.innerHTML = `<span class="lab2">Mes trades</span><p class="muted">Vos trades apparaîtront ici.</p>`; return; }
@@ -4752,7 +4755,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-62";
+const APP_VERSION = "2026-10-27-63";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
