@@ -1750,7 +1750,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
       <div class="qpop" id="qPop" hidden><b>Le site rame ?</b><p>Baissez la qualité des effets de verre. Les animations ne changent pas.</p>
         <button type="button" data-q="high"><span>Haute</span><small>Rendu complet (recommandé si tout est fluide)</small></button>
         <button type="button" data-q="mid"><span>Équilibrée</span><small>Flou du verre allégé</small></button>
-        <button type="button" data-q="low"><span>Légère</span><small>Sans flou du verre, planète en image fixe</small></button></div></span><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+        <button type="button" data-q="low"><span>Légère</span><small>Sans flou du verre (la planète tourne toujours)</small></button></div></span><button type="button" id="btnSettings" aria-label="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
   </div>
 </nav>
 <nav class="dock" aria-label="Pages"><button type="button" class="dk" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="dk" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="dk" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="dk" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="dk" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button><button type="button" class="dk" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></nav>
@@ -4332,7 +4332,6 @@ function makeGlobe(canvas, o = {}){
     raf = requestAnimationFrame(frame);
     /* page cachée (autre onglet du journal) : rien à dessiner, mais la boucle continue */
     if (!cw || !ch || !onScreen || document.body.classList.contains("covered") || (o.paused && o.paused())) return;
-    if (o.mini && document.body.classList.contains("q-low") && st.drawnLow && !st.drag) return; st.drawnLow = document.body.classList.contains("q-low");
     try { proj.rotate(st.rot); draw(now); blurPass(); } catch(e) {}
   }
   let cityPts = [];
@@ -4808,7 +4807,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-65";
+const APP_VERSION = "2026-10-27-66";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
