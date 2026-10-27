@@ -1314,10 +1314,26 @@ body:not(.light) .ready .ic::after{border-left-color:#000!important}
 body.light .ready .ic{background:#0b0b0c!important;box-shadow:0 6px 16px rgba(0,0,0,.25)}
 .ready .ic::after{border-left-color:#fff!important;border-left-width:10px!important;border-top-width:6.5px!important;border-bottom-width:6.5px!important;margin-left:3px}
 @keyframes liquidUp{0%{opacity:0;transform:translateY(46px);clip-path:inset(92% 0 0 0 round 20px)}45%{opacity:1}100%{opacity:1;transform:none;clip-path:inset(0 0 0 0 round 20px)}}
-section.view.venter .cal,section.view.venter .rgrid > .tiles > .tile{animation:liquidUp .9s cubic-bezier(.22,.9,.25,1) both!important}
-section.view.venter .rgrid > .tiles > .tile{animation-delay:.12s!important}
+section.view.venter .cal,section.view.venter .rgrid .tile{animation:liquidUp .9s cubic-bezier(.22,.9,.25,1) both!important}
+section.view.venter .rgrid .tile{animation-delay:.12s!important}
+section.view.venter .rgrid .tcards{animation-delay:.22s!important}
 section.view.venter .cell:not(.blank){animation-delay:calc(.35s + var(--d,0s))!important}
 section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:calc(.45s + var(--d,0s))!important}
+
+/* --- v50 : cartes de trades à partager --- */
+.rcol{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tcards{gap:12px!important}
+.tc-stage{position:relative;display:flex;align-items:center;justify-content:center}
+#tcCanvas{width:100%;aspect-ratio:4/5;display:block;border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.28);touch-action:pan-y;cursor:grab}
+.tc-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:38px;height:38px;padding:0!important;border-radius:50%!important;font-size:20px;line-height:1;background:rgba(255,255,255,.85)!important;color:#0b0b0c!important;border:0!important;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.tc-nav.l{left:-10px}.tc-nav.r{right:-10px}
+.tc-nav:disabled{opacity:0;pointer-events:none}
+.tc-acts{display:flex;gap:8px}
+.tc-acts button{flex:1;border-radius:999px!important;padding:10px 14px!important}
+@keyframes tcInR{from{opacity:0;transform:translateX(40px) rotate(2deg)}to{opacity:1;transform:none}}
+@keyframes tcInL{from{opacity:0;transform:translateX(-40px) rotate(-2deg)}to{opacity:1;transform:none}}
+#tcCanvas.tc-in-r{animation:tcInR .45s cubic-bezier(.2,.8,.2,1)}
+#tcCanvas.tc-in-l{animation:tcInL .45s cubic-bezier(.2,.8,.2,1)}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -1394,7 +1410,7 @@ section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:c
         <button type="button" class="monthtoggle" id="btnMonth">Voir tout le mois</button>
         <p class="help">Touche un jour pour saisir ses trades.</p>
       </section>
-      <div class="tiles" id="tiles"></div>
+      <div class="rcol"><div class="tiles" id="tiles"></div><section class="tile tcards" id="tcards" aria-label="Mes trades"></section></div>
     </div>
     <nav class="apps" aria-label="Onglets" hidden><button type="button" class="app" id="appCerts">Certificats<small id="certCount"></small></button></nav>
   </section>
@@ -2843,6 +2859,7 @@ function setView(v, keepScroll){
   if (v === "certs") loadCerts();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
+  if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 450);
   /* entrée animée de la page */
   const sec = document.querySelector(`section.view[data-view="${v}"]`);
   if (sec && !reduced) {
@@ -3718,6 +3735,132 @@ async function selectCountry(iso){
 $("macroView").addEventListener("click", e => { const b = e.target.closest("[data-iso]"); if (b) selectCountry(b.dataset.iso); });
 $("macroView").addEventListener("change", e => { if (e.target.id !== "mSearch" || !geo) return; const q = e.target.value.trim().toLowerCase(); const f = geo.feats.find(x => x.c[2].toLowerCase() === q) || geo.feats.find(x => x.c[2].toLowerCase().startsWith(q)); if (f) { selectCountry(f.iso); e.target.value = ""; } });
 
+
+/* ===== Cartes de trades à partager (Résultats) ===== */
+let tcIdx = 0, tcList = [], tcAnim = 0;
+const tcCurveCache = {};
+function tcTrades(){ return allTrades().slice().sort((a, b) => b.at - a.at); }
+async function tcCurve(t){
+  if (tcCurveCache[t.id]) return tcCurveCache[t.id];
+  let out = null;
+  try {
+    if (isNum(t.entry) && t.time) {
+      const ts = tradeTs(t), endMs = (ts - tzOff(ts) + 60 * 900) * 1000;
+      const {bars} = await fetchBars("15m", Math.min(Date.now(), endMs));
+      const i0 = bars.findIndex(b => b.time >= ts);
+      if (i0 > 0) {
+        const seg = bars.slice(Math.max(0, i0 - 22), i0 + 46);
+        const ei = Math.min(22, i0);
+        let xi = seg.length - 1;
+        if (isNum(t.exit)) { for (let j = ei + 1; j < seg.length; j++) { const b = seg[j]; if (b.low <= t.exit && b.high >= t.exit) { xi = j; break; } } }
+        const ys = seg.map(b => b.close); ys[ei] = t.entry; if (isNum(t.exit)) ys[xi] = t.exit;
+        out = {ys: ys.slice(0, Math.min(seg.length, xi + 10)), ei, xi, real: true};
+      }
+    }
+  } catch(e) {}
+  if (!out) { /* pas de bougies : simple trait de l'entrée à la sortie */
+    const a = isNum(t.entry) ? t.entry : 0, b = isNum(t.exit) ? t.exit : a + (t.side === "Short" ? -1 : 1) * Math.sign(t.pnl || 1);
+    const ys = []; for (let i = 0; i <= 30; i++) { const k = i / 30, e = k * k * (3 - 2 * k); ys.push(a + (b - a) * e); }
+    out = {ys: [a, a, a, a, ...ys], ei: 3, xi: ys.length + 3, real: false};
+  }
+  return tcCurveCache[t.id] = out;
+}
+function rr(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function drawTradeCard(ctx, W, H, t, cv, p){
+  const F = "Geist, system-ui, sans-serif", ease = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3), u = W / 1080;
+  const loss = t.pnl < 0, ink = "#ffffff", mute = "rgba(255,255,255,.55)", red = "#ff5a5f";
+  ctx.clearRect(0, 0, W, H);
+  const bg = ctx.createRadialGradient(W * .5, H * .32, 0, W * .5, H * .4, W * .95); bg.addColorStop(0, "#1d1e22"); bg.addColorStop(1, "#08080a");
+  rr(ctx, 0, 0, W, H, 54 * u); ctx.fillStyle = bg; ctx.fill();
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  /* en-tête : lingot + symbole + sens · date */
+  const hy = 110 * u; const ic = 26 * u, title = (t.sym || "XAUUSD").toUpperCase();
+  ctx.font = `700 ${46 * u}px ${F}`; const tw = ctx.measureText(title).width;
+  const sub = `${t.side === "Short" ? "SHORT" : "LONG"} · ${t.day} ${MON3[t.m].toUpperCase()}`; ctx.font = `500 ${26 * u}px ${F}`; const sw = ctx.measureText(sub).width;
+  const total = ic * 2 + 18 * u + tw + 22 * u + sw, x0 = W / 2 - total / 2;
+  const g = ctx.createRadialGradient(x0 + ic * .7, hy - ic * .5, 1, x0 + ic, hy, ic); g.addColorStop(0, "#fff4c8"); g.addColorStop(.45, "#f1c84b"); g.addColorStop(1, "#a2701a");
+  ctx.beginPath(); ctx.arc(x0 + ic, hy, ic, 0, 7); ctx.fillStyle = g; ctx.fill();
+  ctx.fillStyle = "#7a5208"; ctx.font = `700 ${22 * u}px ${F}`; ctx.fillText("Au", x0 + ic, hy + 1 * u);
+  ctx.fillStyle = ink; ctx.font = `700 ${46 * u}px ${F}`; ctx.textAlign = "left"; ctx.fillText(title, x0 + ic * 2 + 18 * u, hy + 2 * u);
+  ctx.fillStyle = mute; ctx.font = `500 ${26 * u}px ${F}`; ctx.fillText(sub, x0 + ic * 2 + 18 * u + tw + 22 * u, hy + 4 * u);
+  /* courbe */
+  const cx0 = 90 * u, cx1 = W - 90 * u, cy0 = 200 * u, cy1 = 560 * u, ys = cv.ys, n = ys.length;
+  const lo = Math.min(...ys), hi = Math.max(...ys), sp = (hi - lo) || 1;
+  const P = i => [cx0 + (cx1 - cx0) * i / (n - 1), cy1 - (ys[i] - lo) / sp * (cy1 - cy0)];
+  const k = ease(p / .7) * (n - 1), last = Math.floor(k);
+  ctx.save(); ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.shadowColor = "rgba(255,255,255,.45)"; ctx.shadowBlur = 14 * u;
+  ctx.beginPath(); const s0 = P(0); ctx.moveTo(s0[0], s0[1]);
+  for (let i = 1; i <= last; i++) { const q = P(i); ctx.lineTo(q[0], q[1]); }
+  if (last < n - 1) { const a = P(last), b = P(last + 1), f = k - last; ctx.lineTo(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f); }
+  ctx.strokeStyle = "rgba(255,255,255,.92)"; ctx.lineWidth = 4 * u; ctx.stroke(); ctx.restore();
+  const pill = (i, txt, dark) => { if (k < i) return; const [x, y] = P(i); const a = Math.min(1, (k - i) / 3 + .35);
+    ctx.globalAlpha = a; ctx.beginPath(); ctx.arc(x, y, 9 * u, 0, 7); ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.font = `600 ${24 * u}px ${F}`; const w = ctx.measureText(txt).width + 30 * u, h = 42 * u, py = y + (dark ? -60 : 30) * u;
+    rr(ctx, x - w / 2, py, w, h, 10 * u); ctx.fillStyle = dark ? "#2a2b2f" : "#ffffff"; ctx.fill();
+    ctx.fillStyle = dark ? "#fff" : "#0b0b0c"; ctx.textAlign = "center"; ctx.fillText(txt, x, py + h / 2 + 1 * u); ctx.globalAlpha = 1; };
+  pill(cv.ei, "Entrée", false); pill(Math.min(n - 1, cv.xi), "Sortie", true);
+  /* gros résultat */
+  const v = t.pnl * ease((p - .2) / .8);
+  ctx.textAlign = "center"; ctx.fillStyle = loss ? red : ink; ctx.font = `600 ${124 * u}px ${F}`;
+  ctx.shadowColor = loss ? "rgba(255,90,95,.35)" : "rgba(255,255,255,.3)"; ctx.shadowBlur = 40 * u;
+  ctx.fillText((t.pnl < 0 ? "−" : "+") + frN(Math.abs(v), 2) + " " + cur(), W / 2, 730 * u); ctx.shadowBlur = 0;
+  /* détails */
+  const f2 = x => isNum(x) ? x.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "—";
+  const rows = [["Entrée", f2(t.entry)], ["Sortie", f2(t.exit)], ["Taille", t.lots ? String(t.lots).replace(".", ",") + " lots" : "—"], ["Résultat", isNum(t.r) ? fmtR(t.r) : "—"]];
+  rows.forEach(([a, b], i) => { const y = 880 * u + i * 62 * u, al = Math.max(0, Math.min(1, (p - .35 - i * .08) / .25)); ctx.globalAlpha = al;
+    ctx.font = `500 ${30 * u}px ${F}`; ctx.textAlign = "right"; ctx.fillStyle = mute; ctx.fillText(a, W / 2 - 24 * u, y);
+    ctx.textAlign = "left"; ctx.fillStyle = ink; ctx.font = `600 ${30 * u}px ${F}`; ctx.fillText(b, W / 2 + 24 * u, y); });
+  ctx.globalAlpha = 1;
+  /* pied : marque + nom certifié */
+  const fy = H - 90 * u; ctx.font = `700 ${30 * u}px ${F}`; const brand = "KaelJournal", nm = state.name || "Kael";
+  const bw = ctx.measureText(brand).width; ctx.font = `500 ${30 * u}px ${F}`; const nw = ctx.measureText(nm).width;
+  const tot = bw + 40 * u + nw + 40 * u, fx = W / 2 - tot / 2;
+  ctx.textAlign = "left"; ctx.fillStyle = ink; ctx.font = `700 ${30 * u}px ${F}`; ctx.fillText(brand, fx, fy);
+  ctx.fillStyle = mute; ctx.fillText("·", fx + bw + 14 * u, fy);
+  ctx.fillStyle = ink; ctx.font = `500 ${30 * u}px ${F}`; ctx.fillText(nm, fx + bw + 40 * u, fy);
+  const bx = fx + bw + 40 * u + nw + 22 * u; ctx.beginPath(); ctx.arc(bx, fy, 13 * u, 0, 7); ctx.fillStyle = "#2ea060"; ctx.fill();
+  ctx.strokeStyle = "#fff"; ctx.lineWidth = 3 * u; ctx.beginPath(); ctx.moveTo(bx - 6 * u, fy); ctx.lineTo(bx - 1.5 * u, fy + 5 * u); ctx.lineTo(bx + 6.5 * u, fy - 5 * u); ctx.stroke();
+  if (state.handle) { ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = `500 ${22 * u}px ${F}`; ctx.fillText(state.handle, W / 2, fy + 40 * u); }
+}
+async function renderTCards(animate){
+  const box = $("tcards"); if (!box) return;
+  tcList = tcTrades(); if (!tcList.length) { box.innerHTML = `<span class="lab2">Mes trades</span><p class="muted">Vos trades apparaîtront ici.</p>`; return; }
+  tcIdx = Math.max(0, Math.min(tcList.length - 1, tcIdx));
+  if (!box.querySelector("canvas")) box.innerHTML = `<div class="c3h"><span class="lab2">Mes trades</span><small id="tcPos"></small></div>
+    <div class="tc-stage"><button type="button" class="tc-nav l" data-tc="-1" aria-label="Trade précédent">‹</button><canvas id="tcCanvas"></canvas><button type="button" class="tc-nav r" data-tc="1" aria-label="Trade suivant">›</button></div>
+    <div class="tc-acts"><button type="button" class="go" id="tcShare">Partager</button><button type="button" id="tcDl">Télécharger l'image</button></div>`;
+  const t = tcList[tcIdx]; $("tcPos").textContent = `${tcIdx + 1} / ${tcList.length}`;
+  box.querySelectorAll("[data-tc]").forEach(b => { b.disabled = (+b.dataset.tc < 0 && !tcIdx) || (+b.dataset.tc > 0 && tcIdx === tcList.length - 1); });
+  const cvEl = $("tcCanvas"), r = cvEl.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
+  cvEl.width = Math.round((r.width || 360) * dpr); cvEl.height = Math.round((r.width || 360) * 1.25 * dpr);
+  const ctx = cvEl.getContext("2d"), cv = await tcCurve(t); if (tcList[tcIdx] !== t) return;
+  cancelAnimationFrame(tcAnim);
+  if (!animate || reduced) { drawTradeCard(ctx, cvEl.width, cvEl.height, t, cv, 1); return; }
+  const t0 = performance.now(); (function step(now){ const p = Math.min(1, (now - t0) / 1600); drawTradeCard(ctx, cvEl.width, cvEl.height, t, cv, p); if (p < 1) tcAnim = requestAnimationFrame(step); })(t0);
+}
+async function tcBlob(){
+  const t = tcList[tcIdx], c = document.createElement("canvas"); c.width = 1080; c.height = 1350;
+  drawTradeCard(c.getContext("2d"), 1080, 1350, t, await tcCurve(t), 1);
+  return new Promise(res => c.toBlob(res, "image/png"));
+}
+$("tcards").addEventListener("click", async e => {
+  const n = e.target.closest("[data-tc]"); if (n) { const st = $("tcCanvas"); st.classList.remove("tc-in-l", "tc-in-r"); void st.offsetWidth; st.classList.add(+n.dataset.tc > 0 ? "tc-in-r" : "tc-in-l"); tcIdx += +n.dataset.tc; renderTCards(true); return; }
+  const t = tcList[tcIdx]; if (!t) return;
+  const name = `trade-${t.y}-${String(t.m + 1).padStart(2, "0")}-${String(t.day).padStart(2, "0")}.png`;
+  if (e.target.closest("#tcDl") || e.target.closest("#tcShare")) {
+    const blob = await tcBlob(); if (!blob) return;
+    if (e.target.closest("#tcShare")) {
+      const file = new File([blob], name, {type: "image/png"});
+      try { if (navigator.canShare && navigator.canShare({files: [file]})) { await navigator.share({files: [file], title: "Mon trade", text: `${t.sym || "XAUUSD"} ${t.pnl < 0 ? "" : "+"}${money(t.pnl)}`}); return; } } catch(err) { if (err && err.name === "AbortError") return; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+});
+(() => { let x0 = null; const st = () => $("tcards");
+  st().addEventListener("pointerdown", e => { if (e.target.id === "tcCanvas") x0 = e.clientX; });
+  addEventListener("pointerup", e => { if (x0 == null) return; const dx = e.clientX - x0; x0 = null; if (Math.abs(dx) > 40) { const b = st().querySelector(`[data-tc="${dx < 0 ? 1 : -1}"]`); b && !b.disabled && b.click(); } });
+})();
+
 let wheelAcc = 0, wheelT = 0;
 $("anaView").addEventListener("wheel", e => {
   if (!e.target.closest("#srDial")) return;
@@ -3787,7 +3930,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-9";
+const APP_VERSION = "2026-10-27-10";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
