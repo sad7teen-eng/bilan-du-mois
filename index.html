@@ -1360,6 +1360,19 @@ section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:c
 }
 .tc-strip{padding:6px calc(50% - 100px) 12px!important}
 .tc-strip canvas{width:200px!important}
+
+/* --- v52 : bande sans saut + carte zoomée en 3D --- */
+.tc-strip{overflow:hidden!important;scroll-snap-type:none!important;padding:6px 0 12px!important;touch-action:pan-y}
+.tc-track{display:flex;gap:14px;will-change:transform}
+.tc-strip canvas{transition:none!important;scroll-snap-align:none!important}
+.tcz{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,10,12,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);transition:background .3s,backdrop-filter .3s}
+.tcz.on{background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.tcz-card{position:relative;border-radius:22px;transform:perspective(900px) scale(.6);opacity:0;transition:opacity .3s;box-shadow:0 40px 100px rgba(0,0,0,.55);will-change:transform}
+.tcz.on .tcz-card{opacity:1}
+.tcz-card canvas{display:block;width:100%;aspect-ratio:4/5;border-radius:22px}
+.tcz-glare{position:absolute;inset:0;border-radius:22px;pointer-events:none;background:radial-gradient(500px circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.16),transparent 55%);mix-blend-mode:screen}
+.tcz-hint{margin:0;font-size:12px;color:rgba(255,255,255,.7);opacity:0;transition:opacity .4s .2s}
+.tcz.on .tcz-hint{opacity:1}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3874,28 +3887,54 @@ function renderTCards(animate){
   tcList = tcTrades(); if (!tcList.length) { box.innerHTML = `<span class="lab2">Mes trades</span><p class="muted">Vos trades apparaîtront ici.</p>`; return; }
   tcIdx = Math.max(0, Math.min(tcList.length - 1, tcIdx));
   box.innerHTML = `<div class="c3h"><span class="lab2">Mes trades</span><small id="tcPos">${tcIdx + 1} / ${tcList.length}</small></div>
-    <div class="tc-strip" id="tcStrip">${tcList.map((t, i) => `<canvas data-i="${i}" aria-label="Trade ${i + 1}"></canvas>`).join("")}</div>
+    <div class="tc-strip" id="tcStrip"><div class="tc-track" id="tcTrack">${tcList.map((t, i) => `<canvas data-i="${i}" aria-label="Trade ${i + 1}"></canvas>`).join("")}</div></div>
     <div class="tc-acts"><button type="button" id="tcShare" aria-label="Partager"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Partager</button><button type="button" id="tcDl" aria-label="Télécharger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Image</button></div>`;
   const strip = $("tcStrip"), dpr = Math.min(2, devicePixelRatio || 1);
   strip.querySelectorAll("canvas").forEach(c => { const w = c.getBoundingClientRect().width || 240; c.width = Math.round(w * dpr); c.height = Math.round(w * 1.25 * dpr); });
   tcList.forEach((_, i) => tcDraw(i, 1));
-  const first = strip.querySelector(`canvas[data-i="${tcIdx}"]`); if (first) strip.scrollLeft = first.offsetLeft - (strip.clientWidth - first.offsetWidth) / 2;
-  if (animate) tcPlay(tcIdx);
-  let st = 0; strip.addEventListener("scroll", () => { clearTimeout(st); st = setTimeout(() => {
-    const mid = strip.scrollLeft + strip.clientWidth / 2; let best = 0, bd = 1e9;
-    strip.querySelectorAll("canvas").forEach(c => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = +c.dataset.i; } });
-    if (best !== tcIdx) { tcIdx = best; $("tcPos").textContent = `${tcIdx + 1} / ${tcList.length}`; tcPlay(tcIdx); }
-  }, 90); }, {passive: true});
-  /* glisser à la souris */
-  let dx0 = null, sl0 = 0;
-  strip.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse") return; dx0 = e.clientX; sl0 = strip.scrollLeft; strip.classList.add("drag"); });
-  addEventListener("pointermove", e => { if (dx0 == null) return; strip.scrollLeft = sl0 - (e.clientX - dx0); }, {passive: true});
-  addEventListener("pointerup", () => { if (dx0 == null) return; dx0 = null; strip.classList.remove("drag");
-    const c = strip.querySelector(`canvas[data-i="${tcIdx}"]`); const mid = strip.scrollLeft + strip.clientWidth / 2; let best = tcIdx, bd = 1e9;
-    strip.querySelectorAll("canvas").forEach(x => { const d = Math.abs(x.offsetLeft + x.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = +x.dataset.i; } });
-    const tgt = strip.querySelector(`canvas[data-i="${best}"]`); tgt && strip.scrollTo({left: tgt.offsetLeft - (strip.clientWidth - tgt.offsetWidth) / 2, behavior: "smooth"}); });
-  strip.addEventListener("wheel", e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); strip.scrollLeft += e.deltaY; } }, {passive: false});
+  /* bande pilotée à la main : la bande suit la souris / le doigt, puis se cale en douceur */
+  const track = $("tcTrack"), CW = 200, GAP = 14;
+  const offOf = i => strip.clientWidth / 2 - (i * (CW + GAP) + CW / 2);
+  let x = offOf(tcIdx), anim = 0;
+  const put = v => { x = v; track.style.transform = `translate3d(${v.toFixed(1)}px,0,0)`;
+    const f = (strip.clientWidth / 2 - v - CW / 2) / (CW + GAP);
+    track.querySelectorAll("canvas").forEach(c => { const d = Math.abs(+c.dataset.i - f); c.style.transform = `scale(${(1 - Math.min(1, d) * .08).toFixed(3)})`; c.style.opacity = (1 - Math.min(1, d) * .35).toFixed(2); }); };
+  const go = (i, now) => { i = Math.max(0, Math.min(tcList.length - 1, i)); const from = x, to = offOf(i), t0 = performance.now(); cancelAnimationFrame(anim);
+    if (i !== tcIdx) { tcIdx = i; $("tcPos").textContent = `${tcIdx + 1} / ${tcList.length}`; tcPlay(tcIdx); }
+    if (now) { put(to); return; }
+    (function st(n){ const k = Math.min(1, (n - t0) / 380), e = 1 - Math.pow(1 - k, 3); put(from + (to - from) * e); if (k < 1) anim = requestAnimationFrame(st); })(t0); };
+  put(x);
+  let d0 = null;
+  strip.addEventListener("pointerdown", e => { cancelAnimationFrame(anim); d0 = {x: e.clientX, v: x, moved: 0, t: performance.now()}; strip.setPointerCapture(e.pointerId); strip.classList.add("drag"); });
+  strip.addEventListener("pointermove", e => { if (!d0) return; const dx = e.clientX - d0.x; d0.moved = Math.max(d0.moved, Math.abs(dx)); let v = d0.v + dx;
+    const lo = offOf(tcList.length - 1), hi = offOf(0); if (v > hi) v = hi + (v - hi) * .3; if (v < lo) v = lo + (v - lo) * .3; put(v); });
+  const end = e => { if (!d0) return; const dd = d0; d0 = null; strip.classList.remove("drag");
+    if (dd.moved < 6) { const el = document.elementFromPoint(e.clientX, e.clientY), c = el && el.closest && el.closest("#tcStrip canvas"); if (c) { const i = +c.dataset.i; if (i === tcIdx) tcZoom(i); else go(i); } else go(tcIdx); return; }
+    const vel = (e.clientX - dd.x) / Math.max(1, performance.now() - dd.t); const f = (strip.clientWidth / 2 - x - CW / 2) / (CW + GAP);
+    go(Math.round(f - Math.max(-1, Math.min(1, vel * 1.2)))); };
+  strip.addEventListener("pointerup", end); strip.addEventListener("pointercancel", end);
+  let wl = 0; strip.addEventListener("wheel", e => { e.preventDefault(); const dlt = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (Date.now() - wl < 260 || Math.abs(dlt) < 8) return; wl = Date.now(); go(tcIdx + Math.sign(dlt)); }, {passive: false});
   tcPrefetch();
+}
+/* carte zoomée, inclinable en 3D */
+function tcZoom(i){
+  const t = tcList[i]; if (!t) return;
+  const ov = document.createElement("div"); ov.className = "tcz"; ov.innerHTML = `<div class="tcz-card"><canvas></canvas><span class="tcz-glare"></span></div><p class="tcz-hint">Bougez la souris · touchez en dehors pour fermer</p>`;
+  document.body.appendChild(ov);
+  const card = ov.querySelector(".tcz-card"), c = ov.querySelector("canvas"), w = Math.min(420, innerWidth * .82, innerHeight * .72 / 1.25), dpr = Math.min(2, devicePixelRatio || 1);
+  card.style.width = w + "px"; c.width = Math.round(w * dpr); c.height = Math.round(w * 1.25 * dpr);
+  const cv = tcCurveCache[t.id] || {ys: [0, 0], ei: 0, xi: 1, ph: true}, t0 = performance.now();
+  (function st(n){ const p = Math.min(1, (n - t0) / 900); drawTradeCard(c.getContext("2d"), c.width, c.height, t, cv, p); if (p < 1 && ov.isConnected) requestAnimationFrame(st); })(t0);
+  requestAnimationFrame(() => ov.classList.add("on"));
+  let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0;
+  const loop = () => { cx += (tx - cx) * .12; cy += (ty - cy) * .12; card.style.transform = `perspective(900px) rotateX(${(-cy * 14).toFixed(2)}deg) rotateY(${(cx * 18).toFixed(2)}deg) scale(1)`;
+    card.style.setProperty("--gx", (50 + cx * 60) + "%"); card.style.setProperty("--gy", (50 + cy * 60) + "%"); if (ov.isConnected) raf = requestAnimationFrame(loop); };
+  ov.addEventListener("pointermove", e => { const r = card.getBoundingClientRect(); tx = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (r.width / 2))); ty = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / (r.height / 2))); });
+  ov.addEventListener("pointerleave", () => { tx = ty = 0; });
+  loop();
+  const close = () => { ov.classList.remove("on"); setTimeout(() => { cancelAnimationFrame(raf); ov.remove(); }, 320); removeEventListener("keydown", esc); };
+  const esc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc);
+  ov.addEventListener("click", e => { if (!e.target.closest(".tcz-card")) close(); });
 }
 async function tcBlob(){
   const t = tcList[tcIdx], c = document.createElement("canvas"); c.width = 1080; c.height = 1350;
@@ -3984,7 +4023,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-11";
+const APP_VERSION = "2026-10-27-12";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
