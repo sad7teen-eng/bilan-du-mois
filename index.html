@@ -878,7 +878,7 @@ body.light .di-in{padding:16px 26px;border-radius:20px;background:linear-gradien
 .deck-stage:active{cursor:grabbing}
 .dcard{position:absolute;left:50%;top:50%;width:min(440px,74vw);padding:0!important;border-radius:18px!important;overflow:hidden;background:#0b0b0b!important;border:1px solid #262626!important;box-shadow:0 30px 70px rgba(0,0,0,.7);transition:transform .6s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .4s;display:flex;flex-direction:column;text-align:left;color:#fff;will-change:transform}
 .dcard.on{border-color:#444!important;box-shadow:0 34px 90px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.08)}
-.dcard.on.tilt{transition:filter .5s,opacity .4s}
+.dcard.on.tilt{transition:transform .18s ease-out,filter .5s,opacity .4s}
 .dcard.on.tilt{transform:translate(-50%,-50%) perspective(900px) rotateX(var(--rx,0)) rotateY(var(--ry,0)) scale(1.02)!important}
 .dc-im{display:block;aspect-ratio:4/3;background:#000}
 .dc-im img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
@@ -1510,23 +1510,11 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 .tr-corr{position:absolute;inset:0;perspective:700px;perspective-origin:50% 50%;transition:opacity .5s}
 .tr-cam{position:absolute;inset:0;transform-style:preserve-3d;transform:translateZ(0);transition:transform 2.5s cubic-bezier(.45,0,.25,1)}
 .troph.walk .tr-cam{transform:translateZ(2950px)}
-.tr-cam i{position:absolute;left:50%;top:50%;width:88vw;height:84vh;transform:translate(-50%,-50%) translateZ(var(--z));border:1px solid rgba(255,255,255,.07);
-  background:linear-gradient(180deg,rgba(255,255,255,.015),transparent 30%,transparent 70%,rgba(255,255,255,.03))}
-.troph.lit .tr-cam i{border-color:rgba(255,255,255,.13);transition:border-color 1.2s}
 .tr-far{position:absolute;left:50%;top:50%;width:min(48vw,640px);transform:translate(-50%,-50%) translateZ(-3200px)}
 .tr-far img{width:100%;display:block;filter:blur(14px) brightness(.25);transition:filter 2.4s cubic-bezier(.4,0,.2,1)}
 .troph.walk .tr-far img{filter:blur(6px) brightness(.45)}
 .troph.lit .tr-far img{filter:blur(0) brightness(1);transition:filter 1.3s cubic-bezier(.4,0,.2,1)}
 .troph.show .tr-corr{opacity:0}
-/* deux projecteurs, en haut à gauche et en haut à droite */
-.tr-pj{position:absolute;top:0;z-index:2;width:50vw;height:100vh;pointer-events:none}
-.tr-pj.l{left:0}.tr-pj.r{right:0;transform:scaleX(-1)}
-.tr-pj .head{position:absolute;left:5vw;top:4vh;width:46px;height:26px;border-radius:6px 6px 14px 14px;background:linear-gradient(180deg,#2a2b2f,#0d0d0f);transform:rotate(38deg);box-shadow:0 0 0 1px #333}
-.tr-pj .head::after{content:"";position:absolute;left:8px;right:8px;bottom:-2px;height:5px;border-radius:50%;background:#555;transition:background .6s,box-shadow .6s}
-.tr-pj .beam{position:absolute;left:6vw;top:6vh;width:70vw;height:110vh;transform-origin:0 0;transform:rotate(-14deg);opacity:0;transition:opacity 1.2s ease;
-  background:linear-gradient(115deg,rgba(255,255,255,.26),rgba(255,255,255,.07) 45%,transparent 75%);clip-path:polygon(0 0,7% 0,72% 100%,40% 100%);filter:blur(16px)}
-.troph.lit .tr-pj .beam{opacity:1}
-.troph.lit .tr-pj .head::after{background:#fff;box-shadow:0 0 18px 6px rgba(255,255,255,.6)}
 /* le bloc de plexi qui pop */
 .tr-stage{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);perspective:1400px;--d:46px;z-index:1}
 .tr-block{position:relative;width:var(--bw,560px);height:var(--bh,420px);transform-style:preserve-3d;opacity:0;scale:.9;transition:opacity .35s,scale .7s cubic-bezier(.2,1.5,.4,1)}
@@ -2166,8 +2154,10 @@ function drawCerts(){
       <button type="button" class="mini ghost" id="cfCancel">Annuler</button><button type="submit" class="go save">Enregistrer</button></div></form>`;
 }
 let deckSel = 0, deckList = [];
+let deckMovedAt = 0;
 function layoutDeck(){
-  const st = document.querySelector("#certGrid .deck-stage"); if (!st) return;
+  const st = document.querySelector("#certGrid .deck-stage"); if (!st) return; deckMovedAt = performance.now();
+  st.querySelectorAll(".dcard.tilt").forEach(x => { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); });
   const W = st.clientWidth || 800, gap = Math.min(150, W * .17);
   st.querySelectorAll(".dcard").forEach(c => { const d = +c.dataset.ci - deckSel, a = Math.abs(d);
     c.style.transform = `translate(-50%,-50%) translateX(${d * gap}px) translateY(${a * a * 7}px) rotate(${d * 5}deg) scale(${Math.max(.6, 1 - a * .09)})`;
@@ -2187,12 +2177,9 @@ function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
   const ov = document.createElement("div"); ov.className = "troph";
-  const frames = Array.from({length: 10}, (_, i) => `<i style="--z:${-i * 340}px"></i>`).join("");
   ov.innerHTML = `
-    <div class="tr-corr"><div class="tr-cam">${frames}<div class="tr-far"><img src="${im}" alt=""></div></div></div>
+    <div class="tr-corr"><div class="tr-cam"><div class="tr-far"><img src="${im}" alt=""></div></div></div>
     <div class="tr-door"><b class="dl"></b><b class="dr"></b></div>
-    <div class="tr-pj l"><span class="head"></span><span class="beam"></span></div>
-    <div class="tr-pj r"><span class="head"></span><span class="beam"></span></div>
     <div class="tr-stage">
       <div class="tr-block" id="trBlock">
         <div class="tr-face tr-print"><img src="${im}" alt="Certificat ${esc(c.firm)}"></div>
@@ -2210,7 +2197,7 @@ function openTrophy(c){
   requestAnimationFrame(() => ov.classList.add("go"));
   const T = reduced ? 0 : 1;
   setTimeout(() => ov.classList.add("walk"), 700 * T);   /* la porte est ouverte, on avance */
-  setTimeout(() => ov.classList.add("lit"), 1900 * T);    /* à mi-couloir, les projecteurs s'allument */
+  setTimeout(() => ov.classList.add("lit"), 1900 * T);    /* à mi-couloir, le certificat devient net */
   setTimeout(() => ov.classList.add("show"), 3150 * T);   /* au bout : le certificat apparaît dans son bloc de plexi */
   const blk = ov.querySelector("#trBlock"), sh = ov.querySelector(".tr-shine");
   let tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, idle = performance.now();
@@ -2228,7 +2215,7 @@ function openTrophy(c){
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
   ov.addEventListener("click", e => { const b = e.target.closest("[data-tr]");
     if (b && b.dataset.tr === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 460); return; }
-    if ((b && b.dataset.tr === "close") || (!e.target.closest(".tr-block") && !b)) close(); });
+    if (b && b.dataset.tr === "close") close(); });
 }
 
 (() => {
@@ -2248,7 +2235,7 @@ function openTrophy(c){
   g.addEventListener("pointermove", e => {
     if (px != null && Math.abs(e.clientX - px) > 50) { moved = true; stepDeck(e.clientX < px ? 1 : -1); px = e.clientX; }
     const c = e.target.closest && e.target.closest(".dcard.on"); g.querySelectorAll(".dcard.tilt").forEach(x => { if (x !== c) { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); } });
-    if (c && px == null) { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    if (c && px == null && performance.now() - deckMovedAt > 650) { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
       c.classList.add("tilt"); c.style.setProperty("--rx", ((.5 - y) * 10).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 14).toFixed(2) + "deg"); c.style.setProperty("--gx", (x * 100).toFixed(1) + "%"); c.style.setProperty("--gy", (y * 100).toFixed(1) + "%"); }
   });
   addEventListener("pointerup", () => { px = null; });
@@ -4272,7 +4259,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-34";
+const APP_VERSION = "2026-10-27-35";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
