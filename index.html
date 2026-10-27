@@ -614,7 +614,7 @@ body:not(.light) .rt:hover{background:#121212!important}
 .rt .arr.s{color:var(--loss)}
 .tico{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none}
 .tico.gold{background:radial-gradient(circle at 32% 28%,#fff4c8,#f1c84b 42%,#a2701a 100%);box-shadow:0 0 14px rgba(241,200,75,.35),inset 0 -2px 4px rgba(90,55,0,.35)}
-.tico.gold svg{width:16px;height:16px}
+.tico.gold svg{width:16px;height:16px;display:block}
 .tico.oth{background:var(--panel-2);border:1px solid var(--line);font-size:9px;font-weight:600}
 .rt-m{min-width:0}
 .rt-m b{display:block;font-size:13px;font-weight:600}
@@ -2571,7 +2571,7 @@ const dkey = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "
 const MON3 = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
 const fmtR = r => (r > 0 ? "+" : "") + String(Math.round(r * 100) / 100).replace(".", ",") + "R";
 const isGold = s => /XAU|GOLD|\bOR\b/i.test(s || "");
-const GOLD_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 18.5l2-5h6l2 5z" fill="#fff3c2" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M10.5 18.5l2-5h6l2 5z" fill="#ffe08a" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 13.5l2-5h6l2 5z" fill="#fff8dc" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/></svg>`;
+const GOLD_SVG = `<svg viewBox="0 1.5 24 24" aria-hidden="true"><path d="M3.5 18.5l2-5h6l2 5z" fill="#fff3c2" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M10.5 18.5l2-5h6l2 5z" fill="#ffe08a" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 13.5l2-5h6l2 5z" fill="#fff8dc" stroke="#7a5208" stroke-width="1.1" stroke-linejoin="round"/></svg>`;
 
 function allTrades(){
   const months = {};
@@ -3742,7 +3742,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-6";
+const APP_VERSION = "2026-10-27-7";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
