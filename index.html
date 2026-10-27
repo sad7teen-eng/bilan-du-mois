@@ -1256,6 +1256,21 @@ body.mgone .dash > section.view:not(#macroView),body.mgone .scene,body.mgone .to
 .orb.o1.mtn svg{width:100%;height:100%;display:block}
 .orb.o1.mtn::after{display:none}
 body.mfade .scene .orb.o1.mtn{opacity:0!important}
+
+/* --- v44 : curseur en point + ondes au clic (le pinceau est retiré) --- */
+.brush{display:none!important}
+@media (any-pointer:fine){
+  html,body,body *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%230b0b0c%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22/%3E%3C/svg%3E") 8 8, auto!important}
+  body:not(.light),body:not(.light) *,body.inmacro,body.inmacro *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22/%3E%3C/svg%3E") 8 8, auto!important}
+  input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),textarea,[contenteditable]{cursor:text!important}
+}
+.ripple{position:fixed;left:0;top:0;width:0;height:0;z-index:80;pointer-events:none}
+.ripple i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;border:1.2px solid rgba(11,11,12,.75);opacity:0;animation:rip .75s cubic-bezier(.2,.7,.3,1) forwards}
+.ripple.w i{border-color:rgba(245,245,247,.8)}
+.ripple i:nth-child(2){animation-delay:.09s}
+.ripple i:nth-child(3){animation-delay:.18s}
+@keyframes rip{0%{transform:scale(.6);opacity:.9}100%{transform:scale(4.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ripple{display:none}}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -3679,41 +3694,15 @@ setView(view);
   upd();
 })();
 
-/* ===== Trait de pinceau à l'encre derrière la souris (lissé, épais au centre, effilé aux bouts) ===== */
+/* ===== Clic : petites ondes, comme une goutte qui tombe dans l'eau ===== */
 (() => {
   if (!matchMedia("(any-pointer:fine)").matches) return;
-  const cv = document.createElement("canvas"); cv.className = "brush"; document.body.appendChild(cv);
-  const ctx = cv.getContext("2d"), LIFE = 800, pts = []; let dpr = 1, raf = 0, sx = null, sy = null;
-  const size = () => { dpr = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; };
-  size(); addEventListener("resize", size);
-  addEventListener("pointermove", e => { if (e.pointerType === "touch") return;
-    /* lissage : la pointe suit la souris avec un peu d'inertie */
-    if (sx == null) { sx = e.clientX; sy = e.clientY; } sx += (e.clientX - sx) * .55; sy += (e.clientY - sy) * .55;
-    const l = pts[pts.length - 1]; if (l && Math.hypot(l.x - sx, l.y - sy) < 2) return;
-    pts.push({x: sx, y: sy, t: performance.now()}); if (!raf) raf = requestAnimationFrame(draw); }, {passive: true});
-  addEventListener("pointerleave", () => { sx = sy = null; });
-  function draw(now){
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, innerWidth, innerHeight);
-    while (pts.length && now - pts[0].t > LIFE) pts.shift();
-    const n = pts.length; if (n < 3) { raf = n ? requestAnimationFrame(draw) : 0; return; }
-    const ink = document.body.classList.contains("light") ? "12,12,14" : "245,245,247";
-    /* contour du trait : largeur max au milieu de la traînée, effilée vers la queue et la pointe */
-    const L = [], R = [];
-    for (let i = 0; i < n; i++) {
-      const p = pts[i], a = pts[Math.max(0, i - 1)], b = pts[Math.min(n - 1, i + 1)];
-      let dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 1; dx /= d; dy /= d;
-      const u = i / (n - 1), age = 1 - (now - p.t) / LIFE;
-      const w = 7 * Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.15)), .8) * Math.sqrt(Math.max(0, age)) + .4;
-      L.push([p.x - dy * w, p.y + dx * w]); R.push([p.x + dy * w, p.y - dx * w]);
-    }
-    const ring = L.concat(R.reverse());
-    ctx.beginPath(); ctx.moveTo(ring[0][0], ring[0][1]);
-    for (let i = 1; i < ring.length; i++) { const p = ring[i], q = ring[(i + 1) % ring.length]; ctx.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2); }
-    ctx.closePath();
-    const fade = Math.min(1, (pts[n - 1].t - pts[0].t) / 120 + .2);
-    ctx.fillStyle = `rgba(${ink},${(.92 * fade).toFixed(3)})`; ctx.fill();
-    raf = requestAnimationFrame(draw);
-  }
+  addEventListener("pointerdown", e => {
+    if (e.pointerType === "touch") return;
+    const dark = !document.body.classList.contains("light") || document.body.classList.contains("inmacro");
+    const w = document.createElement("div"); w.className = "ripple" + (dark ? " w" : ""); w.style.left = e.clientX + "px"; w.style.top = e.clientY + "px";
+    w.innerHTML = "<i></i><i></i><i></i>"; document.body.appendChild(w); setTimeout(() => w.remove(), 900);
+  }, {passive: true});
 })();
 
 /* ===== Animations à la souris : halo qui suit le curseur + bulles d'info ===== */
@@ -3743,7 +3732,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-1";
+const APP_VERSION = "2026-10-27-2";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
