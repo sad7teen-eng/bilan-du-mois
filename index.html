@@ -1444,7 +1444,7 @@ body:not(.light) ::selection,body.inmacro #macroView ::selection{background:rgba
     <div class="bmain">
       <section class="bhero" aria-label="Résultat">
         <div class="scope" id="scope" role="group" aria-label="Période"><button type="button" data-scope="all">Depuis le début</button><button type="button" data-scope="month">Ce mois</button></div>
-        <div class="hnum" id="heroNum" data-tip-t="P&amp;L total" data-tip=""></div>
+        <div class="hnum" id="heroNum"></div>
         <div class="hsub"><span id="heroSub"></span><button type="button" class="hlink" id="btnCal">Ouvrir le calendrier →</button></div>
       </section>
       <div class="perf-h"><span class="sec">Performance</span><button type="button" id="btnHide">Masquer le P&amp;L</button></div>
@@ -2785,7 +2785,6 @@ function renderBoard(){
 
   const wk7 = sumP(all.filter(t => t.at >= new Date(now - 7 * 864e5)));
   $("heroNum").innerHTML = `<span class="mv${s.net < 0 ? " r" : ""}" id="heroVal">${heroMoney(s.net)}</span>`;
-  $("heroNum").dataset.tip = `${money(s.net)} · ${s.wins} gagnant${pl(s.wins)}, ${s.losses} perdant${pl(s.losses)}`;
   $("heroSub").innerHTML = `<span class="trend${wk7 < 0 ? " dn" : ""}">${wk7 < 0 ? "↘" : "↗"} <b class="mv">${bigMoney(wk7)}</b>&nbsp;sur 7 jours</span><span><b>${s.wins}G</b> / <b>${s.losses}P</b></span>`;
   if (!boardDrawn && !reduced && s.net) {
     const el = $("heroVal"), t0 = performance.now(), D = 1300;
@@ -4056,7 +4055,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-15";
+const APP_VERSION = "2026-10-27-16";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
