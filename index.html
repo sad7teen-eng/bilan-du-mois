@@ -2181,70 +2181,10 @@ function layoutDeck(){
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
 /* ===== Trophée : grande salle sombre, faisceau de lumière, podium, certificat en lévitation qu'on fait tourner à 360° ===== */
-function paintHall(W, H){
-  const cv = document.createElement("canvas"); cv.width = W; cv.height = H; const g = cv.getContext("2d"), u = H / 860, cx = W / 2;
-  const hz = H * .7, vy = H * .42;   /* horizon du sol et point de fuite */
-  /* mur du fond et volume de la salle, à peine visibles */
-  let gr = g.createLinearGradient(0, 0, 0, hz); gr.addColorStop(0, "#040405"); gr.addColorStop(1, "#0b0c0e"); g.fillStyle = gr; g.fillRect(0, 0, W, hz);
-  /* piliers et arches en perspective sur les côtés */
-  for (const side of [-1, 1]) for (let i = 0; i < 7; i++) {
-    const t = i / 7, x0 = cx + side * (W * .5 - t * W * .26), w = (70 - i * 7) * u, top = H * (.02 + t * .14), bot = hz + (H - hz) * (.35 - t * .35) * .9;
-    const x = side < 0 ? x0 : x0 - w; gr = g.createLinearGradient(x, 0, x + w, 0);
-    gr.addColorStop(0, "rgba(255,255,255,.008)"); gr.addColorStop(.5, "rgba(255,255,255,.022)"); gr.addColorStop(1, "rgba(0,0,0,.25)");
-    g.fillStyle = gr; g.fillRect(x, top, w, bot - top);
-    g.strokeStyle = "rgba(255,255,255,.035)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x + (side < 0 ? w : 0), top); g.lineTo(x + (side < 0 ? w : 0), bot); g.stroke();
-    /* arche entre deux piliers */
-    g.beginPath(); g.ellipse(x0 - side * w * 1.6, top + 60 * u * (1 - t), w * 1.6, 60 * u * (1 - t * .5), 0, Math.PI, 0); g.strokeStyle = "rgba(255,255,255,.025)"; g.stroke(); }
-  /* poutres du plafond qui fuient vers le centre */
-  g.strokeStyle = "rgba(255,255,255,.02)"; for (let i = -6; i <= 6; i++) { g.beginPath(); g.moveTo(cx + i * W * .12, 0); g.lineTo(cx + i * W * .02, H * .16); g.stroke(); }
-  /* sol en béton avec dalles en perspective */
-  gr = g.createLinearGradient(0, hz, 0, H); gr.addColorStop(0, "#0c0c0d"); gr.addColorStop(1, "#060606"); g.fillStyle = gr; g.fillRect(0, hz, W, H - hz);
-  g.strokeStyle = "rgba(255,255,255,.028)"; for (let i = -14; i <= 14; i++) { g.beginPath(); g.moveTo(cx + i * W * .015, hz); g.lineTo(cx + i * W * .16, H); g.stroke(); }
-  for (let k = 1; k < 9; k++) { const y = hz + (H - hz) * Math.pow(k / 9, 1.8); g.globalAlpha = .5 + k * .05; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); } g.globalAlpha = 1;
-  /* grain du béton */
-  for (let i = 0; i < W * H / 90; i++) { g.fillStyle = `rgba(255,255,255,${(Math.random() * .025).toFixed(3)})`; g.fillRect(Math.random() * W, hz + Math.random() * (H - hz), 1, 1); }
-  const Ty = H * .62, Fy = H * .835;
-  /* lueur qui monte du pupitre vers le certificat */
-  g.globalCompositeOperation = "lighter";
-  gr = g.createRadialGradient(cx, Ty, 0, cx, Ty, 120 * u); gr.addColorStop(0, "rgba(180,210,255,.45)"); gr.addColorStop(.4, "rgba(120,160,255,.12)"); gr.addColorStop(1, "rgba(0,0,0,0)");
-  g.save(); g.translate(cx, Ty); g.scale(1.3, .55); g.translate(-cx, -Ty); g.fillStyle = gr; g.fillRect(cx - 200 * u, Ty - 200 * u, 400 * u, 400 * u); g.restore();
-  /* faisceau de lumière du plafond (plusieurs couches pour des bords doux) */
-  const beam = document.createElement("canvas"); beam.width = W; beam.height = H; const b = beam.getContext("2d");
-  for (let i = 0; i < 6; i++) { const k = 1 - i * .14, tw = W * .05 * k, bw = W * .2 * k;
-    gr = b.createLinearGradient(0, 0, 0, Fy + 20 * u); gr.addColorStop(0, `rgba(235,240,255,${(.11 + i * .016).toFixed(3)})`); gr.addColorStop(.55, `rgba(220,228,245,${(.035 + i * .009).toFixed(3)})`); gr.addColorStop(1, `rgba(220,228,245,${(.045 + i * .008).toFixed(3)})`);
-    b.fillStyle = gr; b.beginPath(); b.moveTo(cx - tw, -10); b.lineTo(cx + tw, -10); b.lineTo(cx + bw, Fy + 20 * u); b.lineTo(cx - bw, Fy + 20 * u); b.closePath(); b.fill(); }
-  for (let i = 0; i < 14; i++) { const o = (Math.random() - .5) * 1.6, w = 2 + Math.random() * 7; b.strokeStyle = `rgba(240,244,255,${(.03 + Math.random() * .05).toFixed(3)})`; b.lineWidth = w;
-    b.beginPath(); b.moveTo(cx + o * W * .045, 0); b.lineTo(cx + o * W * .19, Fy); b.stroke(); }
-  g.filter = "blur(14px)"; g.drawImage(beam, 0, 0); g.filter = "blur(3px)"; g.globalAlpha = .5; g.drawImage(beam, 0, 0); g.globalAlpha = 1; g.filter = "none";
-  /* source au plafond */
-  gr = g.createRadialGradient(cx, 0, 0, cx, 0, W * .09); gr.addColorStop(0, "rgba(255,255,255,.9)"); gr.addColorStop(.3, "rgba(235,240,255,.35)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(cx - W * .1, 0, W * .2, W * .1);
-  /* tache de lumière au sol */
-  g.save(); g.translate(cx, Fy + 8 * u); g.scale(1, .16); gr = g.createRadialGradient(0, 0, 0, 0, 0, W * .24); gr.addColorStop(0, "rgba(235,240,255,.55)"); gr.addColorStop(.5, "rgba(210,220,240,.18)"); gr.addColorStop(1, "rgba(0,0,0,0)");
-  g.fillStyle = gr; g.fillRect(-W * .3, -W * .3, W * .6, W * .6); g.restore();
-  g.globalCompositeOperation = "source-over";
-  /* podium */
-  const pw = 92 * u;
-  const metal = (x, w) => { const m = g.createLinearGradient(x, 0, x + w, 0); m.addColorStop(0, "#151619"); m.addColorStop(.06, "#4a4c52"); m.addColorStop(.14, "#141518"); m.addColorStop(.5, "#0a0a0c"); m.addColorStop(.86, "#101114"); m.addColorStop(.94, "#3a3c42"); m.addColorStop(1, "#111215"); return m; };
-  const box = (y, w, h) => { g.fillStyle = metal(cx - w / 2, w); g.fillRect(cx - w / 2, y, w, h); g.fillStyle = "rgba(255,255,255,.22)"; g.fillRect(cx - w / 2, y, w, 1.2); };
-  box(Fy - 16 * u, pw * 2.1, 16 * u); box(Fy - 30 * u, pw * 1.75, 14 * u); box(Fy - 40 * u, pw * 1.5, 10 * u);
-  box(Ty + 30 * u, pw, Fy - 40 * u - (Ty + 30 * u));
-  /* filets dorés et LED bleues */
-  g.fillStyle = "rgba(200,160,90,.35)"; g.fillRect(cx - pw / 2 + 6 * u, Ty + 34 * u, 1.4, Fy - 40 * u - Ty - 38 * u); g.fillRect(cx + pw / 2 - 7 * u, Ty + 34 * u, 1.4, Fy - 40 * u - Ty - 38 * u);
-  for (const s of [-1, 1]) { const x = cx + s * pw * .62, y = Fy - 36 * u, r = g.createRadialGradient(x, y, 0, x, y, 26 * u);
-    r.addColorStop(0, "rgba(120,180,255,.9)"); r.addColorStop(.25, "rgba(70,130,255,.35)"); r.addColorStop(1, "rgba(40,90,255,0)"); g.fillStyle = r; g.fillRect(x - 30 * u, y - 30 * u, 60 * u, 60 * u);
-    g.fillStyle = "rgba(170,210,255,.95)"; g.fillRect(x - 2 * u, y - 7 * u, 4 * u, 12 * u); }
-  /* plateau du pupitre, face supérieure éclairée */
-  box(Ty + 12 * u, pw * 1.35, 18 * u);
-  g.beginPath(); g.moveTo(cx - pw * .62, Ty + 12 * u); g.lineTo(cx + pw * .62, Ty + 12 * u); g.lineTo(cx + pw * .55, Ty); g.lineTo(cx - pw * .55, Ty); g.closePath();
-  gr = g.createLinearGradient(0, Ty, 0, Ty + 12 * u); gr.addColorStop(0, "#5b5d63"); gr.addColorStop(1, "#2a2b2f"); g.fillStyle = gr; g.fill();
-  g.globalCompositeOperation = "lighter"; g.globalAlpha = .18; g.filter = "blur(14px)"; g.drawImage(beam, 0, 0); g.filter = "none"; g.globalAlpha = 1;
-  gr = g.createRadialGradient(cx, Ty, 0, cx, Ty, 90 * u); gr.addColorStop(0, "rgba(200,220,255,.35)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(cx - 100 * u, Ty - 100 * u, 200 * u, 200 * u);
-  g.globalCompositeOperation = "source-over";
-  /* vignettage : la salle se perd dans le noir */
-  gr = g.createRadialGradient(cx, H * .5, H * .25, cx, H * .5, Math.max(W, H) * .75); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,.85)"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-  return {cv, Ty, Fy, u};
-}
-function prewarmNebula(){}
+/* décor : photo de la salle (faisceau, poussière, pupitre), cadrée serré sur le haut du pupitre */
+let hallImg = null;
+function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/hall.jpg"; } return hallImg; }
+function prewarmNebula(){ getHallImg(); }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
@@ -2264,17 +2204,20 @@ function openTrophy(c){
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore"), stage = ov.querySelector(".tr-stage");
   const bx = sky.getContext("2d"), fx = fore.getContext("2d");
-  let W = 0, H = 0, dpr = 1, hall = null;
-  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bh = Math.min(H * .27, (W * .3) / r);
-    ov.style.setProperty("--bw", bh * r + "px"); ov.style.setProperty("--bh", bh + "px"); stage.style.top = (hall.Ty - 34 * hall.u - bh / 2) + "px"; };
+  let W = 0, H = 0, dpr = 1, S = 1, OX = 0, OY = 0, bgAt = 0;
+  const bg = getHallImg(), CX = 528, CY = 277;   /* centre du certificat sur la photo (base 1024 × 572) */
+  const toX = x => OX + x * S, toY = y => OY + y * S;
+  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bw = Math.min(172 * S, W * .4), bh = bw / r;
+    ov.style.setProperty("--bw", bw + "px"); ov.style.setProperty("--bh", bh + "px"); stage.style.top = toY(CY) + "px"; };
   const fit = () => { W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
-    for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; } hall = paintHall(W, H); size(); };
+    for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
+    S = 1.55 * Math.max(W / 1024, H / 572); OX = W / 2 - CX * S; OY = H * .38 - CY * S; size(); };
   fit(); img.addEventListener("load", size); addEventListener("resize", fit);
   const spr = document.createElement("canvas"); spr.width = spr.height = 32; { const g = spr.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16);
     r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.3, "rgba(240,244,255,.5)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); }
   /* poussière qui flotte dans le faisceau */
-  const rnd = Math.random, beamHalf = y => W * (.05 + .15 * Math.min(1, Math.max(0, y / (hall.Fy || H)))) * .95;
-  const motes = Array.from({length: 1500}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
+  const rnd = Math.random, beamHalf = y => S * (60 + 90 * Math.min(1, Math.max(0, y / H)));
+  const motes = Array.from({length: 700}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
   let t0 = performance.now(); const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
   function dustTo(ctx, now, front, k){
     for (const m of motes) { if (m.f !== front) continue;
@@ -2296,7 +2239,14 @@ function openTrophy(c){
   ov.addEventListener("wheel", e => { e.preventDefault(); if (!near(e.clientX, e.clientY)) return; zt = Math.max(.9, Math.min(1.15, zt - e.deltaY * .0008)); }, {passive: false});
   function frame(now){
     if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now; const k = ease((now - t0) / 1400);
-    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#030304"; bx.fillRect(0, 0, W, H); bx.globalAlpha = k; bx.drawImage(hall.cv, 0, 0); bx.globalAlpha = 1;
+    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#030304"; bx.fillRect(0, 0, W, H);
+    if (bg.complete && bg.naturalWidth) { if (!bgAt) bgAt = now; const kb = ease((now - bgAt) / 1200);
+      bx.globalAlpha = kb; bx.drawImage(bg, OX, OY, 1024 * S, 572 * S);
+      /* lueur douce qui monte du pupitre vers le certificat */
+      bx.globalCompositeOperation = "lighter"; const gx = toX(CX), gy = toY(342), gr = bx.createRadialGradient(gx, gy, 0, gx, gy, 70 * S);
+      gr.addColorStop(0, `rgba(200,220,255,${(.32 + .06 * Math.sin(now / 900)).toFixed(3)})`); gr.addColorStop(1, "rgba(0,0,0,0)");
+      bx.save(); bx.translate(gx, gy); bx.scale(1, .55); bx.translate(-gx, -gy); bx.fillStyle = gr; bx.fillRect(gx - 80 * S, gy - 80 * S, 160 * S, 160 * S); bx.restore();
+      bx.globalCompositeOperation = "source-over"; bx.globalAlpha = 1; }
     bx.globalCompositeOperation = "lighter"; dustTo(bx, now, false, k); bx.globalCompositeOperation = "source-over";
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); fx.globalCompositeOperation = "lighter"; dustTo(fx, now, true, k); fx.globalCompositeOperation = "source-over";
     if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
@@ -3229,6 +3179,7 @@ function setView(v, keepScroll){
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
   document.body.classList.toggle("incerts", v === "certs");
+  if (v === "certs") prewarmNebula();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 250);
@@ -4360,7 +4311,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-43";
+const APP_VERSION = "2026-10-27-44";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
