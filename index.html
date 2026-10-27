@@ -1746,7 +1746,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
     <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
     <div class="tn-brand">Kael<b>Journal</b></div>
     <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="tn" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button></div>
-    <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><span class="qwrap"><button type="button" id="btnQuality" aria-haspopup="true" aria-expanded="false">⚡ Fluidité</button>
+    <div class="tn-act"><span class="tn-sync" id="tnSync" title=""></span><button type="button" id="btnTheme" aria-label="Changer de thème"></button><span class="qwrap"><button type="button" id="btnQuality" aria-haspopup="true" aria-expanded="false">⚡ Performance</button>
       <div class="qpop" id="qPop" hidden><b>Le site rame ?</b><p>Baissez la qualité des effets de verre. Les animations ne changent pas.</p>
         <button type="button" data-q="high"><span>Haute</span><small>Rendu complet (recommandé si tout est fluide)</small></button>
         <button type="button" data-q="mid"><span>Équilibrée</span><small>Flou du verre allégé</small></button>
@@ -4749,7 +4749,7 @@ setView(view);
   const btn = $("btnQuality"), pop = $("qPop"); if (!btn) return;
   let q = "high"; try { q = localStorage.getItem("bdm-quality") || "high"; } catch (e) {}
   const apply = v => { q = v; document.body.classList.toggle("q-mid", v === "mid"); document.body.classList.toggle("q-low", v === "low");
-    pop.querySelectorAll("[data-q]").forEach(b => b.classList.toggle("on", b.dataset.q === v)); btn.textContent = v === "high" ? "⚡ Fluidité" : v === "mid" ? "⚡ Équilibrée" : "⚡ Légère";
+    pop.querySelectorAll("[data-q]").forEach(b => b.classList.toggle("on", b.dataset.q === v)); btn.textContent = v === "high" ? "⚡ Performance" : v === "mid" ? "⚡ Performance · Équilibrée" : "⚡ Performance · Légère";
     try { localStorage.setItem("bdm-quality", v); } catch (e) {} };
   apply(q);
   btn.addEventListener("click", e => { e.stopPropagation(); pop.hidden = !pop.hidden; btn.setAttribute("aria-expanded", String(!pop.hidden)); });
@@ -4807,7 +4807,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-66";
+const APP_VERSION = "2026-10-27-67";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
