@@ -2181,19 +2181,23 @@ function layoutDeck(){
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openTrophy(c); }
-/* ===== Trophée : grande salle sombre, faisceau de lumière, podium, certificat en lévitation qu'on fait tourner à 360° ===== */
-/* décor : paysage gris, ciel couvert, cailloux en suspension autour du certificat */
-let hallImg = null;
-let rockAtlas = null;
+/* ===== Trophée : paysage gris (nuages qui défilent), cailloux en lévitation autour du certificat, qu'on fait tourner à 360° ===== */
 const ROCK_CELLS = [[132, 24, 39, 53], [219, 24, 38, 34], [305, 24, 43, 44], [486, 24, 41, 32], [575, 24, 34, 36], [657, 24, 32, 33], [737, 24, 32, 35], [817, 24, 33, 35], [898, 24, 33, 38], [1058, 24, 32, 37], [1138, 24, 31, 30], [1217, 24, 31, 32], [1296, 24, 32, 30], [24, 125, 31, 28], [258, 125, 31, 26], [479, 125, 30, 24], [557, 125, 27, 25], [632, 125, 23, 29], [703, 125, 28, 24], [856, 125, 26, 24], [930, 125, 20, 28], [1074, 125, 22, 26], [1144, 125, 22, 28], [1288, 125, 30, 20], [24, 215, 25, 23], [97, 215, 29, 25], [174, 215, 25, 20], [247, 215, 21, 17], [316, 215, 19, 22], [383, 215, 18, 21]];
-function getHallImg(){ if (!hallImg) { hallImg = new Image(); hallImg.decoding = "async"; hallImg.src = "data/bg/land_blur.jpg?v=2"; } return hallImg; }
-/* atlas des cailloux + deux versions floutées (profondeur de champ) */
-function getRocks(){ if (rockAtlas) return rockAtlas; const im = new Image(); rockAtlas = {im, ready: false, lv: []};
-  /* un petit canvas par caillou et par niveau de flou : aucun débordement d'un caillou sur l'autre */
-  im.onload = () => { rockAtlas.lv = [0, 1.6, 4].map(b => ROCK_CELLS.map(([sx, sy, w, h]) => { const P = 16, c = document.createElement("canvas"); c.width = w + P * 2; c.height = h + P * 2;
-      const g = c.getContext("2d"); if (b) g.filter = `blur(${b}px)`; g.drawImage(im, sx, sy, w, h, P, P, w, h); return c; })); rockAtlas.ready = true; };
-  im.src = "data/bg/rocks.png?v=2"; return rockAtlas; }
-function prewarmNebula(){ getHallImg(); getRocks(); }
+let landAssets = null;
+function getLand(){ if (landAssets) return landAssets; const A = landAssets = {ready: false};
+  const load = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+  Promise.all([load("data/bg/land3.jpg?v=1"), load("data/bg/sky.jpg?v=2"), load("data/bg/skymask.png?v=1"), load("data/bg/rocks.png?v=2")]).then(([plate, sky, mask, atlas]) => {
+    if (!plate) return;
+    /* le paysage avec un « trou » à la place du ciel (masque doux) : les nuages défilent dessous */
+    const lc = document.createElement("canvas"); lc.width = plate.width; lc.height = plate.height; const g = lc.getContext("2d"); g.drawImage(plate, 0, 0);
+    if (mask && sky) { const mc = document.createElement("canvas"); mc.width = mask.width; mc.height = mask.height; const m = mc.getContext("2d"); m.drawImage(mask, 0, 0);
+      const d = m.getImageData(0, 0, mc.width, mc.height); for (let i = 0; i < d.data.length; i += 4) { d.data[i + 3] = d.data[i]; d.data[i] = d.data[i + 1] = d.data[i + 2] = 0; } m.putImageData(d, 0, 0);
+      g.globalCompositeOperation = "destination-out"; g.imageSmoothingQuality = "high"; g.drawImage(mc, 0, 0, lc.width, lc.height); g.globalCompositeOperation = "source-over"; }
+    A.land = lc; A.sky = sky; A.plateW = plate.width; A.plateH = plate.height;
+    A.rocks = atlas ? ROCK_CELLS.map(([sx, sy, w, h]) => { const c = document.createElement("canvas"); c.width = w + 4; c.height = h + 4; c.getContext("2d").drawImage(atlas, sx, sy, w, h, 2, 2, w, h); return c; }) : [];
+    A.ready = true; });
+  return A; }
+function prewarmNebula(){ getLand(); }
 function openTrophy(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!im) { certEdit = {...c}; drawCerts(); return; }
@@ -2212,45 +2216,33 @@ function openTrophy(c){
     <div class="tr-acts"><button type="button" data-tr="edit">Modifier</button><button type="button" data-tr="close">Fermer</button></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const img = ov.querySelector(".tr-print img"), sky = ov.querySelector(".tr-sky"), fore = ov.querySelector(".tr-fore"), stage = ov.querySelector(".tr-stage");
-  const bx = sky.getContext("2d"), fx = fore.getContext("2d");
-  let W = 0, H = 0, dpr = 1, S = 1, OX = 0, OY = 0, bgAt = 0;
-  const bg = getHallImg(), CX = 512, CY = 262;   /* centre du certificat sur la photo (base 1024 × 572) */
-  const toX = x => OX + x * S, toY = y => OY + y * S;
-  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3, bw = Math.min(232 * S, W * .42), bh = bw / r;
-    ov.style.setProperty("--bw", bw + "px"); ov.style.setProperty("--bh", bh + "px"); stage.style.top = toY(CY) + "px"; };
+  const bx = sky.getContext("2d"), fx = fore.getContext("2d"), A = getLand();
+  let W = 0, H = 0, dpr = 1, S = 1, OX = 0, OY = 0, BW = 400, BH = 300, CYs = 0, bgAt = 0;
+  const CX = 512, CY = 262;   /* centre du certificat, en base 1024 × 572 */
+  const size = () => { const r = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 4 / 3; BW = Math.min(232 * S, W * .42); BH = BW / r;
+    ov.style.setProperty("--bw", BW + "px"); ov.style.setProperty("--bh", BH + "px"); CYs = OY + CY * S; stage.style.top = CYs + "px"; };
   const fit = () => { W = innerWidth; H = innerHeight; dpr = Math.min(2, devicePixelRatio || 1);
     for (const cv of [sky, fore]) { cv.width = W * dpr; cv.height = H * dpr; }
-    S = 1.1 * Math.max(W / 1024, H / 572); OX = Math.min(0, Math.max(W - 1024 * S, W / 2 - CX * S)); OY = Math.min(0, Math.max(H - 572 * S, H / 2 - CY * S)); size(); };
+    S = 1.12 * Math.max(W / 1024, H / 572); OX = Math.min(-20, Math.max(W - 1024 * S + 20, W / 2 - CX * S)); OY = Math.min(-14, Math.max(H - 572 * S + 14, H / 2 - CY * S)); size(); };
   fit(); img.addEventListener("load", size); addEventListener("resize", fit);
-  const spr = document.createElement("canvas"); spr.width = spr.height = 32; { const g = spr.getContext("2d"), r = g.createRadialGradient(16, 16, 0, 16, 16, 16);
-    r.addColorStop(0, "rgba(255,255,255,1)"); r.addColorStop(.3, "rgba(240,244,255,.5)"); r.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = r; g.fillRect(0, 0, 32, 32); }
-  /* poussière qui flotte dans le faisceau */
-  const rnd = Math.random, beamHalf = y => S * (60 + 90 * Math.min(1, Math.max(0, y / H)));
-  const motes = Array.from({length: 0}, () => ({y: rnd(), o: (rnd() + rnd() + rnd() - 1.5) / 1.5, r: rnd() < .03 ? 1.8 + rnd() * 1.4 : .35 + rnd() * .8, p: rnd() * 7, s: .2 + rnd() * .8, f: rnd() < .06}));
-  const RK = getRocks(), rocks = Array.from({length: 66}, (_, i) => { const near = i < 6;
-    const o = {c: near ? (i * 2) % 12 : (i * 7 + (rnd() * 5 | 0)) % ROCK_CELLS.length, a: rnd() * 6.283, sp: (.05 + rnd() * .07) * (rnd() < .5 ? -1 : 1) * (near ? .6 : 1),
-      rx: near ? 1.7 + rnd() * .6 : .92 + rnd() * .8, yo: near ? (rnd() - .5) * 1.6 : (rnd() - .5) * 1.5, sz: near ? 1.7 + rnd() * .8 : .45 + rnd() * .7,
-      rot: rnd() * 6.283, spin: (rnd() - .5) * .5, p: rnd() * 7, near, side: near || rnd() < .45, base: rnd() < .5 ? 0 : Math.PI, amp: .5 + rnd() * .45};
-      /* « orbite » : passe au-dessus ou en dessous du certificat ; « côté » : va et vient devant/derrière sur les côtés, sans jamais cacher le texte */
-      if (!o.side) o.yo = (rnd() < .5 ? -1 : 1) * (.62 + rnd() * .45); return o; });
+  /* cailloux : placés autour du certificat, ils flottent comme lui (montent/descendent doucement), sans tourner */
+  const rnd = Math.random, rocks = [];
+  for (let i = 0; i < 74; i++) { const front = i % 3 === 0, big = i < 5;
+    let a = rnd() * 6.283, rr = Math.sqrt(rnd()), x = Math.cos(a) * rr * 1.25, y = Math.sin(a) * rr * .95 - .08;
+    if (front && Math.abs(x) < .6 && Math.abs(y) < .62) { if (Math.abs(x) / .6 > Math.abs(y) / .62) x = Math.sign(x || 1) * (.62 + rnd() * .2); else y = Math.sign(y || 1) * (.66 + rnd() * .2); }
+    if (big) { x = (i % 2 ? 1 : -1) * (.95 + rnd() * .35); y = (rnd() - .35) * 1.1; }
+    rocks.push({x, y, front: front || big, c: big ? i * 2 : (rnd() * ROCK_CELLS.length) | 0, sz: big ? 1.9 + rnd() * .6 : front ? 1.05 + rnd() * .55 : .6 + rnd() * .6,
+      r0: (rnd() - .5) * 1.2, amp: 4 + rnd() * 7, w: .45 + rnd() * .45, p: rnd() * 7, d: front || big ? 1.25 : .7}); }
+  let mx = 0, my = 0, smx = 0, smy = 0;
   function rocksTo(ctx, now, front, k){
-    if (!RK.ready) return; const bw = parseFloat(ov.style.getPropertyValue("--bw")) || 400, bh = parseFloat(ov.style.getPropertyValue("--bh")) || 300, cx = W / 2, cy = parseFloat(stage.style.top) || H / 2;
-    const list = [];
-    for (const r of rocks) { const a = r.side ? r.base + r.amp * Math.sin(r.a + now / 1000 * r.sp * 2.2) : r.a + now / 1000 * r.sp, z = Math.sin(a); if ((z > 0) !== front) continue; list.push([z, r, a]); }
-    list.sort((p, q) => p[0] - q[0]);
-    for (const [z, r, a] of list) {
-      const x = cx + Math.cos(a) * r.rx * bw * .62, y = cy + r.yo * bh + z * bh * .08 + Math.sin(now / 1500 + r.p) * 6, sc = r.sz * (1 + .35 * z) * (S / 1.6);
-      const lvl = r.near ? 2 : z < -.55 ? 1 : 0, img = RK.lv[lvl][r.c];
-      ctx.save(); ctx.globalAlpha = k * (z < 0 ? .78 + .22 * (1 + z) : 1); ctx.translate(x, y); ctx.rotate(r.rot + now / 1000 * r.spin); ctx.scale(sc, sc);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2); ctx.restore(); } }
+    if (!A.ready || !A.rocks.length) return; const base = S * 1024 / 2576;   /* taille réelle d'un caillou de la photo */
+    for (const r of rocks) { if (r.front !== front) continue; const spr = A.rocks[r.c % A.rocks.length];
+      const x = W / 2 + r.x * BW - smx * 26 * r.d, y = CYs + r.y * BH + Math.sin(now / 1000 * r.w * 2.2 + r.p) * r.amp - smy * 16 * r.d, sc = r.sz * base;
+      ctx.save(); ctx.globalAlpha = k; ctx.translate(x, y); ctx.rotate(r.r0 + Math.sin(now / 1000 * r.w + r.p) * .05); ctx.scale(sc, sc);
+      ctx.drawImage(spr, -spr.width / 2, -spr.height / 2); ctx.restore(); } }
   let t0 = performance.now(); const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
-  function dustTo(ctx, now, front, k){
-    for (const m of motes) { if (m.f !== front) continue;
-      const y = ((m.y * H * .92 - now / 1000 * 6 * m.s) % (H * .92) + H * .92) % (H * .92), x = W / 2 + m.o * beamHalf(y) + Math.sin(now / 2200 * m.s + m.p) * 10;
-      const inBeam = Math.max(0, 1 - Math.abs(m.o)), al = k * (.15 + .75 * inBeam) * (.55 + .45 * Math.sin(now / 700 * m.s + m.p * 3));
-      if (m.r > 1.7 || front) { ctx.globalAlpha = al * (front ? .6 : 1); const z = m.r * (front ? 7 : 4); ctx.drawImage(spr, x - z / 2, y - z / 2, z, z); }
-      else { ctx.globalAlpha = 1; ctx.fillStyle = `rgba(235,240,255,${al.toFixed(3)})`; ctx.fillRect(x, y, m.r, m.r); } }
-    ctx.globalAlpha = 1; }
+  ov.addEventListener("pointermove", e => { mx = e.clientX / W - .5; my = e.clientY / H - .5; });
+  ov.addEventListener("pointerleave", () => { mx = my = 0; });
   /* le certificat : on le fait tourner à 360° en le glissant, il revient face à nous quand on le lâche */
   const blk = ov.querySelector("#trBlock"), flo = ov.querySelector(".tr-float"), sh = ov.querySelector(".tr-shine");
   let ry = 0, rx = 4, vy = 0, vx = 0, zoom = 1, zt = 1, drag = null, last = performance.now(), idleAt = performance.now() - 9e3, raf = 0;
@@ -2264,19 +2256,23 @@ function openTrophy(c){
   ov.addEventListener("wheel", e => { e.preventDefault(); if (!near(e.clientX, e.clientY)) return; zt = Math.max(.9, Math.min(1.15, zt - e.deltaY * .0008)); }, {passive: false});
   function frame(now){
     if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now; const k = ease((now - t0) / 1400);
-    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#030304"; bx.fillRect(0, 0, W, H);
-    if (bg.complete && bg.naturalWidth) { if (!bgAt) bgAt = now; const kb = ease((now - bgAt) / 1200);
-      const kz = 1 + .025 * (.5 - .5 * Math.cos(now / 9000)), zx = W / 2, zy = H / 2;
-      bx.globalAlpha = kb; bx.drawImage(bg, zx + (OX - zx) * kz, zy + (OY - zy) * kz, 1024 * S * kz, 572 * S * kz);
-      bx.globalCompositeOperation = "source-over"; bx.globalAlpha = 1; }
-    const kr = ease((now - t0 - 300) / 1400); rocksTo(bx, now, false, kr);
+    smx += (mx - smx) * .05; smy += (my - smy) * .05;
+    bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#8a8d92"; bx.fillRect(0, 0, W, H);
+    if (A.ready) { if (!bgAt) bgAt = now; const kb = ease((now - bgAt) / 900), pw = 1024 * S, ph = 572 * S;
+      bx.globalAlpha = kb;
+      /* nuages : bande de ciel en boucle qui glisse lentement (deux couches pour qu'ils évoluent) */
+      if (A.sky) { const sh = ph * A.sky.height / A.plateH, sw = pw * A.sky.width / A.plateW, sy = OY - smy * 6;
+        for (const [sp, al] of [[9, 1], [16, .3]]) { const off = ((now / 1000 * sp * S / 1.5) % sw + sw) % sw, x0 = OX - off - smx * 8;
+          bx.globalAlpha = kb * al; bx.drawImage(A.sky, x0, sy, sw, sh); bx.drawImage(A.sky, x0 + sw, sy, sw, sh); } bx.globalAlpha = kb; }
+      bx.drawImage(A.land, OX - smx * 14, OY - smy * 9, pw, ph); bx.globalAlpha = 1; }
+    const kr = ease((now - t0 - 250) / 1100); rocksTo(bx, now, false, kr);
     fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H); rocksTo(fx, now, true, kr);
     if (!drag) { ry += vy; rx += vx; vy *= .94; vx *= .94; rx = Math.max(-60, Math.min(60, rx));
       if (now - idleAt > 2200 && Math.abs(vy) < .2) { const base = Math.round(ry / 360) * 360, ty = base + Math.sin(now / 2800) * 14, tx = 4 + Math.sin(now / 3400) * 4;
         ry += (ty - ry) * dt * 1.2; rx += (tx - rx) * dt * 1.2; } }
     zoom += (zt - zoom) * .12;
     blk.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
-    flo.style.transform = `translateY(${(Math.sin(now / 1200) * 7).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
+    flo.style.transform = `translate(${(-smx * 18).toFixed(2)}px, ${(Math.sin(now / 1200) * 7 - smy * 11).toFixed(2)}px) scale(${zoom.toFixed(3)})`;
     sh.style.setProperty("--sx", (50 - Math.sin(ry * Math.PI / 180) * 60) + "%"); sh.style.setProperty("--sy", (20 + rx) + "%");
     raf = requestAnimationFrame(frame);
   }
@@ -4333,7 +4329,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-47";
+const APP_VERSION = "2026-10-27-48";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
