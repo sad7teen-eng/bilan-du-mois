@@ -2248,7 +2248,7 @@ function openTrophy(c){
   /* vent au ras du sol, sable qui file, nuage de poussière et grains autour du certificat */
   const DS = getDust(), HZ = 282;   /* horizon, en base 1024 × 572 */
   const wisps = Array.from({length: 34}, () => ({u: rnd(), v: Math.pow(rnd(), .8), s: DS[(rnd() * 4) | 0], k: .8 + rnd() * 1.1, al: .26 + rnd() * .3, sp: .7 + rnd() * .6}));
-  const clumps = Array.from({length: 16}, () => ({T: 9 + rnd() * 7, off: rnd() * 20, v: Math.pow(rnd(), .8), k: .7 + rnd() * .8, x0: rnd(), run: .35 + rnd() * .35, rot: rnd() * 6, al: .35 + rnd() * .3, s: [0, 1, 2].map(() => DS[(rnd() * 4) | 0])}));
+  const clumps = Array.from({length: 16}, () => ({T: 9 + rnd() * 7, off: rnd() * 20, v: Math.pow(rnd(), .8), k: .7 + rnd() * .8, x0: rnd(), run: .35 + rnd() * .35, rot: rnd() * 6, g: .75 + rnd() * .5, al: .35 + rnd() * .3, s: [0, 1, 2].map(() => DS[(rnd() * 4) | 0])}));
   const puffs = Array.from({length: 22}, (_, i) => ({a: rnd() * 6.283, rx: .5 + rnd() * .7, ry: .35 + rnd() * .5, k: .5 + rnd() * .7, s: DS[i % 4], sp: (.02 + rnd() * .04) * (rnd() < .5 ? -1 : 1), al: .22 + rnd() * .2, front: i % 4 === 0}));
   const motes = Array.from({length: 140}, () => ({x: (rnd() - .5) * 3, y: (rnd() - .5) * 2.4, sp: .2 + rnd() * .6, p: rnd() * 7, r: .6 + rnd() * 1.3, front: rnd() < .3}));
   function windTo(ctx, now, k){   /* derrière le certificat : voiles de poussière et sable au sol */
@@ -2258,7 +2258,7 @@ function openTrophy(c){
       ctx.globalAlpha = k * w.al * (.75 + .25 * Math.sin(t * .7 + w.u * 9)); ctx.drawImage(w.s, x - ww / 2, y - hh / 2 - smy * 9 * depth, ww, hh); }
     ctx.globalAlpha = 1;
     /* amas de poussière qui roulent avec le vent : ils naissent, avancent en gonflant, puis se dissipent */
-    for (const c of clumps) { const life = ((t + c.off) % c.T) / c.T, depth = .3 + .7 * c.v, y = gy + c.v * gh * .8 - life * 18 * depth, sc = S * (.5 + 1.4 * depth) * c.k * (.7 + .7 * life);
+    for (const c of clumps) { const life = ((windT * c.g + c.off) % c.T) / c.T, depth = .3 + .7 * c.v, y = gy + c.v * gh * .8 - life * 18 * depth, sc = S * (.5 + 1.4 * depth) * c.k * (.7 + .7 * life);
       const x = -W * .15 + (W * 1.3) * ((c.x0 + life * c.run) % 1) - smx * 14 * depth, fade = Math.sin(Math.PI * life);
       for (let j = 0; j < 3; j++) { const sz = 128 * sc * (1 - j * .18), rot = c.rot + t * .12 * (j % 2 ? -1 : 1) + j;
         ctx.save(); ctx.globalAlpha = k * c.al * fade * (1 - j * .2); ctx.translate(x + (j - 1) * sz * .28, y - j * sz * .12 - smy * 9 * depth); ctx.rotate(rot); ctx.scale(1.5, .8);
@@ -2271,6 +2271,8 @@ function openTrophy(c){
     ctx.globalAlpha = 1;
     for (const m of motes) { if (m.front !== front) continue; const x = cx + m.x * BW + Math.sin(t * .4 + m.p) * 14 + t * 6 * m.sp % 30, y = cy + m.y * BH - ((t * 9 * m.sp + m.p * 20) % (BH * .6)) + BH * .3;
       ctx.fillStyle = `rgba(226,220,208,${(k * (.35 + .35 * Math.sin(t * 1.3 + m.p))).toFixed(3)})`; ctx.beginPath(); ctx.arc(x, y, m.r, 0, 6.283); ctx.fill(); } }
+  /* vent irrégulier : la vitesse de la poussière varie en continu (accalmies et rafales) */
+  let windT = 0; const gust = t => Math.max(.25, .95 + .45 * Math.sin(t * .21) + .3 * Math.sin(t * .57 + 1.3) + .18 * Math.sin(t * 1.37 + 2.1));
   const storm = {next: performance.now() + 1800, at: -9e9, x: .5, y: .1, r: .2};
   let mx = 0, my = 0, smx = 0, smy = 0;
   function rocksTo(ctx, now, front, k){
@@ -2294,7 +2296,7 @@ function openTrophy(c){
   ov.addEventListener("pointerup", up); ov.addEventListener("pointercancel", up);
   ov.addEventListener("wheel", e => { e.preventDefault(); if (!near(e.clientX, e.clientY)) return; zt = Math.max(.9, Math.min(1.15, zt - e.deltaY * .0008)); }, {passive: false});
   function frame(now){
-    if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now; const k = ease((now - t0) / 1400);
+    if (!ov.isConnected) return; const dt = Math.min(.05, (now - last) / 1000); last = now; windT += dt * gust(now / 1000); const k = ease((now - t0) / 1400);
     smx += (mx - smx) * .05; smy += (my - smy) * .05;
     bx.setTransform(dpr, 0, 0, dpr, 0, 0); bx.fillStyle = "#8a8d92"; bx.fillRect(0, 0, W, H);
     if (A.ready) { if (!bgAt) bgAt = now; const kb = ease((now - bgAt) / 900), pw = 1024 * S, ph = 572 * S;
@@ -4375,7 +4377,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-51";
+const APP_VERSION = "2026-10-27-52";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
