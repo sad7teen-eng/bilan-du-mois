@@ -1430,6 +1430,18 @@ section.view[data-view="tableau"].venter .row3 .tile:nth-child(2){animation-dela
 section.view[data-view="tableau"].venter .row3 .tile:nth-child(3){animation-delay:1s!important}
 section.view[data-view="tableau"].venter .plan{animation:planIn .7s 1.12s cubic-bezier(.2,.8,.2,1) both!important}
 section.view[data-view="tableau"].venter .plan .psec{animation:vUp .5s cubic-bezier(.2,.8,.2,1) both!important;animation-delay:calc(1.2s + var(--pi,0) * .08s)!important}
+
+/* --- v59 : grand P&L en compteur à rouleaux --- */
+#heroVal.rolling{display:inline-flex;align-items:baseline;animation:heroIn .9s cubic-bezier(.2,.8,.2,1) both}
+@keyframes heroIn{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.odo{display:inline-flex}
+.od{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:baseline;-webkit-mask-image:linear-gradient(180deg,transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(180deg,transparent,#000 18%,#000 82%,transparent)}
+#heroVal.rolling,#heroVal.rolling *{text-shadow:none!important}
+#heroVal.rolling{filter:drop-shadow(0 14px 30px rgba(0,0,0,.22))}
+.odc{display:flex;flex-direction:column;transform:translateY(0);transition:transform 1.25s cubic-bezier(.16,.84,.24,1);transition-delay:var(--dl,0s)}
+.odc span{display:block;height:1em;line-height:1}
+#heroVal.go .odc{transform:translateY(calc(var(--n) * -1em))}
+.odx{display:inline-block}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2814,9 +2826,14 @@ function renderBoard(){
   $("heroNum").innerHTML = `<span class="mv${s.net < 0 ? " r" : ""}" id="heroVal">${heroMoney(s.net)}</span>`;
   $("heroSub").innerHTML = `<span class="trend${wk7 < 0 ? " dn" : ""}">${wk7 < 0 ? "↘" : "↗"} <b class="mv">${bigMoney(wk7)}</b>&nbsp;sur 7 jours</span><span><b>${s.wins}G</b> / <b>${s.losses}P</b></span>`;
   if (!boardDrawn && !reduced && s.net) {
-    const el = $("heroVal"), t0 = performance.now(), D = 1300;
-    const step = t => { const k = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - k, 4); el.innerHTML = heroMoney(s.net * e); if (k < 1) requestAnimationFrame(step); };
-    requestAnimationFrame(step);
+    /* compteur à rouleaux : chaque chiffre défile jusqu'à sa valeur, de gauche à droite */
+    const el = $("heroVal"), txt = (s.net < 0 ? "−" : "+") + frN(Math.round(s.net), 0);
+    let k = 0; const nd = (txt.match(/\d/g) || []).length;
+    el.innerHTML = `<span class="odo">${[...txt].map(ch => { if (!/\d/.test(ch)) return `<span class="odx">${ch}</span>`;
+      const i = k++, n = +ch; return `<span class="od"><span class="odc" style="--n:${n + 10};--dl:${(.35 + i * .07).toFixed(2)}s">${"01234567890123456789".split("").map(d => `<span>${d}</span>`).join("")}</span></span>`; }).join("")}</span><span class="cur">\u00a0${cur()}</span>`;
+    el.classList.add("rolling");
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("go")));
+    setTimeout(() => { if (el.isConnected) { el.classList.remove("rolling", "go"); el.innerHTML = heroMoney(s.net); } }, 1700 + nd * 70);
   }
 
   const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ",");
@@ -4083,7 +4100,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-20";
+const APP_VERSION = "2026-10-27-22";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
