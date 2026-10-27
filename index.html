@@ -1399,6 +1399,10 @@ section.view[data-view="tableau"].venter .plan .psec{animation:vUp .5s cubic-bez
 
 /* --- v54 : le panneau de droite défile avec la page (plus de barre interne ni de saut) --- */
 .plan{position:relative!important;top:auto!important;max-height:none!important;overflow:visible!important}
+
+/* --- v55 : couleur de sélection du texte, assortie au site --- */
+::selection{background:rgba(11,11,12,.14);color:inherit;text-shadow:none}
+body:not(.light) ::selection,body.inmacro #macroView ::selection{background:rgba(255,255,255,.22);color:inherit}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -4052,7 +4056,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-27-14";
+const APP_VERSION = "2026-10-27-15";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
