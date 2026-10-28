@@ -2682,11 +2682,11 @@ async function openGlass(c0){
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* relief de glace fissurée (texture photo) : en couche de base ; les stries/cuvettes passent dans le vernis */
-  let nsBase = .2;
+  let nsBase = .2, iceTexL = null, applyWireTex = null;
   if (!low) { const tl = new THREE.TextureLoader(); Promise.all([tl.loadAsync("ice_n.jpg?v=1"), tl.loadAsync("ice_r.jpg?v=1")]).then(([tn, tr]) => { if (!alive) return;
       [tn, tr].forEach(t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.3, 1.7); t.anisotropy = 8; });
       iceM.clearcoatNormalMap = iceM.normalMap; iceM.clearcoatNormalScale = new THREE.Vector2(.35, .35); iceM.clearcoatRoughnessMap = tr; iceM.clearcoat = .6; iceM.clearcoatRoughness = .35;
-      iceM.normalMap = tn; nsBase = .6; iceM.needsUpdate = true; }).catch(() => {}); }
+      iceM.normalMap = tn; nsBase = .6; iceM.needsUpdate = true; iceTexL = [tr, tn]; if (applyWireTex) applyWireTex(); }).catch(() => {}); }
   /* « trou » dans la glace : là où on casse, la glace devient claire et laisse voir le certificat */
   /* ---- taille de la glace : chaque clic creuse (attribut « carve » par sommet), on peut tout enlever, puis la glace se reconstruit par plaques ---- */
   const PC = iceGeo.attributes.position, carve = new Float32Array(PC.count), cDelay = new Float32Array(PC.count), carveA = new THREE.BufferAttribute(carve, 1);
@@ -2735,7 +2735,7 @@ async function openGlass(c0){
     g.computeVertexNormals();
     const front = new THREE.MeshBasicMaterial({map: t, toneMapped: false}), backM = new THREE.MeshBasicMaterial({map: t, toneMapped: false, color: new THREE.Color(.75, .77, .8)});
     const m = new THREE.Mesh(g, [edgeM, edgeM, edgeM, edgeM, front, backM]); m.userData = {PW, PH}; return m; };
-  const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(() => res(i)); i.onerror = rej; i.src = src; });
   setP(84, "CERTIFICAT"); await tick();
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
   let cert = certMesh(img0); const CB = {y: H * .03, z: .05}, CR = {x: .12, y: -.38, z: .42};
@@ -2855,9 +2855,9 @@ async function openGlass(c0){
   const cycle = (Lb, delay, gen) => setTimeout(() => { if (!alive || gen !== hudGen) return; garble(Lb.el); Lb.el.classList.add("off"); Lb.p.classList.add("off");
     setTimeout(() => { if (!alive || gen !== hudGen) return; const used = LABS.map(x => x.s), free = SLOTS.map((_, k) => k).filter(k => !used.includes(k)); Lb.s = free[Math.floor(rnd() * free.length)];
       Lb.el.classList.remove("off", "in"); void Lb.el.offsetWidth; Lb.el.classList.add("in"); Lb.p.classList.remove("off");
-      Lb.el.querySelectorAll("[data-s]").forEach(scramble); if (Lb.el === labT) { const bs = labT.querySelectorAll("b"); bs[2].textContent = "TEMP"; }
+      ov._sfx && ov._sfx("shard"); Lb.el.querySelectorAll("[data-s]").forEach(scramble); if (Lb.el === labT) { const bs = labT.querySelectorAll("b"); bs[2].textContent = "TEMP"; }
       cycle(Lb, 10000, gen); }, 1100); }, delay);
-  const showHud = () => { ov.classList.add("hud"); hudGen++; LABS.forEach(Lb => { Lb.el.classList.remove("off"); Lb.p.classList.remove("off"); });
+  const showHud = () => { ov.classList.add("hud"); hudGen++; ov._sfx && ov._sfx("shard"); LABS.forEach(Lb => { Lb.el.classList.remove("off"); Lb.p.classList.remove("off"); });
     ov.querySelectorAll("[data-s]").forEach(scramble); LABS.forEach((Lb, i) => cycle(Lb, 10000 + i * 3300, hudGen)); };
   setLabels(list[ci]);
   let T1 = -18.42; const tempEl = ov.querySelector(".ig-temp"), bgs = [...ov.querySelectorAll(".ig-bg span")];
@@ -2875,17 +2875,20 @@ async function openGlass(c0){
   const NT = 40, trail = Array.from({length: NT}, () => new THREE.Vector4(0, 0, 0, -99)); let trailI = 0;
   const trailS = new Array(NT).fill(0), wireU = {trail: {value: trail}, trailS: {value: trailS}, uT: {value: 0}, pr: {value: renderer.getPixelRatio()}};
   const wireFn = "uniform vec4 trail[" + NT + "]; uniform float trailS[" + NT + "]; uniform float uT; vec3 dispOff;\nfloat glowAt(vec3 p){ float g = 0.; dispOff = vec3(0.); for (int i = 0; i < " + (NT - 1) + "; i++) { vec4 A = trail[i], B = trail[i + 1]; if (B.w < -50.) break; if (A.w - B.w > .3) continue; float age = uT - A.w; if (age > .75 || age < 0.) continue;\n  vec3 ab = B.xyz - A.xyz; float hh = clamp(dot(p - A.xyz, ab) / max(dot(ab, ab), 1e-5), 0., 1.); vec3 q = A.xyz + ab * hh; float d = distance(p, q), s = trailS[i], fade = pow(1. - age / .75, 2.), w = .05 + .09 * s;\n  float halo = smoothstep(.12 + .3 * s, 0., d), v = s * fade * (exp(-d * d / (w * w)) + halo * .3); if (v > g) { g = v; dispOff = normalize(p - q + vec3(1e-4)) * age * (.12 + .35 * s) * halo; } } return g; }\n";
-  const wire = new THREE.LineSegments(new THREE.WireframeGeometry(iceGeo), new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
-    vertexShader: wireFn + "varying float vG; void main(){ vG = glowAt(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.004 + dispOff, 1.0); }",
-    fragmentShader: "varying float vG; void main(){ if (vG < .01) discard; gl_FragColor = vec4(vec3(.92, .96, 1.), min(1., vG * .85)); }"}));
+  /* traînée qui épouse la texture de la glace : les fissures et le relief s'allument le long du passage de la souris */
+  Object.assign(wireU, {tCr: {value: streak.rough}, tNo: {value: streak.normal}, rep: {value: new THREE.Vector2(1, 1)}});
+  const wire = new THREE.Mesh(iceGeo, new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: "varying vec3 vP; varying vec2 vUv; void main(){ vP = position; vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.003, 1.0); }",
+    fragmentShader: wireFn + "uniform sampler2D tCr, tNo; uniform vec2 rep; varying vec3 vP; varying vec2 vUv; void main(){ float g = glowAt(vP); if (g < .01) discard; vec2 u = vUv * rep;\n  float cr = texture2D(tCr, u).r; vec3 nn = texture2D(tNo, u).rgb * 2. - 1.; float det = clamp(length(nn.xy) * 2.4, 0., 1.), lines = smoothstep(.1, .42, cr);\n  float a = min(1., g * 1.5) * (.28 + lines * 1.3 + det * 1.1); gl_FragColor = vec4(vec3(.88, .94, 1.), min(1., a)); }"}));
   const wdots = new THREE.Points(iceGeo, new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
     vertexShader: wireFn + "uniform float pr; varying float vG; void main(){ vG = glowAt(position); gl_PointSize = (1.5 + vG * 4.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.005 + dispOff * 1.4, 1.0); }",
-    fragmentShader: "varying float vG; void main(){ if (vG < .02) discard; vec2 d = gl_PointCoord - .5; gl_FragColor = vec4(1., 1., 1., vG * smoothstep(.5, .1, length(d))); }"}));
-  wire.renderOrder = 3; wdots.renderOrder = 4; if (!(mobile && low)) ice.add(wire, wdots);
+    fragmentShader: "varying float vG; void main(){ if (vG < .05) discard; vec2 d = gl_PointCoord - .5; gl_FragColor = vec4(1., 1., 1., vG * .5 * smoothstep(.5, .1, length(d))); }"}));
+  wire.renderOrder = 3; wdots.renderOrder = 4; wdots.material.uniforms = wireU; if (!(mobile && low)) ice.add(wire, wdots);
   const lastTr = new V3(1e9, 0, 0); let hoverN = 0;
-  const hoverTrail = () => { if (!mouse.in) return; ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+  applyWireTex = () => { wireU.tCr.value = iceTexL[0]; wireU.tNo.value = iceTexL[1]; wireU.rep.value.set(1.3, 1.7); }; if (iceTexL) applyWireTex(); let lastTrT = 0;
+  const hoverTrail = () => { if (!mouse.in || (++hoverN & 1)) return; ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
     const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit) return; const hl = ice.worldToLocal(hit.point.clone()); if (hl.distanceTo(lastTr) < .05) return;
-    lastTr.copy(hl); for (let i = NT - 1; i > 0; i--) { trail[i].copy(trail[i - 1]); trailS[i] = trailS[i - 1]; } trail[0].set(hl.x, hl.y, hl.z, wireU.uT.value); trailS[0] = Math.max(.15, Math.min(1, mouse.v / 1300)); };
+    lastTr.copy(hl); { const now = performance.now(); if (now - lastTrT > 450 && mouse.v > 120) ov._sfx && ov._sfx("beeps"); lastTrT = now; } for (let i = NT - 1; i > 0; i--) { trail[i].copy(trail[i - 1]); trailS[i] = trailS[i - 1]; } trail[0].set(hl.x, hl.y, hl.z, wireU.uT.value); trailS[0] = Math.max(.15, Math.min(1, mouse.v / 1300)); };
 
   cv.addEventListener("pointerdown", e => { if (busy) return; rot.drag = true; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved = 0; rot.v = 0; try { cv.setPointerCapture(e.pointerId); } catch (er) {} ov.classList.add("grab"); });
   cv.addEventListener("pointermove", e => { if (!rot.drag) return; const dx = e.clientX - rot.lx, dy = e.clientY - rot.ly; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved += Math.abs(dx) + Math.abs(dy);
@@ -2936,14 +2939,19 @@ async function openGlass(c0){
   const SCR = {t: ci, v: ci}; let shownK = ci, swapping = false, hudOn = true; const imgP = {};
   const getImg = k => imgP[k] || (imgP[k] = loadImg(imOf(list[k])).catch(() => null));
   const clampS = x => Math.max(-.42, Math.min(list.length - 1 + .42, x));
-  const swapCert = async k => { swapping = true; const im2 = await getImg(k); swapping = false; if (!alive) return;
-    if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert); old.geometry.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
-    ci = k; setLabels(list[k]); hudOn = false; };
+  /* certificats préparés à l'avance (texture + maillage + envoi à la carte graphique) quand le navigateur est libre : plus de saccade au changement */
+  const meshC = new Map([[ci, cert]]), idle = f => (window.requestIdleCallback ? requestIdleCallback(f, {timeout: 600}) : setTimeout(f, 60));
+  const prepare = k => { if (meshC.has(k)) return Promise.resolve(meshC.get(k)); return getImg(k).then(im => { if (!im || !alive) return null; if (meshC.has(k)) return meshC.get(k);
+      const m = certMesh(im); try { renderer.initTexture(m.material[4].map); } catch (e) {} meshC.set(k, m); return m; }); };
+  const prefetch = k => { for (const j of [k + 1, k - 1]) if (j >= 0 && j < list.length && !meshC.has(j)) idle(() => prepare(j)); };
+  const swapCert = async k => { swapping = true; const m = await prepare(k); swapping = false; if (!alive) return;
+    if (m && m !== cert) { inner.remove(cert); cert = m; inner.add(cert); setDens(); }
+    ci = k; setLabels(list[k]); hudOn = false; prefetch(k); };
   go = dir => { if (busy) return; SCR.t = clampS(Math.round(SCR.t) + dir); };
   let lastWheel = 0; ov.addEventListener("wheel", e => { e.preventDefault(); if (busy) return; lastWheel = performance.now(); const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1); SCR.t = clampS(SCR.t + Math.max(-900, Math.min(900, dy)) * .0011); }, {passive: false});
   const stepScroll = dt => { if (busy) return; if (performance.now() - lastWheel > 3000 && Math.abs(SCR.t - Math.round(SCR.t)) > .001) SCR.t = clampS(Math.max(0, Math.min(list.length - 1, Math.round(SCR.t)))); SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
     const k = Math.max(0, Math.min(list.length - 1, Math.round(SCR.v)));
-    if (k !== shownK && !swapping) { shownK = k; resetCarve(); swapCert(k); for (const j of [k - 1, k + 1]) if (j >= 0 && j < list.length) getImg(j); }
+    if (k !== shownK && !swapping) { shownK = k; resetCarve(); swapCert(k); }
     const off = SCR.v - shownK, a = Math.abs(off), tn = Math.tan(cam.fov * Math.PI / 360);
     S.scrollY = -off * 2.4 * tn * cam.position.z; S.scrollSpin = off * 2.2; S.wire = Math.max(0, 1 - a * 4); ptU.k.value = S.wire;
     if (a > .16 && hudOn) { hudOn = false; ov.classList.remove("hud"); hudGen++; }
@@ -2958,9 +2966,12 @@ async function openGlass(c0){
   ov.querySelector(".ig-snd").addEventListener("click", e => { e.stopPropagation(); setSnd(!sndOn); });
   ov.querySelector(".ig-vol").addEventListener("input", e => { vol = +e.target.value; if (sndOn) { clearInterval(fadeI); audio.volume = vol; } try { localStorage.setItem("bdm-wind-vol", vol); } catch (er) {} });
   try { if (localStorage.getItem("bdm-wind") === "1") setSnd(true); } catch (e) {}
+  const canOgg = !!audio.canPlayType('audio/ogg; codecs="opus"'), sfxBase = {};
+  ["shard", "beeps"].forEach(n => { const a = new Audio(); a.preload = "auto"; a.src = n + (canOgg ? ".ogg" : ".m4a") + "?v=1"; sfxBase[n] = a; });
+  ov._sfx = n => { if (!sndOn || !sfxBase[n]) return; try { const c = sfxBase[n].cloneNode(); c.volume = Math.min(1, vol * (n === "beeps" ? 1.3 : 1.6)); c.play().catch(() => {}); } catch (e) {} };
   ov._stopSnd = () => { fadeTo(0, () => { audio.pause(); audio.src = ""; }); };
   ice.position.set(0, 9, 0);
-  loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; });
+  loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; prefetch(ci); });
   /* ---- boucle ---- */
   const clock = new THREE.Clock(); let t = 0;
   const loop = () => { if (!alive) return; raf = requestAnimationFrame(loop);
@@ -5470,7 +5481,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-30";
+const APP_VERSION = "2026-10-28-31";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
