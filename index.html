@@ -2831,20 +2831,20 @@ async function openGlass(c0){
   ov.addEventListener("touchend", e => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY, dx = Math.abs(tx0 - e.changedTouches[0].clientX); ty = null; if (Math.abs(d) > 70 && dx < Math.abs(d) * .5) go(d > 0 ? 1 : -1); });
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), vT = new V3();
   /* ---- au survol : un maillage lumineux (triangles + points) apparaît sous la souris et laisse une traînée qui s'efface ---- */
-  const NT = 28, trail = Array.from({length: NT}, () => new THREE.Vector4(0, 0, 0, -99)); let trailI = 0;
+  const NT = 40, trail = Array.from({length: NT}, () => new THREE.Vector4(0, 0, 0, -99)); let trailI = 0;
   const trailS = new Array(NT).fill(0), wireU = {trail: {value: trail}, trailS: {value: trailS}, uT: {value: 0}, pr: {value: renderer.getPixelRatio()}};
-  const wireFn = "uniform vec4 trail[" + NT + "]; uniform float trailS[" + NT + "]; uniform float uT; vec3 dispOff;\nfloat glowAt(vec3 p){ float g = 0.; dispOff = vec3(0.); for (int i = 0; i < " + NT + "; i++) { vec4 T = trail[i]; float age = uT - T.w; if (age > .6 || age < 0.) continue; float s = trailS[i], r = .25 + .4 * s, d = distance(p, T.xyz); float v = s * pow(1. - age / .6, 1.6) * smoothstep(r, r * .15, d); if (v > g) { g = v; dispOff = normalize(p - T.xyz + vec3(1e-4)) * age * (.3 + .5 * s) * smoothstep(r * 1.2, 0., d); } } return g; }\n";
+  const wireFn = "uniform vec4 trail[" + NT + "]; uniform float trailS[" + NT + "]; uniform float uT; vec3 dispOff;\nfloat glowAt(vec3 p){ float g = 0.; dispOff = vec3(0.); for (int i = 0; i < " + (NT - 1) + "; i++) { vec4 A = trail[i], B = trail[i + 1]; if (B.w < -50.) break; if (A.w - B.w > .3) continue; float age = uT - A.w; if (age > .75 || age < 0.) continue;\n  vec3 ab = B.xyz - A.xyz; float hh = clamp(dot(p - A.xyz, ab) / max(dot(ab, ab), 1e-5), 0., 1.); vec3 q = A.xyz + ab * hh; float d = distance(p, q), s = trailS[i], fade = pow(1. - age / .75, 2.), w = .05 + .09 * s;\n  float halo = smoothstep(.12 + .3 * s, 0., d), v = s * fade * (exp(-d * d / (w * w)) + halo * .3); if (v > g) { g = v; dispOff = normalize(p - q + vec3(1e-4)) * age * (.12 + .35 * s) * halo; } } return g; }\n";
   const wire = new THREE.LineSegments(new THREE.WireframeGeometry(iceGeo), new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
     vertexShader: wireFn + "varying float vG; void main(){ vG = glowAt(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.004 + dispOff, 1.0); }",
-    fragmentShader: "varying float vG; void main(){ if (vG < .01) discard; gl_FragColor = vec4(vec3(.92, .96, 1.), vG * .5); }"}));
+    fragmentShader: "varying float vG; void main(){ if (vG < .01) discard; gl_FragColor = vec4(vec3(.92, .96, 1.), min(1., vG * .85)); }"}));
   const wdots = new THREE.Points(iceGeo, new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
-    vertexShader: wireFn + "uniform float pr; varying float vG; void main(){ vG = glowAt(position); gl_PointSize = (1.5 + vG * 2.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.005 + dispOff * 1.4, 1.0); }",
+    vertexShader: wireFn + "uniform float pr; varying float vG; void main(){ vG = glowAt(position); gl_PointSize = (1.5 + vG * 4.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.005 + dispOff * 1.4, 1.0); }",
     fragmentShader: "varying float vG; void main(){ if (vG < .02) discard; vec2 d = gl_PointCoord - .5; gl_FragColor = vec4(1., 1., 1., vG * smoothstep(.5, .1, length(d))); }"}));
   wire.renderOrder = 3; wdots.renderOrder = 4; if (!(mobile && low)) ice.add(wire, wdots);
   const lastTr = new V3(1e9, 0, 0); let hoverN = 0;
-  const hoverTrail = () => { if (!mouse.in || ++hoverN % 2) return; ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
-    const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit) return; const hl = ice.worldToLocal(hit.point.clone()); if (hl.distanceTo(lastTr) < .1) return;
-    lastTr.copy(hl); trail[trailI % NT].set(hl.x, hl.y, hl.z, wireU.uT.value); trailS[trailI % NT] = Math.max(.12, Math.min(1, mouse.v / 1400)); trailI++; };
+  const hoverTrail = () => { if (!mouse.in) return; ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+    const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit) return; const hl = ice.worldToLocal(hit.point.clone()); if (hl.distanceTo(lastTr) < .05) return;
+    lastTr.copy(hl); for (let i = NT - 1; i > 0; i--) { trail[i].copy(trail[i - 1]); trailS[i] = trailS[i - 1]; } trail[0].set(hl.x, hl.y, hl.z, wireU.uT.value); trailS[0] = Math.max(.15, Math.min(1, mouse.v / 1300)); };
 
   cv.addEventListener("pointerdown", e => { if (busy) return; rot.drag = true; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved = 0; rot.v = 0; try { cv.setPointerCapture(e.pointerId); } catch (er) {} ov.classList.add("grab"); });
   cv.addEventListener("pointermove", e => { if (!rot.drag) return; const dx = e.clientX - rot.lx, dy = e.clientY - rot.ly; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved += Math.abs(dx) + Math.abs(dy);
@@ -5409,7 +5409,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-18";
+const APP_VERSION = "2026-10-28-19";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
