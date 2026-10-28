@@ -2692,22 +2692,23 @@ async function openGlass(c0){
   const PC = iceGeo.attributes.position, carve = new Float32Array(PC.count), cDelay = new Float32Array(PC.count), carveA = new THREE.BufferAttribute(carve, 1);
   carveA.setUsage(THREE.DynamicDrawUsage); iceGeo.setAttribute("carve", carveA); if (!low) iceM.side = THREE.DoubleSide;
   const carved = new Set(); let lastDig = -9, rebuilding = false, rebT = 0;
-  const densU = {certC: {value: new V3(0, 0, 0)}, certS: {value: new THREE.Vector2(1, 1)}};
+  const densU = {certC: {value: new V3(0, 0, 0)}, certS: {value: new THREE.Vector2(1, 1)}, certU: {value: new V3(1, 0, 0)}, certV: {value: new V3(0, 1, 0)}, certN: {value: new V3(0, 0, 1)}, camL: {value: new V3(0, 0, 10)}};
   iceM.onBeforeCompile = sh => {
     sh.vertexShader = "attribute float carve; varying float vCarve; varying vec3 vLoc;\n" + sh.vertexShader
       .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vCarve = carve; vLoc = position; transformed -= objectNormal * min(carve, .75) * .32;");
     Object.assign(sh.uniforms, densU);
-    sh.fragmentShader = "varying float vCarve; varying vec3 vLoc; uniform vec3 certC; uniform vec2 certS;\nfloat dHn(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }\nfloat dVn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(mix(dHn(i), dHn(i + vec3(1, 0, 0)), f.x), mix(dHn(i + vec3(0, 1, 0)), dHn(i + vec3(1, 1, 0)), f.x), f.y), mix(mix(dHn(i + vec3(0, 0, 1)), dHn(i + vec3(1, 0, 1)), f.x), mix(dHn(i + vec3(0, 1, 1)), dHn(i + vec3(1, 1, 1)), f.x), f.y), f.z); }\n" + sh.fragmentShader
+    sh.fragmentShader = "varying float vCarve; varying vec3 vLoc; uniform vec3 certC, certU, certV, certN, camL; uniform vec2 certS;\nfloat dHn(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }\nfloat dVn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(mix(dHn(i), dHn(i + vec3(1, 0, 0)), f.x), mix(dHn(i + vec3(0, 1, 0)), dHn(i + vec3(1, 1, 0)), f.x), f.y), mix(mix(dHn(i + vec3(0, 0, 1)), dHn(i + vec3(1, 0, 1)), f.x), mix(dHn(i + vec3(0, 1, 1)), dHn(i + vec3(1, 1, 1)), f.x), f.y), f.z); }\n" + sh.fragmentShader
       .replace("void main() {", `void main() {
   float cN = fract(sin(dot(floor(vLoc * 13.), vec3(12.9898, 78.233, 37.719))) * 43758.5453), cThr = .76 + cN * .16;
   if (vCarve > cThr) discard;
   float vHoleF = smoothstep(.12, .55, vCarve), vRim = smoothstep(cThr - .22, cThr, vCarve);
-  float dCl = dVn(vLoc * 1.5) * .6 + dVn(vLoc * 4.2) * .4; vec2 cq = (vLoc.xy - certC.xy) / certS;
-  float vClear = max(1. - smoothstep(.8, 1.45, length(cq) + (dCl - .5) * .7), vHoleF), vMilk = (1. - vClear) * (.45 + .55 * dCl);`)
+  float dCl = dVn(vLoc * 1.5) * .6 + dVn(vLoc * 4.2) * .4; vec3 vd = normalize(vLoc - camL); float dn = dot(vd, certN), tt = dot(certC - vLoc, certN) / (abs(dn) < .05 ? (dn < 0. ? -.05 : .05) : dn);
+  vec3 hp = vLoc + vd * tt - certC; vec2 cq = vec2(dot(hp, certU) / certS.x, dot(hp, certV) / certS.y); float cin = max(abs(cq.x), abs(cq.y)) + (dCl - .5) * .35;
+  float vClear = max((1. - smoothstep(.85, 1.25, cin)) * smoothstep(.35, .7, abs(dn)), vHoleF), vMilk = (1. - vClear) * (.6 + .4 * dCl);`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
-      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .7);"))
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.4, .46, .54), vMilk * .5) * (1. - (1. - vClear) * .18); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
+      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .85);"))
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.19, .25, .35), vMilk * .78) * (1. - (1. - vClear) * .22); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
   const dig = (hl, dl) => { const r = .8;
     for (let i = 0; i < PC.count; i++) { vT.fromBufferAttribute(PC, i).sub(hl); const tt = vT.dot(dl); if (tt < -r * .6) continue; const d2 = vT.lengthSq() - tt * tt; if (d2 > r * r) continue;
       const f = Math.pow(1 - Math.sqrt(Math.max(0, d2)) / r, 1.2) * (tt > D * .5 ? .8 : 1); if (f <= 0) continue; carve[i] = Math.min(1, carve[i] + .48 * f); carved.add(i); }
@@ -2747,7 +2748,7 @@ async function openGlass(c0){
       for (const [ax, ay] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) { for (const az of [-.12, .12]) { const q = new V3(ax * PW / 2 * s * 1.1, ay * PH / 2 * s * 1.1, az).applyEuler(m.rotation).add(m.position); if (!insideIce(q)) { ok = false; break; } } if (!ok) break; }
       if (ok) break; }
     m.scale.setScalar(s); m.userData.s = s; };
-  const setDens = () => { fitCert(cert); const PW = cert.userData.PW * cert.userData.s, PH = cert.userData.PH * cert.userData.s, c = Math.cos(CR.z), s = Math.sin(CR.z); densU.certC.value.set(0, CB.y, 0); densU.certS.value.set((PW * c + PH * s) / 2 * .95, (PW * s + PH * c) / 2 * .95); }; setDens();
+  const setDens = () => { fitCert(cert); const PW = cert.userData.PW * cert.userData.s, PH = cert.userData.PH * cert.userData.s, c = Math.cos(CR.z), s = Math.sin(CR.z); densU.certC.value.copy(cert.position); densU.certS.value.set(PW / 2, PH / 2); const q = new THREE.Quaternion().setFromEuler(cert.rotation); densU.certU.value.set(1, 0, 0).applyQuaternion(q); densU.certV.value.set(0, 1, 0).applyQuaternion(q); densU.certN.value.set(0, 0, 1).applyQuaternion(q); }; setDens();
   cert.rotation.set(CR.x, CR.y, CR.z); cert.position.set(0, CB.y, CB.z);
   /* nuage sombre derrière le certificat (profondeur) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
@@ -2965,7 +2966,7 @@ async function openGlass(c0){
     mist.position.set(ice.position.x, ice.position.y, ice.position.z); mist.children.forEach(m => { const u = m.userData; m.position.x = u.x0 + Math.sin(t * u.sp + u.ph) * .45; m.material.rotation = Math.sin(t * u.sp * .7 + u.ph) * .4; });
     mouse.v = (mouse.v || 0) * Math.pow(.9, dt * 60);
     S.kick *= Math.pow(.86, dt * 60); stepCarve(dt); wireU.uT.value = t; if (!busy) hoverTrail();
-    stepScroll(dt); ice.position.y = Math.sin(t * .55) * .09 + S.drop + S.scrollY; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
+    densU.camL.value.copy(cam.position); ice.updateMatrixWorld(); ice.worldToLocal(densU.camL.value); stepScroll(dt); ice.position.y = Math.sin(t * .55) * .09 + S.drop + S.scrollY; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
     ice.rotation.y = rot.yaw + S.spin + S.scrollSpin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
@@ -5463,7 +5464,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-27";
+const APP_VERSION = "2026-10-28-28";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
