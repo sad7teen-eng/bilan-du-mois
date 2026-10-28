@@ -2662,7 +2662,7 @@ async function openGlass(c0){
       P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (ang / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, y0 / H + .5)); }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
   const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xdfe7ef, map: streak.col, roughness: .08, metalness: 0, transparent: true, opacity: .4, normalMap: streak.normal, normalScale: new THREE.Vector2(.8, .8), clearcoat: 1, envMapIntensity: 1.4, depthWrite: false}
-    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .9, ior: 1.31, dispersion: mobile ? 0 : 7,
+    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .9, ior: 1.31, dispersion: 0,
        normalMap: streak.normal, normalScale: new THREE.Vector2(.2, .2), clearcoat: .25, clearcoatRoughness: .08,
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
@@ -2742,7 +2742,7 @@ async function openGlass(c0){
   ice.add(crack);
   /* ---- éclats de glace (pour l'éclatement) ---- */
   const shardM = low ? new THREE.MeshPhysicalMaterial({color: 0xe3ebf2, roughness: .1, transparent: true, opacity: .45, clearcoat: 1, envMapIntensity: 1.5, flatShading: true})
-    : new THREE.MeshPhysicalMaterial({color: 0xffffff, roughness: .16, transmission: .9, thickness: .5, ior: 1.31, dispersion: mobile ? 0 : 4, clearcoat: 1, clearcoatRoughness: .05, specularIntensity: 1, envMapIntensity: 2.2, flatShading: true, attenuationColor: new THREE.Color(0xc4c8cd), attenuationDistance: 1.5});
+    : new THREE.MeshPhysicalMaterial({color: 0xffffff, roughness: .16, transmission: .9, thickness: .5, ior: 1.31, dispersion: 0, clearcoat: 1, clearcoatRoughness: .05, specularIntensity: 1, envMapIntensity: 2.2, flatShading: true, attenuationColor: new THREE.Color(0xc4c8cd), attenuationDistance: 1.5});
   const shardGeos = Array.from({length: 7}, () => { const g = new THREE.IcosahedronGeometry(1, 0), P = g.attributes.position, m = new Map();
     for (let i = 0; i < P.count; i++) { const k = [P.getX(i), P.getY(i), P.getZ(i)].map(x => x.toFixed(3)).join(); if (!m.has(k)) m.set(k, .55 + rnd() * .7); const f = m.get(k); P.setXYZ(i, P.getX(i) * f, P.getY(i) * f * 1.4, P.getZ(i) * f * .7); }
     g.computeVertexNormals(); return g; });
@@ -2779,7 +2779,7 @@ async function openGlass(c0){
     const s = 1.6 + rnd() * 2.2; m.scale.set(s * 1.6, s, 1); m.position.set((rnd() - .5) * W * 1.1, -H * (.32 + rnd() * .22), (rnd() - .5) * D); m.userData = {x0: m.position.x, sp: .1 + rnd() * .2, ph: rnd() * 6}; mist.add(m); }
   /* ---- post-traitement : aberration chromatique vers les bords + vignette douce ---- */
   const rt = new THREE.WebGLRenderTarget(1, 1, {type: THREE.HalfFloatType, samples: low ? 0 : 4});
-  const postU = {tD: {value: rt.texture}, ca: {value: mobile ? .006 : .012}, fl: {value: 0}};
+  const postU = {tD: {value: rt.texture}, ca: {value: 0}, fl: {value: 0}};
   const pScene = new THREE.Scene(), pCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   pScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({uniforms: postU, depthTest: false, depthWrite: false,
     vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }",
@@ -5409,7 +5409,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-19";
+const APP_VERSION = "2026-10-28-20";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
