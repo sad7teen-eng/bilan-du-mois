@@ -2502,7 +2502,7 @@ function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSe
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openGlass(c); }
 /* ===== Certificat : bloc de verre en vraie 3D (WebGL), lumière studio, montant en compteur ===== */
 /* préchargement du bloc de glace : moteur 3D + modèle, lancé dès qu'on approche des certificats */
-function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=1").then(r => r.arrayBuffer())]).catch(() => { window.__igPre = null; }); }
+function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=1").then(r => r.arrayBuffer()), fetch("studio.hdr?v=1").then(r => r.arrayBuffer()), fetch("ice_n.jpg?v=1")]).catch(() => { window.__igPre = null; }); }
 document.addEventListener("pointerover", e => { if (e.target.closest && e.target.closest("#certGrid")) igPreload(); }, {passive: true});
 addEventListener("hashchange", () => { if (/cert/.test(location.hash)) setTimeout(igPreload, 800); }); if (/cert/.test(location.hash)) setTimeout(igPreload, 2500);
 async function openGlass(c0){
@@ -2678,6 +2678,12 @@ async function openGlass(c0){
        normalMap: streak.normal, normalScale: new THREE.Vector2(.2, .2), clearcoat: .25, clearcoatRoughness: .08,
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
+  /* relief de glace fissurée (texture photo) : en couche de base ; les stries/cuvettes passent dans le vernis */
+  let nsBase = .2;
+  if (!low) { const tl = new THREE.TextureLoader(); Promise.all([tl.loadAsync("ice_n.jpg?v=1"), tl.loadAsync("ice_r.jpg?v=1")]).then(([tn, tr]) => { if (!alive) return;
+      [tn, tr].forEach(t => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1.3, 1.7); t.anisotropy = 8; });
+      iceM.clearcoatNormalMap = iceM.normalMap; iceM.clearcoatNormalScale = new THREE.Vector2(.35, .35); iceM.clearcoatRoughnessMap = tr; iceM.clearcoat = .6; iceM.clearcoatRoughness = .35;
+      iceM.normalMap = tn; nsBase = .6; iceM.needsUpdate = true; }).catch(() => {}); }
   /* « trou » dans la glace : là où on casse, la glace devient claire et laisse voir le certificat */
   /* ---- taille de la glace : chaque clic creuse (attribut « carve » par sommet), on peut tout enlever, puis la glace se reconstruit par plaques ---- */
   const PC = iceGeo.attributes.position, carve = new Float32Array(PC.count), cDelay = new Float32Array(PC.count), carveA = new THREE.BufferAttribute(carve, 1);
@@ -2932,7 +2938,7 @@ async function openGlass(c0){
     ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
-    if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = attBase + 5 * prox; }
+    if (!low) { const ns = nsBase * (1 - .7 * prox); iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = attBase + 5 * prox; }
     cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
@@ -5426,7 +5432,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-21";
+const APP_VERSION = "2026-10-28-22";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
