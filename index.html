@@ -2975,7 +2975,7 @@ async function openGlass(c0){
   const canOgg = !!audio.canPlayType('audio/ogg; codecs="opus"'), sfxBase = {};
   ["shard", "beeps"].forEach(n => { const a = new Audio(); a.preload = "auto"; a.src = n + (canOgg ? ".ogg" : ".m4a") + "?v=1"; sfxBase[n] = a; });
   const sfxLive = {}; ov._sfxStop = n => { const c = sfxLive[n]; if (c) { try { c.pause(); } catch (e) {} sfxLive[n] = null; } };
-  ov._sfx = n => { if (!sndOn || !sfxBase[n]) return; try { ov._sfxStop(n); const c = sfxBase[n].cloneNode(); sfxLive[n] = c; c.loop = false; c.volume = Math.min(1, vol * (n === "beeps" ? 1.3 : 1.6)); c.play().catch(() => {}); } catch (e) {} };
+  ov._sfx = n => { if (!sndOn || !sfxBase[n]) return; try { ov._sfxStop(n); const c = sfxBase[n].cloneNode(); sfxLive[n] = c; c.loop = false; c.volume = Math.min(1, vol * (n === "beeps" ? 1.3 : 1.2)); c.play().catch(() => {}); } catch (e) {} };
   ov._stopSnd = () => { fadeTo(0, () => { audio.pause(); audio.src = ""; }); };
   ice.position.set(0, 9, 0);
   loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; prefetch(ci); });
@@ -5490,7 +5490,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-39";
+const APP_VERSION = "2026-10-28-40";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
