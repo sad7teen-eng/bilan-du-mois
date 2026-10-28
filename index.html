@@ -867,13 +867,16 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-t{display:grid;grid-template-columns:auto auto;column-gap:22px;font-size:12px}
 .ig-tv{text-align:right;font-variant-numeric:tabular-nums}.ig-tv b{display:block}
 .ig.hud .ig-lab,.ig.hud .ig-svg{opacity:1}
+.ig:not(.hud) .ig-lab{opacity:0!important;animation:none!important}
 .ig-cv{cursor:grab}.ig.grab .ig-cv{cursor:grabbing}
 .ig-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;font-size:11px;letter-spacing:.1em;pointer-events:none;transition:opacity .5s}
 .ig-ring{position:relative;width:64px;height:64px;display:grid;place-items:center}.ig-ring svg{position:absolute;inset:0;width:100%;height:100%;animation:igSpin 1.1s linear infinite}
 .ig-ring circle{fill:none;stroke-width:1.5}.ig-ring .bgc{stroke:rgba(255,255,255,.22)}.ig-ring .fgc{stroke:#fff;stroke-linecap:round;stroke-dasharray:50 200}
 .ig-load .ig-lp{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}.ig-load small{font-size:10px;opacity:.75}.ig-load.done{opacity:0}@keyframes igSpin{to{transform:rotate(360deg)}}
 .ig-go{pointer-events:auto;cursor:pointer;transition:color .2s}.ig-go:hover{color:#dfeaff;text-shadow:0 0 14px rgba(255,255,255,.8)}
-.ig-hint span{display:block}.ig-hint .h1{opacity:.7;margin-bottom:4px}
+.ig-hint{display:flex;align-items:center;gap:14px;pointer-events:auto!important}.ig-snd{display:flex;align-items:center;gap:10px;background:none!important;border:0!important;padding:4px 0!important;color:#fff!important;font:inherit;font-size:13px;letter-spacing:.04em;cursor:pointer;text-shadow:0 0 8px rgba(255,255,255,.35)}
+.ig-snd .w1,.ig-snd .w2{display:none}.ig.snd-on .ig-snd .w1,.ig.snd-on .ig-snd .w2{display:inline}.ig.snd-on .ig-snd .x{display:none}
+.ig-vol{width:0;opacity:0;transition:width .3s,opacity .3s;accent-color:#fff;height:2px;margin:0}.ig.snd-on .ig-hint:hover .ig-vol,.ig.snd-on .ig-vol:focus{width:90px;opacity:.85}
 .ig-t b:nth-child(2n){text-align:right;font-variant-numeric:tabular-nums}
 .ig-corner{position:absolute;left:clamp(16px,6vw,120px);top:calc(clamp(18px,6vh,64px) + env(safe-area-inset-top,0px));font-size:clamp(20px,2.2vw,30px);font-weight:800;letter-spacing:.06em;line-height:1.1;text-shadow:0 0 14px rgba(255,255,255,.45);pointer-events:none}
 .ig-corner small{display:block;font-size:11px;font-weight:500;letter-spacing:.12em;opacity:.75;margin-top:6px}
@@ -2523,7 +2526,7 @@ async function openGlass(c0){
     <div class="ig-lab ig-t"><b data-s=""></b><b class="ig-tv" data-s=""></b><b>TEMP</b><b class="ig-tv ig-temp">-18.42</b></div>
     <div class="ig-lab ig-d"><b data-s=""></b><b class="ig-go" data-s="CLICK TO EXPLORE"></b></div>
     <div class="ig-corner">CERTIFICATS<small class="ig-count"></small></div>
-    <div class="ig-hint"><span class="h1">GLISSER · TOURNER &nbsp; CLIC · BRISER &nbsp; SCROLL · SUIVANT</span><span class="h2">ÉCHAP · FERMER</span></div>
+    <div class="ig-hint"><button type="button" class="ig-snd" aria-label="Son d'ambiance"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w1" d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="w2" d="M18.5 7a7 7 0 0 1 0 10"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span>Sound: Off</span></button><input class="ig-vol" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Volume"></div>
     <div class="ig-col"><button type="button" class="ig-colbtn" aria-label="Couleur de la glace" title="Couleur de la glace"><i></i></button>
       <div class="ig-colpop" hidden><small>COULEUR</small><div class="ig-sws">${[["", "Glace"], ["#6fa8dc", "Bleu"], ["#5ccfd4", "Cyan"], ["#4fbf87", "Vert"], ["#e05555", "Rouge"], ["#e58bbf", "Rose"], ["#9b7be0", "Violet"], ["#e2b85c", "Or"], ["#3f4249", "Noir"]].map(([c, n]) => `<button type="button" class="ig-sw" data-c="${c}" title="${n}" style="background:${c || "linear-gradient(135deg,#eef1f4,#9ea3aa)"}"></button>`).join("")}<label class="ig-sw ig-cust" title="Autre couleur"><input type="color" value="#6fa8dc"></label></div></div></div>
     <button type="button" class="ig-close" aria-label="Fermer">✕</button>`;
@@ -2534,7 +2537,7 @@ async function openGlass(c0){
   let raf = 0, alive = true, renderer = null, onResize = () => {}, tmr = 0, mode = "idle", busy = false, reformT = 0;
   const fallback = () => { ov.remove(); document.body.style.overflow = ""; lbId = c0.id; $("lbEdit").hidden = false; $("lightImg").src = imOf(c0); $("lightbox").hidden = false; };
   const close = () => { if (!alive) return; alive = false; clearInterval(tmr); removeEventListener("keydown", onKey, true); removeEventListener("resize", onResize);
-    ov.classList.add("out"); setTimeout(() => { cancelAnimationFrame(raf); try { renderer && renderer.dispose(); renderer && renderer.forceContextLoss(); } catch (e) {} ov.remove(); document.body.style.overflow = ""; }, 650); };
+    ov.classList.add("out"); ov._stopSnd && ov._stopSnd(); setTimeout(() => { cancelAnimationFrame(raf); try { renderer && renderer.dispose(); renderer && renderer.forceContextLoss(); } catch (e) {} ov.remove(); document.body.style.overflow = ""; }, 650); };
   let explore = () => {}, reform = () => {}, go = () => {};
   const back = () => { if (mode === "open") reform(); else if (mode === "idle") close(); };
   const onKey = e => { if (["Escape", "Enter", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", " "].includes(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); } if (e.key === "Escape") back(); else if (e.key === "ArrowDown" || e.key === "ArrowRight") go(1); else if (e.key === "ArrowUp" || e.key === "ArrowLeft") go(-1); else if (e.key === "Enter") explore(); };
@@ -2858,7 +2861,6 @@ async function openGlass(c0){
   const rot = {yaw: 0, pitch: 0, v: 0, drag: false, lx: 0, ly: 0, moved: 0, idle: 9};
   ov.addEventListener("pointermove", e => { { const now = performance.now(), dtm = Math.max(8, now - (mouse.lt || now - 16)), sp = Math.hypot(e.clientX - mouse.cx, e.clientY - mouse.cy) / dtm * 1000; if (mouse.cx > -9) mouse.v = (mouse.v || 0) * .6 + Math.min(4000, sp) * .4; mouse.lt = now; } mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; mouse.cx = e.clientX; mouse.cy = e.clientY; mouse.in = true; });
   ov.addEventListener("pointerleave", () => { mouse.x = mouse.y = 0; mouse.in = false; });
-  ov.addEventListener("wheel", e => { e.preventDefault(); if (Math.abs(e.deltaY) > 6) go(e.deltaY > 0 ? 1 : -1); }, {passive: false});
   let ty = null, tx0 = 0; ov.addEventListener("touchstart", e => { ty = e.touches[0].clientY; tx0 = e.touches[0].clientX; }, {passive: true});
   ov.addEventListener("touchend", e => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY, dx = Math.abs(tx0 - e.changedTouches[0].clientX); ty = null; if (Math.abs(d) > 70 && dx < Math.abs(d) * .5) go(d > 0 ? 1 : -1); });
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), vT = new V3();
@@ -2892,7 +2894,7 @@ async function openGlass(c0){
   const proxAt = (x, y) => { const [bx, by] = scr(new V3(0, 0, 0), innerWidth, innerHeight); const d = Math.hypot(x - bx, (y - by) * .7) / (Math.min(innerWidth, innerHeight) * .42); return Math.max(0, 1 - d); };
   /* ---- éclats : des morceaux sautent, lévitent, puis se recollent (à l'infini) ---- */
   shards.visible = true; shards.children.forEach(s => { s.visible = false; s.userData.busy = false; });
-  const S = {wire: 0, spin: -1.6, drop: 9, kick: 0};
+  const S = {wire: 0, spin: -1.6, drop: 9, kick: 0, scrollY: 0, scrollSpin: 0};
   /* quelques éclats minuscules qui tombent */
   const chips = (p, dl) => { let used = 0;
     for (const s of shards.children) { if (used >= 4) break; if (s.userData.busy) continue; used++; s.userData.busy = true;
@@ -2923,13 +2925,33 @@ async function openGlass(c0){
     pop.querySelector("input").addEventListener("input", e => setIceColor(e.target.value));
     ov.addEventListener("pointerdown", e => { if (!e.target.closest(".ig-col")) pop.hidden = true; });
     let saved = null; try { saved = localStorage.getItem("bdm-ice-color"); } catch (e) {} setIceColor(saved); }
-  go = dir => { if (busy || list.length < 2) return; resetCarve(); const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(S, {drop: 0}, {drop: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
-    busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
-    ov.classList.remove("hud"); hudGen++;
-    gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
-      .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert);
-          old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
-        setLabels(list[ci]); arrive(() => { busy = false; }); }); };
+  /* ---- défilement à la molette : le bloc descend avec la molette, s'arrête où l'on s'arrête, et le suivant arrive par le haut ---- */
+  const SCR = {t: ci, v: ci}; let shownK = ci, swapping = false, hudOn = true; const imgP = {};
+  const getImg = k => imgP[k] || (imgP[k] = loadImg(imOf(list[k])).catch(() => null));
+  const clampS = x => Math.max(-.42, Math.min(list.length - 1 + .42, x));
+  const swapCert = async k => { swapping = true; const im2 = await getImg(k); swapping = false; if (!alive) return;
+    if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert); old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
+    ci = k; setLabels(list[k]); hudOn = false; };
+  go = dir => { if (busy) return; SCR.t = clampS(Math.round(SCR.t) + dir); };
+  ov.addEventListener("wheel", e => { e.preventDefault(); if (busy) return; const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1); SCR.t = clampS(SCR.t + Math.max(-140, Math.min(140, dy)) * .0011); }, {passive: false});
+  const stepScroll = dt => { if (busy) return; SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
+    const k = Math.max(0, Math.min(list.length - 1, Math.round(SCR.v)));
+    if (k !== shownK && !swapping) { shownK = k; resetCarve(); swapCert(k); for (const j of [k - 1, k + 1]) if (j >= 0 && j < list.length) getImg(j); }
+    const off = SCR.v - shownK, a = Math.abs(off), tn = Math.tan(cam.fov * Math.PI / 360);
+    S.scrollY = -off * 2.4 * tn * cam.position.z; S.scrollSpin = off * 2.2; S.wire = Math.max(0, 1 - a * 4); ptU.k.value = S.wire;
+    if (a > .16 && hudOn) { hudOn = false; ov.classList.remove("hud"); hudGen++; }
+    else if (a < .08 && !hudOn && !swapping) { hudOn = true; showHud(); } };
+  /* ---- son d'ambiance (vent), coupé par défaut ---- */
+  const audio = new Audio(); audio.src = audio.canPlayType('audio/ogg; codecs="opus"') ? "wind.ogg?v=1" : "wind.m4a?v=1"; audio.loop = true; audio.preload = "none"; audio.volume = 0;
+  let vol = .5, sndOn = false, fadeI = 0; try { vol = +(localStorage.getItem("bdm-wind-vol") || .5); } catch (e) {} ov.querySelector(".ig-vol").value = vol;
+  const fadeTo = (v, done) => { clearInterval(fadeI); fadeI = setInterval(() => { const d = v - audio.volume; if (Math.abs(d) < .02) { audio.volume = Math.max(0, Math.min(1, v)); clearInterval(fadeI); done && done(); } else audio.volume = Math.max(0, Math.min(1, audio.volume + Math.sign(d) * .02)); }, 30); };
+  const setSnd = on => { sndOn = on; ov.classList.toggle("snd-on", on); ov.querySelector(".ig-snd span").textContent = "Sound: " + (on ? "On" : "Off");
+    if (on) { audio.play().then(() => fadeTo(vol)).catch(() => { sndOn = false; ov.classList.remove("snd-on"); ov.querySelector(".ig-snd span").textContent = "Sound: Off"; }); } else fadeTo(0, () => audio.pause());
+    try { localStorage.setItem("bdm-wind", on ? "1" : "0"); } catch (e) {} };
+  ov.querySelector(".ig-snd").addEventListener("click", e => { e.stopPropagation(); setSnd(!sndOn); });
+  ov.querySelector(".ig-vol").addEventListener("input", e => { vol = +e.target.value; if (sndOn) { clearInterval(fadeI); audio.volume = vol; } try { localStorage.setItem("bdm-wind-vol", vol); } catch (er) {} });
+  try { if (localStorage.getItem("bdm-wind") === "1") setSnd(true); } catch (e) {}
+  ov._stopSnd = () => { fadeTo(0, () => { audio.pause(); audio.src = ""; }); };
   ice.position.set(0, 9, 0);
   loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; });
   /* ---- boucle ---- */
@@ -2943,8 +2965,8 @@ async function openGlass(c0){
     mist.position.set(ice.position.x, ice.position.y, ice.position.z); mist.children.forEach(m => { const u = m.userData; m.position.x = u.x0 + Math.sin(t * u.sp + u.ph) * .45; m.material.rotation = Math.sin(t * u.sp * .7 + u.ph) * .4; });
     mouse.v = (mouse.v || 0) * Math.pow(.9, dt * 60);
     S.kick *= Math.pow(.86, dt * 60); stepCarve(dt); wireU.uT.value = t; if (!busy) hoverTrail();
-    ice.position.y = Math.sin(t * .55) * .09 + S.drop; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
-    ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
+    stepScroll(dt); ice.position.y = Math.sin(t * .55) * .09 + S.drop + S.scrollY; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
+    ice.rotation.y = rot.yaw + S.spin + S.scrollSpin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
     if (!low) { const ns = nsBase * (1 - .7 * prox); iceM.normalScale.set(ns, ns); iceM.thickness = 1.4 - .8 * prox; iceM.attenuationDistance = attBase + 5 * prox; }
@@ -5441,7 +5463,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-26";
+const APP_VERSION = "2026-10-28-27";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
