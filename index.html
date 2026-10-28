@@ -877,6 +877,15 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-corner small{display:block;font-size:11px;font-weight:500;letter-spacing:.12em;opacity:.75;margin-top:6px}
 .ig-hint{position:absolute;left:clamp(16px,6vw,120px);bottom:calc(clamp(18px,7vh,64px) + env(safe-area-inset-bottom,0px));font-size:12px;letter-spacing:.06em;opacity:.9;pointer-events:none}
 .ig-close{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:18px;z-index:3;width:42px;height:42px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;font-size:16px;background:rgba(255,255,255,.12)!important;color:#fff!important;border:1px solid rgba(255,255,255,.4)!important;cursor:pointer}
+.ig-col{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:70px;z-index:4}
+.ig-colbtn{width:42px;height:42px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.4)!important;cursor:pointer}
+.ig-colbtn i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,.8);display:block}
+.ig-colpop{position:absolute;top:50px;right:0;width:196px;padding:12px;border-radius:14px;background:rgba(120,126,136,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.3)}
+.ig-colpop small{display:block;font-size:10px;letter-spacing:.12em;margin-bottom:10px;opacity:.85}
+.ig-sws{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.ig-sw{width:28px;height:28px;padding:0!important;border-radius:50%!important;border:1px solid rgba(255,255,255,.55)!important;cursor:pointer;position:relative;overflow:hidden;min-width:0}
+.ig-sw.on{box-shadow:0 0 0 2px #fff}
+.ig-cust{background:conic-gradient(#e05555,#e2b85c,#4fbf87,#5ccfd4,#6fa8dc,#9b7be0,#e58bbf,#e05555)}.ig-cust input{position:absolute;inset:-6px;opacity:0;cursor:pointer}
 .ig-close:hover{background:rgba(255,255,255,.24)!important}
 @media (max-width:760px){.ig-lab{font-size:10px}.ig-t{font-size:9.5px;column-gap:12px}.ig-bg span{font-size:18px}}
 /* ---------- La vitrine du certificat ---------- */
@@ -2513,14 +2522,16 @@ async function openGlass(c0){
     <div class="ig-lab ig-d"><b data-s=""></b><b class="ig-go" data-s="CLICK TO EXPLORE"></b></div>
     <div class="ig-corner">CERTIFICATS<small class="ig-count"></small></div>
     <div class="ig-hint"><span class="h1">GLISSER · TOURNER &nbsp; CLIC · BRISER &nbsp; SCROLL · SUIVANT</span><span class="h2">ÉCHAP · FERMER</span></div>
+    <div class="ig-col"><button type="button" class="ig-colbtn" aria-label="Couleur de la glace" title="Couleur de la glace"><i></i></button>
+      <div class="ig-colpop" hidden><small>COULEUR</small><div class="ig-sws">${[["", "Glace"], ["#6fa8dc", "Bleu"], ["#5ccfd4", "Cyan"], ["#4fbf87", "Vert"], ["#e05555", "Rouge"], ["#e58bbf", "Rose"], ["#9b7be0", "Violet"], ["#e2b85c", "Or"], ["#3f4249", "Noir"]].map(([c, n]) => `<button type="button" class="ig-sw" data-c="${c}" title="${n}" style="background:${c || "linear-gradient(135deg,#eef1f4,#9ea3aa)"}"></button>`).join("")}<label class="ig-sw ig-cust" title="Autre couleur"><input type="color" value="#6fa8dc"></label></div></div></div>
     <button type="button" class="ig-close" aria-label="Fermer">✕</button>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   { const gc = document.createElement("canvas"); gc.width = gc.height = 220; const g = gc.getContext("2d"), d = g.createImageData(220, 220);
     for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
     g.putImageData(d, 0, 0); ov.querySelector(".ig-grain").style.backgroundImage = `url(${gc.toDataURL()})`; }
-  let raf = 0, alive = true, renderer = null, onResize = () => {}, tmr = 0, mode = "idle", busy = false;
+  let raf = 0, alive = true, renderer = null, onResize = () => {}, tmr = 0, mode = "idle", busy = false, reformT = 0;
   const fallback = () => { ov.remove(); document.body.style.overflow = ""; lbId = c0.id; $("lbEdit").hidden = false; $("lightImg").src = imOf(c0); $("lightbox").hidden = false; };
-  const close = () => { if (!alive) return; alive = false; clearInterval(tmr); removeEventListener("keydown", onKey, true); removeEventListener("resize", onResize);
+  const close = () => { if (!alive) return; alive = false; clearInterval(tmr); clearTimeout(reformT); removeEventListener("keydown", onKey, true); removeEventListener("resize", onResize);
     ov.classList.add("out"); setTimeout(() => { cancelAnimationFrame(raf); try { renderer && renderer.dispose(); renderer && renderer.forceContextLoss(); } catch (e) {} ov.remove(); document.body.style.overflow = ""; }, 650); };
   let explore = () => {}, reform = () => {}, go = () => {};
   const back = () => { if (mode === "open") reform(); else if (mode === "idle") close(); };
@@ -2654,24 +2665,35 @@ async function openGlass(c0){
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* « trou » dans la glace : là où on casse, la glace devient claire et laisse voir le certificat */
-  const holeU = {holeP: {value: new V3()}, holeR: {value: 1.1}, holeK: {value: 0}, holeD: {value: .42}};
-  const holeFn = "float hJag(vec3 d){ return length(d) * (1. + .09 * sin(atan(d.y, d.x) * 5. + d.z * 4.) + .05 * sin(atan(d.z, d.x) * 9.)); }\n";
+  const NH = 12, holesV = Array.from({length: NH}, () => new THREE.Vector4(0, 0, 0, 0));
+  const holeU = {holes: {value: holesV}, holeR: {value: 1.1}, holeD: {value: .42}};
+  const holeFn = "uniform vec4 holes[" + NH + "]; uniform float holeR, holeD; varying vec3 vLoc;\nfloat hJag(vec3 d){ return length(d) * (1. + .09 * sin(atan(d.y, d.x) * 5. + d.z * 4.) + .05 * sin(atan(d.z, d.x) * 9.)); }\n";
   iceM.onBeforeCompile = sh => { Object.assign(sh.uniforms, holeU);
-    sh.vertexShader = "uniform vec3 holeP; uniform float holeR, holeK, holeD; varying vec3 vLoc;\n" + holeFn + sh.vertexShader
+    sh.vertexShader = holeFn + sh.vertexShader
       .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
-  vec3 hD = position - holeP; float hR = hJag(hD), hT = clamp((hR - holeR * .58) / (holeR * .42), 0., 1.);
-  float hF = holeK * (1. - hT * hT * (3. - 2. * hT)), hS = holeK * holeD * 6. * hT * (1. - hT) / (holeR * .42);
-  vec3 hN0 = objectNormal, hRad = normalize(hD - objectNormal * dot(hD, objectNormal) + vec3(1e-5));
-  objectNormal = normalize(objectNormal - hRad * hS);`)
-      .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vLoc = position; transformed -= hN0 * holeD * hF;");
-    sh.fragmentShader = "uniform vec3 holeP; uniform float holeR, holeK, holeD; varying vec3 vLoc;\n" + holeFn + sh.fragmentShader
-      .replace("void main() {", "void main() {\n  float hR = hJag(vLoc - holeP), vHoleF = holeK * smoothstep(holeR * .66, holeR * .45, hR), vWall = holeK * smoothstep(holeR * .58, holeR * .8, hR) * smoothstep(holeR * 1.05, holeR * .8, hR), vRim = holeK * smoothstep(holeR * .82, holeR * .97, hR) * smoothstep(holeR * 1.12, holeR * .98, hR);")
+  vec3 hN0 = objectNormal, hTilt = vec3(0.); float hDisp = 0.;
+  for (int i = 0; i < ${NH}; i++) { vec4 HH = holes[i]; if (HH.w < .001) continue; vec3 hD = position - HH.xyz; float hR = hJag(hD), hT = clamp((hR - holeR * .58) / (holeR * .42), 0., 1.);
+    hDisp = max(hDisp, HH.w * (1. - hT * hT * (3. - 2. * hT))); hTilt += normalize(hD - hN0 * dot(hD, hN0) + vec3(1e-5)) * HH.w * holeD * 6. * hT * (1. - hT) / (holeR * .42); }
+  objectNormal = normalize(objectNormal - hTilt);`)
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vLoc = position; transformed -= hN0 * holeD * hDisp;");
+    sh.fragmentShader = holeFn + sh.fragmentShader
+      .replace("void main() {", `void main() {
+  float vHoleF = 0., vWall = 0., vRim = 0.;
+  for (int i = 0; i < ${NH}; i++) { vec4 HH = holes[i]; if (HH.w < .001) continue; float hR = hJag(vLoc - HH.xyz);
+    vHoleF = max(vHoleF, HH.w * smoothstep(holeR * .66, holeR * .45, hR)); vWall = max(vWall, HH.w * smoothstep(holeR * .58, holeR * .8, hR) * smoothstep(holeR * 1.05, holeR * .8, hR));
+    vRim = max(vRim, HH.w * smoothstep(holeR * .82, holeR * .97, hR) * smoothstep(holeR * 1.12, holeR * .98, hR)); }
+  vWall *= 1. - vHoleF; vRim *= 1. - vHoleF;`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(roughnessFactor, .02, vHoleF), .32, vWall);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, vHoleF));")
       .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 6.);"))
       .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb += vec3(.85, .9, 1.) * (vRim * .22 + vWall * .04);"); };
-  let holeTl = null;
-  const openHole = (hl, hold) => { holeU.holeP.value.copy(hl); if (holeTl) holeTl.kill(); holeTl = gsap.timeline().to(holeU.holeK, {value: 1, duration: .22, ease: "power3.out"}).to(holeU.holeK, {value: 0, duration: .55, ease: "power2.in"}, .55 + hold); };
+  let holeSlot = 0; const flying = new Set();
+  const reformAll = () => { holesV.forEach(v => { gsap.killTweensOf(v); if (v.w > 0) gsap.to(v, {w: 0, duration: .55, delay: rnd() * .15, ease: "power2.in"}); }); holeSlot = 0;
+    flying.forEach(s => { const u = s.userData; gsap.killTweensOf(s.position); gsap.killTweensOf(s.rotation); gsap.killTweensOf(s.scale);
+      gsap.timeline({onComplete: () => { s.visible = false; u.busy = false; }}).to(s.position, {x: u.home.x, y: u.home.y, z: u.home.z, duration: .5 + rnd() * .25, ease: "power3.in"}).to(s.scale, {x: 0, y: 0, z: 0, duration: .2, ease: "power2.in"}, "-=.18"); });
+    flying.clear(); };
+  const openHole = hl => { const v = holesV[holeSlot % NH]; holeSlot++; gsap.killTweensOf(v); v.set(hl.x, hl.y, hl.z, v.w); gsap.to(v, {w: 1, duration: .22, ease: "power3.out"});
+    clearTimeout(reformT); reformT = setTimeout(() => { if (alive) reformAll(); }, 2300); };
   /* ---- le certificat : plaque fine légèrement bombée (relief), givre peint sur les bords ---- */
   const certTex = img => { const ar = img.width / img.height, cw = 1600, ch = Math.round(cw / ar), k = document.createElement("canvas"); k.width = cw; k.height = ch; const g = k.getContext("2d");
     g.drawImage(img, 0, 0, cw, ch); g.fillStyle = "rgba(205,208,212,.08)"; g.fillRect(0, 0, cw, ch);
@@ -2725,7 +2747,7 @@ async function openGlass(c0){
     for (let i = 0; i < P.count; i++) { const k = [P.getX(i), P.getY(i), P.getZ(i)].map(x => x.toFixed(3)).join(); if (!m.has(k)) m.set(k, .55 + rnd() * .7); const f = m.get(k); P.setXYZ(i, P.getX(i) * f, P.getY(i) * f * 1.4, P.getZ(i) * f * .7); }
     g.computeVertexNormals(); return g; });
   const shards = new THREE.Group(); shards.visible = false; ice.add(shards);
-  const NS = mobile || low ? 30 : 64;
+  const NS = mobile || low ? 40 : 96;
   for (let i = 0; i < NS; i++) { const s = new THREE.Mesh(shardGeos[i % 7], shardM), sc = .2 + rnd() * .38;
     s.userData.p0 = new V3((rnd() - .5) * W * .9, (rnd() - .5) * H * .9, (rnd() - .5) * D * .8); s.userData.r0 = new THREE.Euler(rnd() * 6, rnd() * 6, rnd() * 6); s.userData.s0 = sc;
     const dir = s.userData.p0.clone().setZ(s.userData.p0.z * 2).normalize(); s.userData.p1 = s.userData.p0.clone().addScaledVector(dir, 3 + rnd() * 6).add(new V3((rnd() - .5) * 2, (rnd() - .3) * 2, -2 - rnd() * 9));
@@ -2805,20 +2827,20 @@ async function openGlass(c0){
   shards.visible = true; shards.children.forEach(s => { s.visible = false; s.userData.busy = false; });
   const S = {wire: 0, spin: -1.6, drop: 9, kick: 0};
   const burst = hl => { const P = iceGeo.attributes.position, NA = iceGeo.attributes.normal, cand = [];
-    for (let k = 0; k < 600 && cand.length < 80; k++) { const j = Math.floor(rnd() * P.count); vT.fromBufferAttribute(P, j); const dd = vT.distanceTo(hl); if (dd < 1.3 && dd > .5) cand.push(j); }
+    for (let k = 0; k < 700 && cand.length < 80; k++) { const j = Math.floor(rnd() * P.count); vT.fromBufferAttribute(P, j); const dd = vT.distanceTo(hl); if (dd < 1.3 && dd > .45) cand.push(j); }
     if (!cand.length) for (let k = 0; k < 30; k++) cand.push(Math.floor(rnd() * P.count));
-    let used = 0; const n = mobile || low ? 9 : 16;
-    for (const s of shards.children) { if (used >= n) break; if (s.userData.busy) continue; used++; s.userData.busy = true;
+    /* direction d'éjection : depuis le centre du bloc vers le point d'impact (on casse à droite, ça part à droite) */
+    const dir = hl.clone(); dir.y *= .45; if (dir.lengthSq() < 1e-4) dir.set(0, 0, 1); dir.normalize();
+    let used = 0; const n = mobile || low ? 8 : 13;
+    for (const s of shards.children) { if (used >= n) break; if (s.userData.busy) continue; used++; s.userData.busy = true; flying.add(s);
       const j = cand[Math.floor(rnd() * cand.length)], p = new V3().fromBufferAttribute(P, j), nn = new V3().fromBufferAttribute(NA, j).normalize();
-      p.addScaledVector(nn, -.04); const rd = p.clone().sub(hl); rd.addScaledVector(nn, -rd.dot(nn)); if (rd.lengthSq() < 1e-4) rd.set(rnd() - .5, rnd() - .5, 0); rd.normalize();
-      const out = p.clone().addScaledVector(rd, .7 + rnd() * .9).addScaledVector(nn, .25 + rnd() * .35).add(new V3(0, (rnd() - .3) * .4, 0));
-      const sc = .15 + rnd() * .24, hold = 1.3 + rnd() * .6; s.position.copy(p); s.scale.setScalar(sc * .3); s.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); s.visible = true;
-      gsap.timeline({onComplete: () => { s.visible = false; s.userData.busy = false; }})
-        .to(s.position, {x: out.x, y: out.y, z: out.z, duration: .55, ease: "power3.out"}, 0).to(s.scale, {x: sc, y: sc, z: sc, duration: .3, ease: "power2.out"}, 0)
-        .to(s.rotation, {x: "+=" + (rnd() * 3 - 1.5), y: "+=" + (rnd() * 3 - 1.5), duration: .55 + hold, ease: "sine.out"}, 0)
-        .to(s.position, {y: "+=" + (.05 + rnd() * .08), duration: hold / 2, ease: "sine.inOut", yoyo: true, repeat: 1}, .55)
-        .to(s.position, {x: p.x, y: p.y, z: p.z, duration: .5, ease: "power3.in"}, .55 + hold).to(s.scale, {x: 0, y: 0, z: 0, duration: .22, ease: "power2.in"}, .8 + hold); }
-    openHole(hl, 1.6); gsap.fromTo(postU.fl, {value: .1}, {value: 0, duration: .35}); S.kick = 1; };
+      p.addScaledVector(nn, -.04); s.userData.home = p.clone();
+      const out = p.clone().addScaledVector(dir, .8 + rnd() * 1.1).addScaledVector(nn, .15 + rnd() * .3).add(new V3((rnd() - .5) * .45, (rnd() - .5) * .45, (rnd() - .5) * .45));
+      const sc = .14 + rnd() * .24; s.position.copy(p); s.scale.setScalar(sc * .3); s.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); s.visible = true;
+      gsap.to(s.position, {x: out.x, y: out.y, z: out.z, duration: .5 + rnd() * .2, ease: "power3.out", onComplete: () => { if (flying.has(s)) gsap.to(s.position, {y: "+=" + (.05 + rnd() * .07), duration: .9 + rnd() * .6, ease: "sine.inOut", yoyo: true, repeat: -1}); }});
+      gsap.to(s.scale, {x: sc, y: sc, z: sc, duration: .3, ease: "power2.out"});
+      gsap.to(s.rotation, {x: "+=" + (rnd() * 2 - 1), y: "+=" + (rnd() * 6 - 3), duration: 6, ease: "sine.out"}); }
+    openHole(hl); gsap.fromTo(postU.fl, {value: .1}, {value: 0, duration: .35}); S.kick = 1; };
   const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (hit) burst(ice.worldToLocal(hit.point.clone())); };
   explore = () => { if (busy) return; const [bx, by] = scr(new V3(0, CB.y, 0), innerWidth, innerHeight); clickAt(bx, by); };
   /* ---- arrivée par le haut, départ par le bas ---- */
@@ -2826,7 +2848,21 @@ async function openGlass(c0){
     const tl = gsap.timeline({onComplete: done});
     tl.to(S, {drop: 0, duration: 1.5, ease: "power3.out"}, 0).to(S, {spin: 0, duration: 1.8, ease: "power3.out"}, 0)
       .to(S, {wire: 1, duration: 1, ease: "power2.inOut"}, .7).to(ptU.k, {value: 1, duration: .8}, .8).add(showHud, .9); return tl; };
-  go = dir => { if (busy || list.length < 2) return; const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(S, {drop: 0}, {drop: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
+  /* ---- couleur de la glace (onglet en haut à droite, mémorisée) ---- */
+  let attBase = 4; const baseAtt = new THREE.Color(0xa9acb1);
+  const setIceColor = hex => { const c = hex ? new THREE.Color(hex) : null;
+    if (c) { iceM.color.setRGB(1, 1, 1).lerp(c, low ? .55 : .3); if (iceM.attenuationColor) iceM.attenuationColor.copy(c); attBase = 1.7; shardM.color.setRGB(1, 1, 1).lerp(c, .35); if (shardM.attenuationColor) shardM.attenuationColor.copy(c); }
+    else { iceM.color.setRGB(1, 1, 1); if (iceM.attenuationColor) iceM.attenuationColor.copy(baseAtt); attBase = 4; shardM.color.setRGB(1, 1, 1); if (shardM.attenuationColor) shardM.attenuationColor.set(0xc4c8cd); }
+    ov.querySelector(".ig-colbtn i").style.background = hex || "linear-gradient(135deg,#eef1f4,#9ea3aa)";
+    ov.querySelectorAll(".ig-sw").forEach(b => b.classList.toggle("on", (b.dataset.c || "") === (hex || "")));
+    try { hex ? localStorage.setItem("bdm-ice-color", hex) : localStorage.removeItem("bdm-ice-color"); } catch (e) {} };
+  { const pop = ov.querySelector(".ig-colpop");
+    ov.querySelector(".ig-colbtn").addEventListener("click", e => { e.stopPropagation(); pop.hidden = !pop.hidden; });
+    pop.addEventListener("click", e => { e.stopPropagation(); const b = e.target.closest(".ig-sw"); if (b) setIceColor(b.dataset.c || null); });
+    pop.querySelector("input").addEventListener("input", e => setIceColor(e.target.value));
+    ov.addEventListener("pointerdown", e => { if (!e.target.closest(".ig-col")) pop.hidden = true; });
+    let saved = null; try { saved = localStorage.getItem("bdm-ice-color"); } catch (e) {} setIceColor(saved); }
+  go = dir => { if (busy || list.length < 2) return; reformAll(); const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(S, {drop: 0}, {drop: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
     busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
     ov.classList.remove("hud");
     gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
@@ -2847,7 +2883,7 @@ async function openGlass(c0){
     ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
-    if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
+    if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = attBase + 5 * prox; }
     cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
@@ -5344,7 +5380,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-13";
+const APP_VERSION = "2026-10-28-14";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
