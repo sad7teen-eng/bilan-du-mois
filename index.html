@@ -2490,6 +2490,10 @@ function layoutDeck(){
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openGlass(c); }
 /* ===== Certificat : bloc de verre en vraie 3D (WebGL), lumière studio, montant en compteur ===== */
+/* préchargement du bloc de glace : moteur 3D + modèle, lancé dès qu'on approche des certificats */
+function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=1").then(r => r.arrayBuffer())]).catch(() => { window.__igPre = null; }); }
+document.addEventListener("pointerover", e => { if (e.target.closest && e.target.closest("#certGrid")) igPreload(); }, {passive: true});
+addEventListener("hashchange", () => { if (/cert/.test(location.hash)) setTimeout(igPreload, 800); }); if (/cert/.test(location.hash)) setTimeout(igPreload, 2500);
 async function openGlass(c0){
   const imOf = c => (imgCache["cert:" + c.id] || [])[0] || c.src;
   if (!imOf(c0)) { certEdit = {...c0}; drawCerts(); return; }
@@ -2650,16 +2654,24 @@ async function openGlass(c0){
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* « trou » dans la glace : là où on casse, la glace devient claire et laisse voir le certificat */
-  const holeU = {holeP: {value: new V3()}, holeR: {value: 1}, holeK: {value: 0}};
+  const holeU = {holeP: {value: new V3()}, holeR: {value: 1.1}, holeK: {value: 0}, holeD: {value: .42}};
+  const holeFn = "float hJag(vec3 d){ return length(d) * (1. + .09 * sin(atan(d.y, d.x) * 5. + d.z * 4.) + .05 * sin(atan(d.z, d.x) * 9.)); }\n";
   iceM.onBeforeCompile = sh => { Object.assign(sh.uniforms, holeU);
-    sh.vertexShader = "varying vec3 vLoc;\n" + sh.vertexShader.replace("#include <begin_vertex>", "#include <begin_vertex>\nvLoc = position;");
-    sh.fragmentShader = "uniform vec3 holeP; uniform float holeR, holeK; varying vec3 vLoc;\n" + sh.fragmentShader
-      .replace("void main() {", "void main() {\n  float vHoleF = holeK * smoothstep(holeR, holeR * .3, distance(vLoc, holeP));")
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(roughnessFactor, .02, vHoleF);")
+    sh.vertexShader = "uniform vec3 holeP; uniform float holeR, holeK, holeD; varying vec3 vLoc;\n" + holeFn + sh.vertexShader
+      .replace("#include <beginnormal_vertex>", `#include <beginnormal_vertex>
+  vec3 hD = position - holeP; float hR = hJag(hD), hT = clamp((hR - holeR * .58) / (holeR * .42), 0., 1.);
+  float hF = holeK * (1. - hT * hT * (3. - 2. * hT)), hS = holeK * holeD * 6. * hT * (1. - hT) / (holeR * .42);
+  vec3 hN0 = objectNormal, hRad = normalize(hD - objectNormal * dot(hD, objectNormal) + vec3(1e-5));
+  objectNormal = normalize(objectNormal - hRad * hS);`)
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vLoc = position; transformed -= hN0 * holeD * hF;");
+    sh.fragmentShader = "uniform vec3 holeP; uniform float holeR, holeK, holeD; varying vec3 vLoc;\n" + holeFn + sh.fragmentShader
+      .replace("void main() {", "void main() {\n  float hR = hJag(vLoc - holeP), vHoleF = holeK * smoothstep(holeR * .66, holeR * .45, hR), vWall = holeK * smoothstep(holeR * .58, holeR * .8, hR) * smoothstep(holeR * 1.05, holeR * .8, hR), vRim = holeK * smoothstep(holeR * .82, holeR * .97, hR) * smoothstep(holeR * 1.12, holeR * .98, hR);")
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(roughnessFactor, .02, vHoleF), .32, vWall);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, vHoleF));")
-      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 6.);")); };
+      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 6.);"))
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb += vec3(.85, .9, 1.) * (vRim * .22 + vWall * .04);"); };
   let holeTl = null;
-  const openHole = (hl, hold) => { holeU.holeP.value.copy(hl); if (holeTl) holeTl.kill(); holeTl = gsap.timeline().to(holeU.holeK, {value: 1, duration: .3, ease: "power2.out"}).to(holeU.holeK, {value: 0, duration: .55, ease: "power2.in"}, .55 + hold); };
+  const openHole = (hl, hold) => { holeU.holeP.value.copy(hl); if (holeTl) holeTl.kill(); holeTl = gsap.timeline().to(holeU.holeK, {value: 1, duration: .22, ease: "power3.out"}).to(holeU.holeK, {value: 0, duration: .55, ease: "power2.in"}, .55 + hold); };
   /* ---- le certificat : plaque fine légèrement bombée (relief), givre peint sur les bords ---- */
   const certTex = img => { const ar = img.width / img.height, cw = 1600, ch = Math.round(cw / ar), k = document.createElement("canvas"); k.width = cw; k.height = ch; const g = k.getContext("2d");
     g.drawImage(img, 0, 0, cw, ch); g.fillStyle = "rgba(205,208,212,.08)"; g.fillRect(0, 0, cw, ch);
@@ -2793,12 +2805,13 @@ async function openGlass(c0){
   shards.visible = true; shards.children.forEach(s => { s.visible = false; s.userData.busy = false; });
   const S = {wire: 0, spin: -1.6, drop: 9, kick: 0};
   const burst = hl => { const P = iceGeo.attributes.position, NA = iceGeo.attributes.normal, cand = [];
-    for (let k = 0; k < 600 && cand.length < 80; k++) { const j = Math.floor(rnd() * P.count); vT.fromBufferAttribute(P, j); if (vT.distanceTo(hl) < 1.1) cand.push(j); }
+    for (let k = 0; k < 600 && cand.length < 80; k++) { const j = Math.floor(rnd() * P.count); vT.fromBufferAttribute(P, j); const dd = vT.distanceTo(hl); if (dd < 1.3 && dd > .5) cand.push(j); }
     if (!cand.length) for (let k = 0; k < 30; k++) cand.push(Math.floor(rnd() * P.count));
     let used = 0; const n = mobile || low ? 9 : 16;
     for (const s of shards.children) { if (used >= n) break; if (s.userData.busy) continue; used++; s.userData.busy = true;
       const j = cand[Math.floor(rnd() * cand.length)], p = new V3().fromBufferAttribute(P, j), nn = new V3().fromBufferAttribute(NA, j).normalize();
-      p.addScaledVector(nn, -.04); const out = p.clone().addScaledVector(nn, .35 + rnd() * .85).add(new V3((rnd() - .5) * .5, (rnd() - .3) * .6, (rnd() - .5) * .5));
+      p.addScaledVector(nn, -.04); const rd = p.clone().sub(hl); rd.addScaledVector(nn, -rd.dot(nn)); if (rd.lengthSq() < 1e-4) rd.set(rnd() - .5, rnd() - .5, 0); rd.normalize();
+      const out = p.clone().addScaledVector(rd, .7 + rnd() * .9).addScaledVector(nn, .25 + rnd() * .35).add(new V3(0, (rnd() - .3) * .4, 0));
       const sc = .15 + rnd() * .24, hold = 1.3 + rnd() * .6; s.position.copy(p); s.scale.setScalar(sc * .3); s.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); s.visible = true;
       gsap.timeline({onComplete: () => { s.visible = false; s.userData.busy = false; }})
         .to(s.position, {x: out.x, y: out.y, z: out.z, duration: .55, ease: "power3.out"}, 0).to(s.scale, {x: sc, y: sc, z: sc, duration: .3, ease: "power2.out"}, 0)
@@ -5331,7 +5344,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-12";
+const APP_VERSION = "2026-10-28-13";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
