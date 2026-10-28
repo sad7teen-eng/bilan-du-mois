@@ -865,6 +865,11 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-t{display:grid;grid-template-columns:auto auto;column-gap:22px;font-size:12px}
 .ig-tv{text-align:right;font-variant-numeric:tabular-nums}.ig-tv b{display:block}
 .ig.hud .ig-lab,.ig.hud .ig-svg{opacity:1}
+.ig-cv{cursor:grab}.ig.grab .ig-cv{cursor:grabbing}
+.ig-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:auto auto;column-gap:28px;row-gap:8px;width:min(300px,70vw);font-size:12px;letter-spacing:.08em;pointer-events:none;transition:opacity .5s}
+.ig-load b{font-weight:700}.ig-load .ig-lp{text-align:right;font-variant-numeric:tabular-nums}
+.ig-load i{grid-column:1/-1;height:1px;background:rgba(255,255,255,.25);position:relative}.ig-load u{position:absolute;left:0;top:0;bottom:0;width:0;background:#fff;transition:width .3s}
+.ig-load small{grid-column:1/-1;font-size:10px;opacity:.7}.ig-load.done{opacity:0}
 .ig-go{pointer-events:auto;cursor:pointer;transition:color .2s}.ig-go:hover{color:#dfeaff;text-shadow:0 0 14px rgba(255,255,255,.8)}
 .ig-hint span{display:block}.ig-hint .h1{opacity:.7;margin-bottom:4px}
 .ig-t b:nth-child(2n){text-align:right;font-variant-numeric:tabular-nums}
@@ -2496,13 +2501,14 @@ async function openGlass(c0){
   ov.innerHTML = `<canvas class="ig-cv"></canvas>
     <div class="ig-bg"><span style="left:6%;top:15%">01 · CRY0\n004.0917</span><span style="left:72%;top:9%">LOCK  OFF/2</span><span style="left:4%;top:58%">ICE  0.2931</span>
       <span style="left:70%;top:58%">ARC  07\n31 10 2026</span><span style="left:30%;top:84%">PRE  SEAL  OFF/2</span></div>
-    <div class="ig-dots"></div><div class="ig-flash"></div><div class="ig-grain"></div>
+    <div class="ig-dots"></div><div class="ig-grain"></div>
+    <div class="ig-load"><b>CRYO_INIT</b><span class="ig-lp">000%</span><i><u></u></i><small class="ig-lm">INITIALISATION</small></div>
     <svg class="ig-svg"><path class="p1"/><path class="p2"/><path class="p3"/></svg>
     <div class="ig-lab ig-a"><b data-s=""></b><b data-s=""></b></div>
     <div class="ig-lab ig-t"><b data-s=""></b><b class="ig-tv" data-s=""></b><b>TEMP</b><b class="ig-tv ig-temp">-18.42</b></div>
     <div class="ig-lab ig-d"><b data-s=""></b><b class="ig-go" data-s="CLICK TO EXPLORE"></b></div>
     <div class="ig-corner">CERTIFICATS<small class="ig-count"></small></div>
-    <div class="ig-hint"><span class="h1">SCROLL · CERTIFICAT SUIVANT</span><span class="h2">ÉCHAP · FERMER</span></div>
+    <div class="ig-hint"><span class="h1">GLISSER · TOURNER &nbsp; CLIC · BRISER &nbsp; SCROLL · SUIVANT</span><span class="h2">ÉCHAP · FERMER</span></div>
     <button type="button" class="ig-close" aria-label="Fermer">✕</button>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   { const gc = document.createElement("canvas"); gc.width = gc.height = 220; const g = gc.getContext("2d"), d = g.createImageData(220, 220);
@@ -2518,10 +2524,14 @@ async function openGlass(c0){
   addEventListener("keydown", onKey, true); try { document.activeElement && document.activeElement.blur(); } catch (e) {}
   ov.querySelector(".ig-close").addEventListener("click", back);
   requestAnimationFrame(() => ov.classList.add("on"));
+  const loadEl = ov.querySelector(".ig-load"), tick = () => new Promise(r => setTimeout(r, 20));
+  const setP = (p, m) => { loadEl.querySelector(".ig-lp").textContent = String(Math.round(p)).padStart(3, "0") + "%"; loadEl.querySelector("u").style.width = p + "%"; if (m) loadEl.querySelector(".ig-lm").textContent = m; };
+  setP(4, "CHARGEMENT DU MOTEUR 3D");
   let THREE, gsap;
   try { [THREE, {gsap}] = await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap")]); }
   catch (e) { alive = false; removeEventListener("keydown", onKey, true); fallback(); return; }
   if (!alive) return;
+  setP(22, "PRÉPARATION DE LA GLACE"); await tick();
   const mergeVertices = g => { const P = g.attributes.position, map = new Map(), pos = [], rem = new Uint32Array(P.count);
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), k = Math.round(x * 1e4) + "," + Math.round(y * 1e4) + "," + Math.round(z * 1e4);
       let j = map.get(k); if (j === undefined) { j = pos.length / 3; map.set(k, j); pos.push(x, y, z); } rem[i] = j; }
@@ -2571,7 +2581,10 @@ async function openGlass(c0){
     return L(L(L(hs(xi, yi, zi), hs(xi + 1, yi, zi), u), L(hs(xi, yi + 1, zi), hs(xi + 1, yi + 1, zi), u), v), L(L(hs(xi, yi, zi + 1), hs(xi + 1, yi, zi + 1), u), L(hs(xi, yi + 1, zi + 1), hs(xi + 1, yi + 1, zi + 1), u), v), w); };
   const fb = (x, y, z, o = 4) => { let f = 0, a = .5; for (let i = 0; i < o; i++) { f += a * n3(x, y, z); x *= 2.03; y *= 2.03; z *= 2.03; a *= .5; } return f; };
   /* ---- textures de surface : fines stries verticales régulières (glace taillée), rayures givrées, base rocailleuse scintillante ---- */
-  const streak = (() => { const N = mobile || low ? 512 : 1024, H = new Float32Array(N * N), SC = new Float32Array(N * N), BS = new Float32Array(N * N);
+  setP(34, "TEXTURES DE GLACE"); await tick();
+  const streak = (() => { const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 16; return t; };
+    if (window.__igSC) { const [a, b, c] = window.__igSC, col = T(c); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(a), rough: T(b), col}; }
+    const N = mobile || low ? 512 : 768, H = new Float32Array(N * N), SC = new Float32Array(N * N), BS = new Float32Array(N * N);
     const g1 = (u, f, s, v) => n3(u * f, v, s);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, i = y * N + x;
       const base = Math.max(0, Math.min(1, (.27 - v) / .14), Math.min(1, (v - .8) / .1)), m = .55 + .45 * Math.min(1, Math.max(0, (fb(u * 3, v * 1.4, 8.3, 3) - .35) * 3));
@@ -2587,19 +2600,20 @@ async function openGlass(c0){
       const r = Math.min(.7, .03 + SC[i] * .32 + b * (H[i] > .55 ? .04 : .22)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255;
       const tn = fb(x / N * 3, y / N * 2, 4.4, 3), c = .9 + tn * .08 + SC[i] * .04; dC.data[k] = c * 255; dC.data[k + 1] = (c + .005) * 255; dC.data[k + 2] = Math.min(1, c + .015) * 255; dC.data[k + 3] = 255; }
     cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0); cC.getContext("2d").putImageData(dC, 0, 0);
-    const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 16; return t; };
+    window.__igSC = [cN, cR, cC];
     const col = T(cC); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(cN), rough: T(cR), col}; })();
   /* ---- le glaçon (taille fixe, le certificat s'y adapte) ---- */
   /* ---- modèle 3D du glaçon (ice.glb) : seule la forme est reprise, la matière glace est appliquée ici ---- */
-  let glbGeo = null;
-  try { const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js"); const gl = await new GLTFLoader().loadAsync("ice.glb?v=1"); gl.scene.updateMatrixWorld(true); let best = null;
+  setP(62, "MODÈLE 3D DU BLOC"); await tick();
+  let glbGeo = window.__igGlb ? window.__igGlb.clone() : null;
+  if (!glbGeo) try { const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js"); const gl = await new GLTFLoader().loadAsync("ice.glb?v=1"); gl.scene.updateMatrixWorld(true); let best = null;
     gl.scene.traverse(o => { if (o.isMesh && (!best || o.geometry.attributes.position.count > best.geometry.attributes.position.count)) best = o; });
     if (best) { const g0 = best.geometry.clone(); g0.applyMatrix4(best.matrixWorld); const A = g0.attributes.position, pos = new Float32Array(A.count * 3);
       for (let i = 0; i < A.count; i++) { pos[i * 3] = A.getX(i); pos[i * 3 + 1] = A.getY(i); pos[i * 3 + 2] = A.getZ(i); }
       let g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); if (g0.index) g.setIndex(new THREE.BufferAttribute(new Uint32Array(g0.index.array), 1));
       const NA = g0.attributes.normal; if (NA) { const nr = new Float32Array(NA.count * 3); for (let i = 0; i < NA.count; i++) { nr[i * 3] = NA.getX(i); nr[i * 3 + 1] = NA.getY(i); nr[i * 3 + 2] = NA.getZ(i); } g.setAttribute("normal", new THREE.BufferAttribute(nr, 3)); }
       g.computeBoundingBox(); const bb = g.boundingBox, c = bb.getCenter(new V3()), sz = bb.getSize(new V3()), k = 4.6 / sz.y;
-      g.translate(-c.x, -c.y, -c.z); g.scale(k, k, k); glbGeo = g; } } catch (e) {}
+      g.translate(-c.x, -c.y, -c.z); g.scale(k, k, k); glbGeo = g; window.__igGlb = g.clone(); } } catch (e) {}
   if (!alive) return;
   let W = 3.35, H = 4.6, D = 2.1;
   if (glbGeo) { glbGeo.computeBoundingBox(); const sz = glbGeo.boundingBox.getSize(new V3()); W = sz.x; H = sz.y; D = sz.z;
@@ -2651,6 +2665,7 @@ async function openGlass(c0){
     const front = new THREE.MeshBasicMaterial({map: t, toneMapped: false}), backM = new THREE.MeshBasicMaterial({map: t, toneMapped: false, color: new THREE.Color(.35, .37, .4)});
     const m = new THREE.Mesh(g, [edgeM, edgeM, edgeM, edgeM, front, backM]); m.userData = {PW, PH}; return m; };
   const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  setP(84, "CERTIFICAT"); await tick();
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
   let cert = certMesh(img0); const CB = {y: H * .03, z: .15}, CR = {x: .12, y: -.38, z: .42};
   cert.rotation.set(CR.x, CR.y, CR.z); cert.position.set(0, CB.y, CB.z);
@@ -2682,7 +2697,7 @@ async function openGlass(c0){
   ice.add(crack);
   /* ---- éclats de glace (pour l'éclatement) ---- */
   const shardM = low ? new THREE.MeshPhysicalMaterial({color: 0xe3ebf2, roughness: .1, transparent: true, opacity: .45, clearcoat: 1, envMapIntensity: 1.5, flatShading: true})
-    : new THREE.MeshPhysicalMaterial({color: 0xffffff, roughness: .08, transmission: 1, thickness: .6, ior: 1.31, dispersion: mobile ? 0 : 3, clearcoat: .4, envMapIntensity: 1.3, flatShading: true, attenuationColor: new THREE.Color(0xa9b2bd), attenuationDistance: 2});
+    : new THREE.MeshPhysicalMaterial({color: 0xffffff, roughness: .16, transmission: .9, thickness: .5, ior: 1.31, dispersion: mobile ? 0 : 4, clearcoat: 1, clearcoatRoughness: .05, specularIntensity: 1, envMapIntensity: 2.2, flatShading: true, attenuationColor: new THREE.Color(0xc4c8cd), attenuationDistance: 1.5});
   const shardGeos = Array.from({length: 7}, () => { const g = new THREE.IcosahedronGeometry(1, 0), P = g.attributes.position, m = new Map();
     for (let i = 0; i < P.count; i++) { const k = [P.getX(i), P.getY(i), P.getZ(i)].map(x => x.toFixed(3)).join(); if (!m.has(k)) m.set(k, .55 + rnd() * .7); const f = m.get(k); P.setXYZ(i, P.getX(i) * f, P.getY(i) * f * 1.4, P.getZ(i) * f * .7); }
     g.computeVertexNormals(); return g; });
@@ -2727,7 +2742,7 @@ async function openGlass(c0){
   /* ---- HUD ---- */
   const labA = ov.querySelector(".ig-a"), labT = ov.querySelector(".ig-t"), labD = ov.querySelector(".ig-d"), [p1, p2, p3] = ov.querySelectorAll(".ig-svg path");
   const anA = new V3(-W * .3, H * .36, D * .45), anT = new V3(W * .44, H * .3, D * .2), anD = new V3(W * .36, -H * .33, D * .45), tv = new V3();
-  const scr = (a, ww, hh) => { tv.copy(a); ice.localToWorld(tv); tv.project(cam); return [(tv.x * .5 + .5) * ww, (-tv.y * .5 + .5) * hh]; };
+  const scr = (a, ww, hh) => { tv.copy(a).multiplyScalar(ice.scale.x).add(ice.position); tv.project(cam); return [(tv.x * .5 + .5) * ww, (-tv.y * .5 + .5) * hh]; };
   const scramble = el => { const fin = el.dataset.s || "", ch = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789_/+"; let f = 0; clearInterval(el._it); el._it = setInterval(() => { f++;
     el.textContent = fin.split("").map((x, i) => i < f * 1.3 ? x : (x === " " ? " " : ch[Math.floor(rnd() * ch.length)])).join(""); if (f * 1.3 >= fin.length) clearInterval(el._it); }, 38); };
   const setLabels = c => { const up = s => String(s == null ? "" : s).toUpperCase(), idx = String(list.indexOf(c) + 1).padStart(2, "0");
@@ -2742,74 +2757,74 @@ async function openGlass(c0){
   let T1 = -18.42; const tempEl = ov.querySelector(".ig-temp"), bgs = [...ov.querySelectorAll(".ig-bg span")];
   tmr = setInterval(() => { T1 = Math.max(-21, Math.min(-16, T1 + (rnd() - .5) * .22)); tempEl.textContent = (T1 < 0 ? "-" : "") + Math.abs(T1).toFixed(2).padStart(5, "0");
     if (rnd() < .25) { const s = bgs[Math.floor(rnd() * bgs.length)]; s.textContent = s.textContent.replace(/\d/g, d => rnd() < .3 ? String(Math.floor(rnd() * 10)) : d); } }, 110);
-  /* ---- souris / molette / tactile ---- */
+  /* ---- souris / glisser pour tourner / clic pour briser / molette ---- */
   const mouse = {x: 0, y: 0, sx: 0, sy: 0, cx: -9, cy: -9, in: false}; let prox = 0;
+  const rot = {yaw: 0, pitch: 0, v: 0, drag: false, lx: 0, ly: 0, moved: 0, idle: 9};
   ov.addEventListener("pointermove", e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = e.clientY / innerHeight * 2 - 1; mouse.cx = e.clientX; mouse.cy = e.clientY; mouse.in = true; });
   ov.addEventListener("pointerleave", () => { mouse.x = mouse.y = 0; mouse.in = false; });
   ov.addEventListener("wheel", e => { e.preventDefault(); if (Math.abs(e.deltaY) > 6) go(e.deltaY > 0 ? 1 : -1); }, {passive: false});
-  let ty = null; ov.addEventListener("touchstart", e => { ty = e.touches[0].clientY; }, {passive: true});
-  ov.addEventListener("touchend", e => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY; ty = null; if (Math.abs(d) > 50 && mode === "idle") go(d > 0 ? 1 : -1); });
+  let ty = null, tx0 = 0; ov.addEventListener("touchstart", e => { ty = e.touches[0].clientY; tx0 = e.touches[0].clientX; }, {passive: true});
+  ov.addEventListener("touchend", e => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY, dx = Math.abs(tx0 - e.changedTouches[0].clientX); ty = null; if (Math.abs(d) > 70 && dx < Math.abs(d) * .5) go(d > 0 ? 1 : -1); });
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), vT = new V3();
+  cv.addEventListener("pointerdown", e => { if (busy) return; rot.drag = true; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved = 0; rot.v = 0; try { cv.setPointerCapture(e.pointerId); } catch (er) {} ov.classList.add("grab"); });
+  cv.addEventListener("pointermove", e => { if (!rot.drag) return; const dx = e.clientX - rot.lx, dy = e.clientY - rot.ly; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved += Math.abs(dx) + Math.abs(dy);
+    rot.yaw += dx * .009; rot.v = dx * .009; rot.pitch = Math.max(-.6, Math.min(.6, rot.pitch + dy * .005)); rot.idle = 0; });
+  const endDrag = e => { if (!rot.drag) return; rot.drag = false; ov.classList.remove("grab"); if (rot.moved < 6) clickAt(e.clientX, e.clientY); };
+  cv.addEventListener("pointerup", endDrag); cv.addEventListener("pointercancel", () => { rot.drag = false; ov.classList.remove("grab"); });
   ov.querySelector(".ig-go").addEventListener("click", e => { e.stopPropagation(); explore(); });
-  cv.addEventListener("click", e => { if (mode === "idle" && proxAt(e.clientX, e.clientY) > .15) explore(); else if (mode === "open") reform(); });
   const dotsEl = ov.querySelector(".ig-dots"), bgEl = ov.querySelector(".ig-bg"), cornerEl = ov.querySelector(".ig-corner"); let cornerB = 0;
   onResize = () => { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cornerB = cornerEl.getBoundingClientRect().bottom;
     const tn = Math.tan(cam.fov * Math.PI / 360); cam.position.z = Math.max(8, (W * 1.45 / 2) / (tn * cam.aspect) + D * .5, (H * 1.22 / 2) / tn + D * .5); cam.updateProjectionMatrix();
     const bh = 2 * 60 * tn * 1.15; bg.scale.set(bh * cam.aspect, bh, 1); bgU.asp.value = cam.aspect; const pr = renderer.getPixelRatio(); rt.setSize(Math.floor(w * pr), Math.floor(h * pr)); };
   onResize(); addEventListener("resize", onResize);
   const proxAt = (x, y) => { const [bx, by] = scr(new V3(0, 0, 0), innerWidth, innerHeight); const d = Math.hypot(x - bx, (y - by) * .7) / (Math.min(innerWidth, innerHeight) * .42); return Math.max(0, 1 - d); };
-  /* ---- états animés ---- */
-  const S = {wire: 0, spin: -2.2, free: 1};
-  ice.position.z = -14;
-  const arrive = (done) => { ice.position.z = -16; S.spin = -2.4; ice.scale.setScalar(.9);
+  /* ---- éclats : des morceaux sautent, lévitent, puis se recollent (à l'infini) ---- */
+  shards.visible = true; shards.children.forEach(s => { s.visible = false; s.userData.busy = false; });
+  const S = {wire: 0, spin: -1.6, drop: 9, kick: 0};
+  const burst = hl => { const P = iceGeo.attributes.position, NA = iceGeo.attributes.normal, cand = [];
+    for (let k = 0; k < 600 && cand.length < 80; k++) { const j = Math.floor(rnd() * P.count); vT.fromBufferAttribute(P, j); if (vT.distanceTo(hl) < 1.1) cand.push(j); }
+    if (!cand.length) for (let k = 0; k < 30; k++) cand.push(Math.floor(rnd() * P.count));
+    let used = 0; const n = mobile || low ? 9 : 16;
+    for (const s of shards.children) { if (used >= n) break; if (s.userData.busy) continue; used++; s.userData.busy = true;
+      const j = cand[Math.floor(rnd() * cand.length)], p = new V3().fromBufferAttribute(P, j), nn = new V3().fromBufferAttribute(NA, j).normalize();
+      p.addScaledVector(nn, -.04); const out = p.clone().addScaledVector(nn, .35 + rnd() * .85).add(new V3((rnd() - .5) * .5, (rnd() - .3) * .6, (rnd() - .5) * .5));
+      const sc = .15 + rnd() * .24, hold = 1.1 + rnd() * 1.1; s.position.copy(p); s.scale.setScalar(sc * .3); s.rotation.set(rnd() * 6, rnd() * 6, rnd() * 6); s.visible = true;
+      gsap.timeline({onComplete: () => { s.visible = false; s.userData.busy = false; }})
+        .to(s.position, {x: out.x, y: out.y, z: out.z, duration: .55, ease: "power3.out"}, 0).to(s.scale, {x: sc, y: sc, z: sc, duration: .3, ease: "power2.out"}, 0)
+        .to(s.rotation, {x: "+=" + (rnd() * 3 - 1.5), y: "+=" + (rnd() * 3 - 1.5), duration: .55 + hold, ease: "sine.out"}, 0)
+        .to(s.position, {y: "+=" + (.05 + rnd() * .08), duration: hold / 2, ease: "sine.inOut", yoyo: true, repeat: 1}, .55)
+        .to(s.position, {x: p.x, y: p.y, z: p.z, duration: .5, ease: "power3.in"}, .55 + hold).to(s.scale, {x: 0, y: 0, z: 0, duration: .22, ease: "power2.in"}, .8 + hold); }
+    gsap.fromTo(postU.fl, {value: .1}, {value: 0, duration: .35}); S.kick = 1; };
+  const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (hit) burst(ice.worldToLocal(hit.point.clone())); };
+  explore = () => { if (!busy) burst(new V3(0, 0, D * .45)); };
+  /* ---- arrivée par le haut, départ par le bas ---- */
+  const arrive = done => { S.drop = 9; S.spin = -1.6;
     const tl = gsap.timeline({onComplete: done});
-    tl.to(ice.position, {z: 0, duration: 1.9, ease: "power3.out"}, 0).to(S, {spin: 0, duration: 2.1, ease: "power3.out"}, 0).to(ice.scale, {x: 1, y: 1, z: 1, duration: 1.9, ease: "power3.out"}, 0)
-      .to(S, {wire: 1, duration: 1.2, ease: "power2.inOut"}, .9).to(ptU.k, {value: 1, duration: .9}, 1).add(showHud, 1.2); return tl; };
-  busy = true; arrive(() => { busy = false; });
-  go = dir => { if (busy || mode !== "idle" || list.length < 2) return; const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(ice.position, {y: 0}, {y: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
+    tl.to(S, {drop: 0, duration: 1.5, ease: "power3.out"}, 0).to(S, {spin: 0, duration: 1.8, ease: "power3.out"}, 0)
+      .to(S, {wire: 1, duration: 1, ease: "power2.inOut"}, .7).to(ptU.k, {value: 1, duration: .8}, .8).add(showHud, .9); return tl; };
+  go = dir => { if (busy || list.length < 2) return; const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(S, {drop: 0}, {drop: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
     busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
     ov.classList.remove("hud");
-    gsap.timeline().to(S, {wire: 0, duration: .4}, 0).to(ptU.k, {value: 0, duration: .4}, 0).to(ice.position, {z: -20, duration: 1.05, ease: "power2.in"}, 0).to(S, {spin: 1.6 * dir, duration: 1.05, ease: "power2.in"}, 0)
+    gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
       .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); cert.rotation.copy(old.rotation); cert.position.copy(old.position); inner.remove(old); inner.add(cert);
           old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
-        setLabels(list[ci]); deckSel = list === deckList ? ci : deckSel; arrive(() => { busy = false; }); }); };
-  const vT = new V3();
-  explore = () => { if (busy || mode !== "idle") return; busy = true; mode = "anim"; ov.classList.remove("hud"); ov.classList.add("explore");
-    const tn = Math.tan(cam.fov * Math.PI / 360), {PW, PH} = cert.userData, dist = Math.max((PH / .78 / 2) / tn, (PW / .86 / 2) / (tn * cam.aspect));
-    crackU.k.value = 1; crackU.p.value = 0;
-    const tl = gsap.timeline({onComplete: () => { mode = "open"; busy = false; }});
-    tl.to(S, {free: 0, duration: .9, ease: "power2.inOut"}, 0).to(ice.rotation, {x: 0, y: 0, z: 0, duration: .9, ease: "power2.inOut"}, 0).to(ice.position, {x: 0, y: 0, duration: .9}, 0)
-      .to(S, {wire: 0, duration: .4}, 0).to(ptU.k, {value: 0, duration: .4}, 0)
-      .to(crackU.p, {value: 1.06, duration: .85, ease: "power2.out"}, .25)
-      .to(ice.position, {x: "+=0.03", duration: .05, yoyo: true, repeat: 7}, .7)
-      .add(() => { iceMesh.visible = false; fr1.visible = false; shards.visible = true; crackU.k.value = 0; }, 1.15)
-      .to(postU.fl, {value: .55, duration: .12, ease: "power2.out"}, 1.12).to(postU.fl, {value: 0, duration: .7, ease: "power2.out"}, 1.26);
-    shards.children.forEach(s => { const u = s.userData; tl.to(s.position, {x: u.p1.x, y: u.p1.y, z: u.p1.z, duration: 1.6 + rnd() * .7, ease: "power2.out"}, 1.15)
-      .to(s.rotation, {x: "+=" + (rnd() * 8 - 4), y: "+=" + (rnd() * 8 - 4), z: "+=" + (rnd() * 6 - 3), duration: 2, ease: "power1.out"}, 1.15)
-      .to(s.scale, {x: 0, y: 0, z: 0, duration: 1.4, ease: "power2.in"}, 1.5 + rnd() * .5); });
-    tl.to(cert.rotation, {x: 0, y: 0, z: 0, duration: 1.3, ease: "power3.inOut"}, 1.15).to(cert.scale, {z: .05, duration: 1.1}, 1.15)
-      .to(cert.position, {x: 0, y: 0, z: cam.position.z - dist, duration: 1.5, ease: "power3.inOut"}, 1.25)
-      .add(() => { ov.querySelector(".h1").textContent = "CERTIFICAT LIBÉRÉ"; ov.querySelector(".h2").textContent = "ÉCHAP · REFORMER LA GLACE"; }, 1.6); };
-  reform = () => { if (busy || mode !== "open") return; busy = true; mode = "anim";
-    const tl = gsap.timeline({onComplete: () => { mode = "idle"; busy = false; ov.classList.remove("explore"); showHud(); }});
-    tl.to(cert.position, {x: 0, y: CB.y, z: CB.z, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.rotation, {x: CR.x, y: CR.y, z: CR.z, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.scale, {z: 1, duration: 1}, .2);
-    shards.children.forEach(s => { const u = s.userData; tl.to(s.scale, {x: u.s0, y: u.s0, z: u.s0, duration: .8, ease: "power2.out"}, .2 + rnd() * .3)
-      .to(s.position, {x: u.p0.x, y: u.p0.y, z: u.p0.z, duration: 1.1, ease: "power3.inOut"}, .2).to(s.rotation, {x: u.r0.x, y: u.r0.y, z: u.r0.z, duration: 1.1, ease: "power3.inOut"}, .2); });
-    tl.add(() => { iceMesh.visible = true; fr1.visible = true; shards.visible = false; }, 1.35).fromTo(iceMesh.scale, {x: .96, y: .96, z: .96}, {x: 1, y: 1, z: 1, duration: .5, ease: "back.out(2)"}, 1.35)
-      .to(postU.fl, {value: .25, duration: .1}, 1.33).to(postU.fl, {value: 0, duration: .5}, 1.43)
-      .to(S, {free: 1, duration: .9, ease: "power2.inOut"}, 1.35).to(S, {wire: 1, duration: .8}, 1.6).to(ptU.k, {value: 1, duration: .6}, 1.6)
-      .add(() => { ov.querySelector(".h1").textContent = "SCROLL · CERTIFICAT SUIVANT"; ov.querySelector(".h2").textContent = "ÉCHAP · FERMER"; }, 1.4); };
+        setLabels(list[ci]); arrive(() => { busy = false; }); }); };
+  ice.position.set(0, 9, 0);
+  loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; });
   /* ---- boucle ---- */
   const clock = new THREE.Clock(); let t = 0;
   const loop = () => { if (!alive) return; raf = requestAnimationFrame(loop);
     const dt = Math.min(clock.getDelta(), .05); t += dt; mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3); mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3);
     bgU.t.value = t; bgU.mx.value.set(mouse.sx, -mouse.sy); ptU.t.value = t;
-    const f = S.free;
-    if (mode === "idle" || f > 0) { ice.position.y = Math.sin(t * .55) * .09 * f; ice.position.x = mouse.sx * .12 * f;
-      ice.rotation.x = (Math.sin(t * .19) * .04 + mouse.sy * .15) * f; ice.rotation.z = -.13 * f; ice.rotation.y = (Math.sin(t * .2) * .5 + t * .0 + mouse.sx * .4) * f + S.spin; }
+    if (!rot.drag) { rot.yaw += rot.v; rot.v *= Math.pow(.92, dt * 60); rot.idle += dt; rot.pitch *= 1 - Math.min(1, dt * .7); }
+    rot.yaw += dt * .22 * Math.min(1, Math.max(0, (rot.idle - 1.2) / 1.5));
+    S.kick *= Math.pow(.86, dt * 60);
+    ice.position.y = Math.sin(t * .55) * .09 + S.drop; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
+    ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
-    const pt = mode === "idle" && mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
+    const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
     if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
-    if (mode === "idle") cert.position.z = CB.z + .25 * prox;
+    cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
     if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1;
@@ -5305,7 +5320,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-09";
+const APP_VERSION = "2026-10-28-10";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
