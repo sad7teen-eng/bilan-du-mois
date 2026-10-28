@@ -2965,9 +2965,10 @@ async function openGlass(c0){
   /* ---- son d'ambiance (vent), coupé par défaut ---- */
   const audio = new Audio(); audio.src = audio.canPlayType('audio/ogg; codecs="opus"') ? "wind.ogg?v=1" : "wind.m4a?v=1"; audio.loop = true; audio.preload = "none"; audio.volume = 0;
   let vol = .5, sndOn = false, fadeI = 0; try { vol = +(localStorage.getItem("bdm-wind-vol") || .5); } catch (e) {} ov.querySelector(".ig-vol").value = vol;
+  const music = new Audio(); music.src = "music.mp3?v=1"; music.loop = true; music.preload = "none"; music.volume = 0; const MUS = .3; /* musique d'ambiance, mêlée au vent */
   const fadeTo = (v, done) => { clearInterval(fadeI); fadeI = setInterval(() => { const d = v - audio.volume; if (Math.abs(d) < .02) { audio.volume = Math.max(0, Math.min(1, v)); clearInterval(fadeI); done && done(); } else audio.volume = Math.max(0, Math.min(1, audio.volume + Math.sign(d) * .02)); }, 30); };
   const setSnd = on => { sndOn = on; ov.classList.toggle("snd-on", on); ov.querySelector(".ig-snd span").textContent = "Sound: " + (on ? "On" : "Off");
-    if (on) { audio.play().then(() => fadeTo(vol)).catch(() => { sndOn = false; ov.classList.remove("snd-on"); ov.querySelector(".ig-snd span").textContent = "Sound: Off"; }); } else fadeTo(0, () => audio.pause());
+    if (on) { music.play().catch(() => {}); audio.play().then(() => fadeTo(vol)).catch(() => { sndOn = false; ov.classList.remove("snd-on"); ov.querySelector(".ig-snd span").textContent = "Sound: Off"; }); } else fadeTo(0, () => { audio.pause(); music.pause(); });
     try { localStorage.setItem("bdm-wind", on ? "1" : "0"); } catch (e) {} };
   ov.querySelector(".ig-snd").addEventListener("click", e => { e.stopPropagation(); setSnd(!sndOn); });
   ov.querySelector(".ig-vol").addEventListener("input", e => { vol = +e.target.value; if (sndOn) { clearInterval(fadeI); audio.volume = vol; } try { localStorage.setItem("bdm-wind-vol", vol); } catch (er) {} });
@@ -2976,7 +2977,7 @@ async function openGlass(c0){
   ["shard", "beeps"].forEach(n => { const a = new Audio(); a.preload = "auto"; a.src = n + (canOgg ? ".ogg" : ".m4a") + "?v=1"; sfxBase[n] = a; });
   const sfxLive = {}; ov._sfxStop = n => { const c = sfxLive[n]; if (c) { try { c.pause(); } catch (e) {} sfxLive[n] = null; } };
   ov._sfx = n => { if (!sndOn || !sfxBase[n]) return; try { ov._sfxStop(n); const c = sfxBase[n].cloneNode(); sfxLive[n] = c; c.loop = false; c.volume = Math.min(1, vol * (n === "beeps" ? 1.3 : 1.2)); c.play().catch(() => {}); } catch (e) {} };
-  ov._stopSnd = () => { fadeTo(0, () => { audio.pause(); audio.src = ""; }); };
+  ov._stopSnd = () => { fadeTo(0, () => { audio.pause(); audio.src = ""; music.pause(); music.src = ""; }); };
   ice.position.set(0, 9, 0);
   loadEl.classList.add("done"); busy = true; arrive(() => { busy = false; prefetch(ci); });
   /* ---- boucle ---- */
@@ -2987,6 +2988,7 @@ async function openGlass(c0){
     if (!rot.drag) { rot.yaw += rot.v; rot.v *= Math.pow(.92, dt * 60); rot.idle += dt; rot.pitch *= 1 - Math.min(1, dt * .7); }
     rot.yaw += dt * .22 * Math.min(1, Math.max(0, (rot.idle - 1.2) / 1.5));
     ptU.asp.value = cam.aspect; if (mouse.in) ptU.ms.value.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); else ptU.ms.value.set(9, 9);
+    music.volume = Math.min(1, audio.volume * MUS);
     mist.position.set(ice.position.x, ice.position.y, ice.position.z); mist.children.forEach(m => { const u = m.userData; m.position.x = u.x0 + Math.sin(t * u.sp + u.ph) * .45; m.material.rotation = Math.sin(t * u.sp * .7 + u.ph) * .4; });
     mouse.v = (mouse.v || 0) * Math.pow(.9, dt * 60);
     S.kick *= Math.pow(.86, dt * 60); stepCarve(dt); wireU.uT.value = t; if (!busy) hoverTrail();
@@ -5490,7 +5492,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-40";
+const APP_VERSION = "2026-10-28-41";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
