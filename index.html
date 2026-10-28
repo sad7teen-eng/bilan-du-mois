@@ -2567,6 +2567,12 @@ async function openGlass(c0){
     panel(14, 5, 0, 11, 0, Math.PI / 2, 0, 3.2); panel(2.2, 16, -11, 1, 2, 0, Math.PI / 2, 4.5); panel(1.4, 16, 11, 0, -3, 0, -Math.PI / 2, 3);
     panel(10, 2, 0, -4, 11, 0, 0, 1.6); panel(1, 12, 5, 2, 11, 0, 0, 2.4); panel(8, 8, 0, 0, -11.5, 0, 0, .9);
     const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(es, .015).texture; scene.environmentIntensity = 1; }
+  /* éclairage photo de studio (studio.hdr) si présent : remplace le studio dessiné */
+  (async () => { try { let src = window.__igHdr;
+      if (!src) { const {RGBELoader} = await import("three/addons/loaders/RGBELoader.js"); const tx = await new RGBELoader().loadAsync("studio.hdr?v=1"); src = window.__igHdr = {data: tx.image.data, w: tx.image.width, h: tx.image.height, half: tx.type !== 1015}; }
+      if (!alive) return; const dt = new THREE.DataTexture(src.data, src.w, src.h, THREE.RGBAFormat, src.half ? THREE.HalfFloatType : THREE.FloatType);
+      dt.mapping = THREE.EquirectangularReflectionMapping; dt.colorSpace = THREE.LinearSRGBColorSpace; dt.minFilter = dt.magFilter = THREE.LinearFilter; dt.needsUpdate = true;
+      const pm2 = new THREE.PMREMGenerator(renderer); scene.environment = pm2.fromEquirectangular(dt).texture; scene.environmentIntensity = .9; dt.dispose(); } catch (e) {} })();
   scene.add(new THREE.AmbientLight(0xdfe4ec, .5));
   const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(-4, 7, 6); scene.add(key);
   const rim = new THREE.DirectionalLight(0xcfd8e6, 1.1); rim.position.set(5, -2, -5); scene.add(rim);
@@ -2600,14 +2606,20 @@ async function openGlass(c0){
   /* ---- textures de surface : fines stries verticales régulières (glace taillée), rayures givrées, base rocailleuse scintillante ---- */
   setP(34, "TEXTURES DE GLACE"); await tick();
   const streak = (() => { const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 16; return t; };
-    if (window.__igSC) { const [a, b, c] = window.__igSC, col = T(c); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(a), rough: T(b), col}; }
+    if (window.__igSC2) { const [a, b, c] = window.__igSC2, col = T(c); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(a), rough: T(b), col}; }
     const N = mobile || low ? 512 : 768, H = new Float32Array(N * N), SC = new Float32Array(N * N), BS = new Float32Array(N * N);
     const g1 = (u, f, s, v) => n3(u * f, v, s);
+    /* relief martelé : petites cuvettes irrégulières (cellules de Voronoï) */
+    const CX = 26, CY = 22, jit = (a, b) => [hs(a, b, 1.7), hs(a, b, 5.3)];
+    const dimple = (u, v) => { const gx = u * CX, gy = v * CY, ix = Math.floor(gx), iy = Math.floor(gy); let d1 = 9;
+      for (let oy = -1; oy <= 1; oy++) for (let ox = -1; ox <= 1; ox++) { const cx = ix + ox, cy = iy + oy, [jx, jy] = jit(((cx % CX) + CX) % CX, cy), dx = cx + jx - gx, dy = (cy + jy - gy) * 1.25, d = dx * dx + dy * dy; if (d < d1) d1 = d; }
+      return Math.min(1, Math.sqrt(d1) * 1.15); };
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, i = y * N + x;
       const base = Math.max(0, Math.min(1, (.27 - v) / .14), Math.min(1, (v - .8) / .1)), m = .55 + .45 * Math.min(1, Math.max(0, (fb(u * 3, v * 1.4, 8.3, 3) - .35) * 3));
       const gro = g1(u, 48, 1.1, v * .6) * .5 + g1(u, 120, 2.7, v * 1.2) * .32 + g1(u, 260, 5.3, v * 2) * .18;
       const bump = fb(u * 46, v * 46, 3.9, 4);
-      H[i] = gro * m * (1 - base * .85) + bump * base * .9; BS[i] = base;
+      const dm = dimple(u, v), dm2 = dimple(u * 2.3 + .37, v * 2.1 + .11);
+      H[i] = (gro * m * .5 + (dm * dm * .55 + dm2 * dm2 * .25) * (.6 + .4 * m)) * (1 - base * .85) + bump * base * .9; BS[i] = base;
       SC[i] = Math.max(0, g1(u, 300, 9.9, v * 1.2) - .72) * 3.6 * (.4 + .6 * fb(u * 7, v * 3, 4.1, 2)) * (1 - base); }
     const mk = () => { const k = document.createElement("canvas"); k.width = k.height = N; return k; };
     const cN = mk(), cR = mk(), cC = mk(), dN = cN.getContext("2d").createImageData(N, N), dR = cR.getContext("2d").createImageData(N, N), dC = cC.getContext("2d").createImageData(N, N);
@@ -2617,7 +2629,7 @@ async function openGlass(c0){
       const r = Math.min(.7, .03 + SC[i] * .32 + b * (H[i] > .55 ? .04 : .22)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255;
       const tn = fb(x / N * 3, y / N * 2, 4.4, 3), c = .9 + tn * .08 + SC[i] * .04; dC.data[k] = c * 255; dC.data[k + 1] = (c + .005) * 255; dC.data[k + 2] = Math.min(1, c + .015) * 255; dC.data[k + 3] = 255; }
     cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0); cC.getContext("2d").putImageData(dC, 0, 0);
-    window.__igSC = [cN, cR, cC];
+    window.__igSC2 = [cN, cR, cC];
     const col = T(cC); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(cN), rough: T(cR), col}; })();
   /* ---- le glaçon (taille fixe, le certificat s'y adapte) ---- */
   /* ---- modèle 3D du glaçon (ice.glb) : seule la forme est reprise, la matière glace est appliquée ici ---- */
@@ -2671,18 +2683,22 @@ async function openGlass(c0){
   const PC = iceGeo.attributes.position, carve = new Float32Array(PC.count), cDelay = new Float32Array(PC.count), carveA = new THREE.BufferAttribute(carve, 1);
   carveA.setUsage(THREE.DynamicDrawUsage); iceGeo.setAttribute("carve", carveA); if (!low) iceM.side = THREE.DoubleSide;
   const carved = new Set(); let lastDig = -9, rebuilding = false, rebT = 0;
+  const densU = {certC: {value: new V3(0, 0, 0)}, certS: {value: new THREE.Vector2(1, 1)}};
   iceM.onBeforeCompile = sh => {
     sh.vertexShader = "attribute float carve; varying float vCarve; varying vec3 vLoc;\n" + sh.vertexShader
       .replace("#include <begin_vertex>", "#include <begin_vertex>\n  vCarve = carve; vLoc = position; transformed -= objectNormal * min(carve, .75) * .32;");
-    sh.fragmentShader = "varying float vCarve; varying vec3 vLoc;\n" + sh.fragmentShader
+    Object.assign(sh.uniforms, densU);
+    sh.fragmentShader = "varying float vCarve; varying vec3 vLoc; uniform vec3 certC; uniform vec2 certS;\nfloat dHn(vec3 p){ return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }\nfloat dVn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(mix(dHn(i), dHn(i + vec3(1, 0, 0)), f.x), mix(dHn(i + vec3(0, 1, 0)), dHn(i + vec3(1, 1, 0)), f.x), f.y), mix(mix(dHn(i + vec3(0, 0, 1)), dHn(i + vec3(1, 0, 1)), f.x), mix(dHn(i + vec3(0, 1, 1)), dHn(i + vec3(1, 1, 1)), f.x), f.y), f.z); }\n" + sh.fragmentShader
       .replace("void main() {", `void main() {
   float cN = fract(sin(dot(floor(vLoc * 13.), vec3(12.9898, 78.233, 37.719))) * 43758.5453), cThr = .76 + cN * .16;
   if (vCarve > cThr) discard;
-  float vHoleF = smoothstep(.12, .55, vCarve), vRim = smoothstep(cThr - .22, cThr, vCarve);`)
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(roughnessFactor, .02, vHoleF), .38, vRim);")
-      .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, vHoleF * (1. - vRim)));")
-      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5.);"))
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
+  float vHoleF = smoothstep(.12, .55, vCarve), vRim = smoothstep(cThr - .22, cThr, vCarve);
+  float dCl = dVn(vLoc * 1.5) * .6 + dVn(vLoc * 4.2) * .4; vec2 cq = (vLoc.xy - certC.xy) / certS;
+  float vClear = max(1. - smoothstep(.8, 1.45, length(cq) + (dCl - .5) * .7), vHoleF), vMilk = (1. - vClear) * (.45 + .55 * dCl);`)
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim);")
+      .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
+      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.2) * (1. - vMilk * .55);"))
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.84, .86, .9), vMilk * .28); gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
   const dig = (hl, dl) => { const r = .8;
     for (let i = 0; i < PC.count; i++) { vT.fromBufferAttribute(PC, i).sub(hl); const tt = vT.dot(dl); if (tt < -r * .6) continue; const d2 = vT.lengthSq() - tt * tt; if (d2 > r * r) continue;
       const f = Math.pow(1 - Math.sqrt(Math.max(0, d2)) / r, 1.2) * (tt > D * .5 ? .8 : 1); if (f <= 0) continue; carve[i] = Math.min(1, carve[i] + .48 * f); carved.add(i); }
@@ -2713,6 +2729,7 @@ async function openGlass(c0){
   setP(84, "CERTIFICAT"); await tick();
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
   let cert = certMesh(img0); const CB = {y: H * .03, z: .15}, CR = {x: .12, y: -.38, z: .42};
+  const setDens = () => { const {PW, PH} = cert.userData, c = Math.cos(CR.z), s = Math.sin(CR.z); densU.certC.value.set(0, CB.y, 0); densU.certS.value.set((PW * c + PH * s) / 2 * .95, (PW * s + PH * c) / 2 * .95); }; setDens();
   cert.rotation.set(CR.x, CR.y, CR.z); cert.position.set(0, CB.y, CB.z);
   /* nuage sombre derrière le certificat (profondeur) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
@@ -2895,7 +2912,7 @@ async function openGlass(c0){
     busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
     ov.classList.remove("hud"); hudGen++;
     gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
-      .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); cert.rotation.copy(old.rotation); cert.position.copy(old.position); inner.remove(old); inner.add(cert);
+      .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); setDens(); cert.rotation.copy(old.rotation); cert.position.copy(old.position); inner.remove(old); inner.add(cert);
           old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
         setLabels(list[ci]); arrive(() => { busy = false; }); }); };
   ice.position.set(0, 9, 0);
@@ -5409,7 +5426,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-20";
+const APP_VERSION = "2026-10-28-21";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
