@@ -2703,8 +2703,8 @@ async function openGlass(c0){
   float vClear = max(1. - smoothstep(.8, 1.45, length(cq) + (dCl - .5) * .7), vHoleF), vMilk = (1. - vClear) * (.45 + .55 * dCl);`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
-      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.2) * (1. - vMilk * .55);"))
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.7, .77, .85), vMilk * .42); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
+      .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .7);"))
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.4, .46, .54), vMilk * .5) * (1. - (1. - vClear) * .18); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
   const dig = (hl, dl) => { const r = .8;
     for (let i = 0; i < PC.count; i++) { vT.fromBufferAttribute(PC, i).sub(hl); const tt = vT.dot(dl); if (tt < -r * .6) continue; const d2 = vT.lengthSq() - tt * tt; if (d2 > r * r) continue;
       const f = Math.pow(1 - Math.sqrt(Math.max(0, d2)) / r, 1.2) * (tt > D * .5 ? .8 : 1); if (f <= 0) continue; carve[i] = Math.min(1, carve[i] + .48 * f); carved.add(i); }
@@ -5432,7 +5432,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-23";
+const APP_VERSION = "2026-10-28-24";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
