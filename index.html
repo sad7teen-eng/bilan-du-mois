@@ -2555,7 +2555,7 @@ async function openGlass(c){
   const fb = (x, y, z, o = 4) => { let f = 0, a = .5; for (let i = 0; i < o; i++) { f += a * n3(x, y, z); x *= 2.03; y *= 2.03; z *= 2.03; a *= .5; } return f; };
   /* ---- certificat + givre peint sur les bords ---- */
   const tex0 = await new THREE.TextureLoader().loadAsync(im).catch(() => null); if (!alive) return; if (!tex0) { close(); return; }
-  const ar = tex0.image.width / tex0.image.height, PW = ar >= 1 ? 2.35 : 2.7 * ar, PH = PW / ar;
+  const ar = tex0.image.width / tex0.image.height, PW = ar >= 1 ? 2.15 : 2.4 * ar, PH = PW / ar;
   const ctex = (() => { const cw = 1600, ch = Math.round(cw / ar), k = document.createElement("canvas"); k.width = cw; k.height = ch; const g = k.getContext("2d");
     g.drawImage(tex0.image, 0, 0, cw, ch); g.fillStyle = "rgba(190,206,224,.14)"; g.fillRect(0, 0, cw, ch);
     const m = Math.min(cw, ch);
@@ -2563,44 +2563,51 @@ async function openGlass(c){
     for (let i = 0; i < 1400; i++) { const x = rnd() * cw, y = rnd() * ch, e = Math.min(x, cw - x, y, ch - y) / (m * .5); if (rnd() > Math.pow(1 - e, 4) + .015) continue;
       g.fillStyle = `rgba(245,248,252,${.05 + rnd() * .22})`; g.beginPath(); g.ellipse(x, y, 1 + rnd() * 5, 4 + rnd() * 26, (rnd() - .5) * .4, 0, 7); g.fill(); }
     const t = new THREE.CanvasTexture(k); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return t; })();
-  /* ---- textures de surface : stries verticales de glace (relief + rugosité) ---- */
-  const streak = (() => { const N = mobile || low ? 256 : 512, H = new Float32Array(N * N);
-    const lines = Array.from({length: 46}, () => [rnd(), .2 + rnd() * .8, rnd(), .002 + rnd() * .006]);
+  /* ---- textures de surface : zones striées denses, zones lisses, nuances bleutées ---- */
+  const streak = (() => { const N = mobile || low ? 256 : 512, H = new Float32Array(N * N), M = new Float32Array(N * N);
+    const lines = Array.from({length: 38}, () => [rnd(), .15 + rnd() * .7, rnd(), .0015 + rnd() * .004]);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N;
-      let s = fb(u * 70, v * 2.2, 3.1, 3) * .7 + fb(u * 210, v * 6, 7.7, 2) * .35 + fb(u * 9, v * 9, 1.3, 3) * .35;
-      for (const [lx, len, ly, w] of lines) { const dx = Math.abs(u - lx); if (dx < w && Math.abs(v - ly) < len * .5) s += (1 - dx / w) * .35; }
+      const m = Math.min(1, Math.max(0, (fb(u * 3, v * 2.2, 8.3, 3) - .38) * 3.2)); M[y * N + x] = m;
+      let s = (fb(u * 80, v * 1.8, 3.1, 3) * .7 + fb(u * 240, v * 5, 7.7, 2) * .3) * (.12 + m * .88) + fb(u * 6, v * 6, 1.3, 3) * .25;
+      for (const [lx, len, ly, w] of lines) { const dx = Math.abs(u - lx); if (dx < w && Math.abs(v - ly) < len * .5) s += (1 - dx / w) * .25 * (.3 + m); }
       H[y * N + x] = s; }
     const mk = () => { const k = document.createElement("canvas"); k.width = k.height = N; return k; };
-    const cN = mk(), cR = mk(), dN = cN.getContext("2d").createImageData(N, N), dR = cR.getContext("2d").createImageData(N, N);
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, k = i * 4;
+    const cN = mk(), cR = mk(), cC = mk(), dN = cN.getContext("2d").createImageData(N, N), dR = cR.getContext("2d").createImageData(N, N), dC = cC.getContext("2d").createImageData(N, N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, k = i * 4, m = M[i];
       const hx = H[y * N + (x + 1) % N] - H[y * N + (x - 1 + N) % N], hy = H[((y + 1) % N) * N + x] - H[((y - 1 + N) % N) * N + x];
-      const nx = -hx * 6, ny = -hy * 6, l = Math.hypot(nx, ny, 1); dN.data[k] = (nx / l * .5 + .5) * 255; dN.data[k + 1] = (ny / l * .5 + .5) * 255; dN.data[k + 2] = (1 / l * .5 + .5) * 255; dN.data[k + 3] = 255;
-      const r = Math.min(1, Math.max(0, (H[i] - .55) * 1.6)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = (.05 + r * r * .6) * 255; dR.data[k + 3] = 255; }
-    cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0);
+      const nx = -hx * 5, ny = -hy * 5, l = Math.hypot(nx, ny, 1); dN.data[k] = (nx / l * .5 + .5) * 255; dN.data[k + 1] = (ny / l * .5 + .5) * 255; dN.data[k + 2] = (1 / l * .5 + .5) * 255; dN.data[k + 3] = 255;
+      const r = .03 + m * Math.min(1, Math.max(0, (H[i] - .35) * 1.4)) * .42; dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255;
+      const tn = fb(x / N * 2.5, y / N * 2.5, 4.4, 3); dC.data[k] = (.86 + tn * .14 + m * .02) * 255; dC.data[k + 1] = (.9 + tn * .1) * 255; dC.data[k + 2] = 255; dC.data[k + 3] = 255; }
+    cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0); cC.getContext("2d").putImageData(dC, 0, 0);
     const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
-    return {normal: T(cN), rough: T(cR)}; })();
-  /* ---- le glaçon : bloc arrondi, bords cassés en haut et en bas, stries verticales ---- */
-  const W = PW + 1.05, H = PH + 1.75, D = 1.55;
-  const iceGeo = (() => { let g = new THREE.BoxGeometry(W, H, D, low || mobile ? 34 : 54, low || mobile ? 46 : 76, low || mobile ? 14 : 22);
+    const col = T(cC); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(cN), rough: T(cR), col}; })();
+  /* ---- le glaçon : bloc debout (format vertical), faces taillées planes, sommet cassé plus haut à droite ---- */
+  const W = PW + .75, H = W * 1.72, D = 1.45;
+  const iceGeo = (() => { let g = new THREE.BoxGeometry(W, H, D, low || mobile ? 30 : 48, low || mobile ? 52 : 90, low || mobile ? 14 : 22);
     g.deleteAttribute("normal"); g.deleteAttribute("uv"); g = mergeVertices(g);
-    const P = g.attributes.position, v = new V3(), q = new V3(), n = new V3(), R = .34, iw = W / 2 - R, ih = H / 2 - R, id = D / 2 - R, uv = new Float32Array(P.count * 2);
+    const P = g.attributes.position, v = new V3(), q = new V3(), n = new V3(), R = .1, iw = W / 2 - R, ih = H / 2 - R, id = D / 2 - R, uv = new Float32Array(P.count * 2);
     const cl = (x, a) => Math.max(-a, Math.min(a, x)), ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    /* plans de coupe : donnent des faces nettes comme un vrai bloc taillé/cassé */
+    const cuts = []; for (let k = 0; k < 11; k++) { const a = k / 11 * Math.PI * 2 + rnd() * .4, tilt = (rnd() - .5) * .35, nn = new V3(Math.cos(a), tilt, Math.sin(a) * 1.15).normalize();
+      const ext = Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2; cuts.push([nn, ext * (.86 + rnd() * .1)]); }
     for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); q.set(cl(v.x, iw), cl(v.y, ih), cl(v.z, id)); n.subVectors(v, q); if (n.lengthSq() < 1e-9) n.set(0, 0, 1); n.normalize(); v.copy(q).addScaledVector(n, R);
-      const yy = v.y / (H / 2); v.x *= 1 + .07 * Math.sin(yy * 2.2 + 1.1) - .04 * yy; v.z *= 1 + .06 * Math.cos(yy * 1.8 + .4);
-      let dsp = (fb(v.x * .8 + 3, v.y * .8, v.z * .8) - .47) * .38 + (n3(v.x * 6.5 + v.z * 5.1, v.y * .3, 1.7) - .5) * .05 + (n3(v.x * 17 + v.z * 13, v.y * .5, 4.2) - .5) * .012;
-      v.addScaledVector(n, dsp);
-      const top = ss(H / 2 - .75, H / 2 + .1, v.y), bot = ss(H / 2 - .6, H / 2 + .1, -v.y);
-      if (top > 0) { const j = fb(v.x * 1.5 + 11, v.z * 1.5, 2.2, 4), chip = Math.pow(n3(v.x * 4.2, v.z * 4.2, 9.1), 3); v.y -= top * (Math.max(0, j - .3) * 1.5 + chip * .35); }
-      if (bot > 0) { const j = fb(v.x * 1.7 + 5, v.z * 1.7, 6.6, 4); v.y += bot * Math.max(0, j - .35) * 1.0; }
-      P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (Math.atan2(v.x, v.z) / (Math.PI * 2) + .5) * 2.2; uv[i * 2 + 1] = v.y / H * 1.1 + .5; }
+      const y0 = v.y;
+      for (const [nn, d] of cuts) { const h = v.dot(nn); if (h > d) v.addScaledVector(nn, -(h - d)); }
+      const yy = y0 / (H / 2); v.x *= 1 - .05 * yy + .03 * Math.sin(yy * 2.4); v.z *= 1 + .04 * Math.cos(yy * 1.9);
+      v.addScaledVector(n, (fb(v.x * .7 + 3, v.y * .5, v.z * .7) - .47) * .09 + (n3(v.x * 6 + v.z * 5, v.y * .25, 1.7) - .5) * .02);
+      const top = ss(H / 2 - .55, H / 2 + .05, y0), bot = ss(H / 2 - .45, H / 2 + .05, -y0), xr = v.x / (W / 2);
+      if (top > 0) { const crown = .28 * xr + .55 * Math.exp(-Math.pow((xr - .45) / .38, 2)) - .1, j = fb(v.x * 2.2 + 11, v.z * 2.2, 2.2, 3), chip = Math.pow(n3(v.x * 5, v.z * 5, 9.1), 4);
+        v.y += top * (crown - Math.max(0, j - .38) * .9 - chip * .25); }
+      if (bot > 0) { const j = fb(v.x * 1.8 + 5, v.z * 1.8, 6.6, 3); v.y += bot * (Math.max(0, j - .4) * .7 - .08 * xr); }
+      P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (Math.atan2(v.x, v.z) / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = v.y / H * 1.3 + .5; }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
-  const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xdfe8f0, roughness: .12, metalness: 0, transparent: true, opacity: .42, normalMap: streak.normal, normalScale: new THREE.Vector2(.7, .7), clearcoat: 1, envMapIntensity: 1.6, depthWrite: false}
-    : {color: 0xe9f0f6, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: 1.05, ior: 1.31, normalMap: streak.normal, normalScale: new THREE.Vector2(.32, .32),
-       clearcoat: .7, clearcoatRoughness: .2, iridescence: .45, iridescenceIOR: 1.25, iridescenceThicknessRange: [180, 520], specularIntensity: 1, envMapIntensity: 1.25,
-       attenuationColor: new THREE.Color(0xc4d2df), attenuationDistance: 3.4});
+  const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xe2eaf2, map: streak.col, roughness: .1, metalness: 0, transparent: true, opacity: .38, normalMap: streak.normal, normalScale: new THREE.Vector2(.5, .5), clearcoat: 1, envMapIntensity: 1.6, depthWrite: false}
+    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: 1.15, ior: 1.31, normalMap: streak.normal, normalScale: new THREE.Vector2(.62, .62),
+       clearcoat: .5, clearcoatRoughness: .15, iridescence: .35, iridescenceIOR: 1.25, iridescenceThicknessRange: [180, 520], specularIntensity: 1, envMapIntensity: 1.5,
+       attenuationColor: new THREE.Color(0xa9b9ca), attenuationDistance: 2.8});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
-  const cert = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({map: ctex, side: THREE.DoubleSide, toneMapped: false, color: new THREE.Color(.9, .92, .95)}));
-  cert.rotation.set(.04, -.06, .02);
+  const cert = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({map: ctex, side: THREE.DoubleSide, toneMapped: false, color: new THREE.Color(1, 1, 1)}));
+  cert.rotation.set(.03, -.08, .05); cert.position.y = H * .04;
   /* nuages de givre à l'intérieur (découpes opaques, flouttées par la réfraction) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, e = Math.min(u, 1 - u, v, 1 - v) * 2; const f = fb(u * 5, v * 2.2, 5.5, 4) + fb(u * 40, v * 3, 2.2, 2) * .25 - e * .35;
@@ -2659,8 +2666,8 @@ async function openGlass(c){
     const dt = Math.min(clock.getDelta(), .05); t += dt; mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3); mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3);
     bgU.t.value = t; bgU.mx.value.set(mouse.sx, -mouse.sy); ptU.t.value = t;
     inner.position.y = 0; ice.position.y = Math.sin(t * .55) * .09; ice.position.x = mouse.sx * .12;
-    ice.rotation.x = Math.sin(t * .23) * .05 + mouse.sy * .22; ice.rotation.z = -.1 + Math.sin(t * .17) * .03;
-    if (tl.progress() >= 1) ice.rotation.y = Math.sin(t * .16) * .32 + mouse.sx * .55;
+    ice.rotation.x = Math.sin(t * .19) * .04 + mouse.sy * .15; ice.rotation.z = -.13;
+    if (tl.progress() >= 1) ice.rotation.y = Math.sin(t * .2) * .5 + mouse.sx * .4;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.render(scene, cam);
     const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1;
@@ -5156,7 +5163,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-03";
+const APP_VERSION = "2026-10-28-04";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
