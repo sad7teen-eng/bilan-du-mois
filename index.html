@@ -2535,7 +2535,7 @@ async function openGlass(c0){
   scene.fog = new THREE.Fog(0x9aa0aa, 13, 34);
   /* studio de reflets : pièce grise + boîtes à lumière */
   { const es = new THREE.Scene(), B = (c, k) => new THREE.MeshBasicMaterial({color: new THREE.Color(c).multiplyScalar(k), side: THREE.DoubleSide, toneMapped: false});
-    es.add(new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), B(0x5d6470, 1)));
+    es.add(new THREE.Mesh(new THREE.BoxGeometry(24, 24, 24), B(0x63666b, 1)));
     const panel = (w, h, x, y, z, rx, ry, k) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), B(0xffffff, k)); m.position.set(x, y, z); m.rotation.set(rx, ry, 0); es.add(m); };
     panel(14, 5, 0, 11, 0, Math.PI / 2, 0, 3.2); panel(2.2, 16, -11, 1, 2, 0, Math.PI / 2, 4.5); panel(1.4, 16, 11, 0, -3, 0, -Math.PI / 2, 3);
     panel(10, 2, 0, -4, 11, 0, 0, 1.6); panel(1, 12, 5, 2, 11, 0, 0, 2.4); panel(8, 8, 0, 0, -11.5, 0, 0, .9);
@@ -2570,20 +2570,24 @@ async function openGlass(c0){
   const n3 = (x, y, z) => { const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), xf = x - xi, yf = y - yi, zf = z - zi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf), L = (a, b, k) => a + (b - a) * k;
     return L(L(L(hs(xi, yi, zi), hs(xi + 1, yi, zi), u), L(hs(xi, yi + 1, zi), hs(xi + 1, yi + 1, zi), u), v), L(L(hs(xi, yi, zi + 1), hs(xi + 1, yi, zi + 1), u), L(hs(xi, yi + 1, zi + 1), hs(xi + 1, yi + 1, zi + 1), u), v), w); };
   const fb = (x, y, z, o = 4) => { let f = 0, a = .5; for (let i = 0; i < o; i++) { f += a * n3(x, y, z); x *= 2.03; y *= 2.03; z *= 2.03; a *= .5; } return f; };
-  /* ---- textures de surface : stries verticales (plus ou moins serrées), base givrée ---- */
-  const streak = (() => { const N = mobile || low ? 512 : 1024, H = new Float32Array(N * N), M = new Float32Array(N * N);
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N;
-      const m = .35 + .65 * Math.min(1, Math.max(0, (fb(u * 4, v * 1.6, 8.3, 3) - .32) * 2.6)); M[y * N + x] = m;
-      H[y * N + x] = (fb(u * 64, v * 1.2, 3.1, 3) * .6 + fb(u * 180, v * 3, 7.7, 2) * .3 + fb(u * 420, v * 6, 2.9, 2) * .15) * m + fb(u * 5, v * 5, 1.3, 3) * .18; }
+  /* ---- textures de surface : fines stries verticales régulières (glace taillée), rayures givrées, base rocailleuse scintillante ---- */
+  const streak = (() => { const N = mobile || low ? 512 : 1024, H = new Float32Array(N * N), SC = new Float32Array(N * N), BS = new Float32Array(N * N);
+    const g1 = (u, f, s, v) => n3(u * f, v, s);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, i = y * N + x;
+      const base = Math.max(0, Math.min(1, (.27 - v) / .14)), m = .55 + .45 * Math.min(1, Math.max(0, (fb(u * 3, v * 1.4, 8.3, 3) - .35) * 3));
+      const gro = g1(u, 48, 1.1, v * .6) * .5 + g1(u, 120, 2.7, v * 1.2) * .32 + g1(u, 260, 5.3, v * 2) * .18;
+      const bump = fb(u * 46, v * 46, 3.9, 4);
+      H[i] = gro * m * (1 - base * .85) + bump * base * .9; BS[i] = base;
+      SC[i] = Math.max(0, g1(u, 300, 9.9, v * 1.2) - .72) * 3.6 * (.4 + .6 * fb(u * 7, v * 3, 4.1, 2)) * (1 - base); }
     const mk = () => { const k = document.createElement("canvas"); k.width = k.height = N; return k; };
     const cN = mk(), cR = mk(), cC = mk(), dN = cN.getContext("2d").createImageData(N, N), dR = cR.getContext("2d").createImageData(N, N), dC = cC.getContext("2d").createImageData(N, N);
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, k = i * 4, m = M[i], v = y / N, base = Math.max(0, Math.min(1, (.3 - v) / .2));
-      const hx = H[y * N + (x + 1) % N] - H[y * N + (x - 1 + N) % N], hy = H[((y + 1) % N) * N + x] - H[((y - 1 + N) % N) * N + x];
-      const nx = -hx * N / 70, ny = -hy * N / 160, l = Math.hypot(nx, ny, 1); dN.data[k] = (nx / l * .5 + .5) * 255; dN.data[k + 1] = (ny / l * .5 + .5) * 255; dN.data[k + 2] = (1 / l * .5 + .5) * 255; dN.data[k + 3] = 255;
-      const sh = Math.max(0, H[i] - .42) * 2.2, r = Math.min(.85, .035 + sh * sh * .25 * m + base * (.25 + fb(x / N * 30, v * 30, 3.3, 2) * .35)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255;
-      const tn = fb(x / N * 3, v * 2, 4.4, 3); dC.data[k] = (.86 + tn * .12 + base * .06) * 255; dC.data[k + 1] = (.89 + tn * .1 + base * .05) * 255; dC.data[k + 2] = (.95 + tn * .05) * 255; dC.data[k + 3] = 255; }
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, k = i * 4, b = BS[i];
+      const hx = H[y * N + (x + 1) % N] - H[y * N + (x - 1 + N) % N], hy = H[Math.min(N - 1, y + 1) * N + x] - H[Math.max(0, y - 1) * N + x];
+      const nx = -hx * N / 55, ny = -hy * N / 55 * (.15 + b * .85), l = Math.hypot(nx, ny, 1); dN.data[k] = (nx / l * .5 + .5) * 255; dN.data[k + 1] = (ny / l * .5 + .5) * 255; dN.data[k + 2] = (1 / l * .5 + .5) * 255; dN.data[k + 3] = 255;
+      const r = Math.min(.7, .03 + SC[i] * .32 + b * (H[i] > .55 ? .04 : .22)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255;
+      const tn = fb(x / N * 3, y / N * 2, 4.4, 3), c = .9 + tn * .08 + SC[i] * .04; dC.data[k] = c * 255; dC.data[k + 1] = (c + .005) * 255; dC.data[k + 2] = Math.min(1, c + .015) * 255; dC.data[k + 3] = 255; }
     cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0); cC.getContext("2d").putImageData(dC, 0, 0);
-    const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; return t; };
+    const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 16; return t; };
     const col = T(cC); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(cN), rough: T(cR), col}; })();
   /* ---- le glaçon (taille fixe, le certificat s'y adapte) ---- */
   const W = 2.95, H = 4.78, D = 1.6;
@@ -2591,16 +2595,17 @@ async function openGlass(c0){
     g.deleteAttribute("normal"); g.deleteAttribute("uv"); g = mergeVertices(g);
     const P = g.attributes.position, v = new V3(), q = new V3(), n = new V3(), R = .07, iw = W / 2 - R, ih = H / 2 - R, id = D / 2 - R, uv = new Float32Array(P.count * 2);
     const cl = (x, a) => Math.max(-a, Math.min(a, x)), ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-    const cuts = []; for (let k = 0; k < 9; k++) { const a = k / 9 * Math.PI * 2 + .3 + rnd() * .35, tilt = (rnd() - .5) * .22, nn = new V3(Math.cos(a), tilt, Math.sin(a) * 1.2).normalize();
-      const ext = Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2; cuts.push([nn, ext * (.8 + rnd() * .12)]); }
+    const cuts = []; for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 + .3 + rnd() * .35, tilt = (rnd() - .5) * .16, nn = new V3(Math.cos(a), tilt, Math.sin(a) * 1.2).normalize();
+      const ext = Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2; cuts.push([nn, ext * (.8 + rnd() * .1)]); }
+    { const nn = new V3(-1, .04, 1.25).normalize(); cuts.push([nn, (Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2) * .74]); }
     for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); q.set(cl(v.x, iw), cl(v.y, ih), cl(v.z, id)); n.subVectors(v, q); if (n.lengthSq() < 1e-9) n.set(0, 0, 1); n.normalize(); v.copy(q).addScaledVector(n, R);
       const y0 = v.y, yy = y0 / (H / 2);
       for (const [nn, d] of cuts) { const h = v.dot(nn); if (h > d) v.addScaledVector(nn, -(h - d)); }
       v.x *= 1 - .04 * yy; v.z *= 1 + .05 * Math.cos(yy * 1.7);
       const s = v.x + v.z * .93, ang = Math.atan2(v.x, v.z);
-      let dsp = (n3(s * 7, y0 * .22, 1.1) - .5) * .045 + (n3(s * 19, y0 * .45, 2.3) - .5) * .022 + (n3(s * 46, y0 * .9, 3.7) - .5) * .009 + (fb(v.x * .6, y0 * .4, v.z * .6, 2) - .4) * .08;
+      let dsp = (n3(s * 7, y0 * .15, 1.1) - .5) * .028 + (n3(s * 19, y0 * .3, 2.3) - .5) * .01 + (fb(v.x * .6, y0 * .4, v.z * .6, 2) - .4) * .07;
       const bm = ss(-H / 2 + H * .3, -H / 2 + .05, y0);
-      if (bm > 0) { const r1 = 1 - Math.abs(fb(v.x * 2.6, y0 * 2.6, v.z * 2.6 + 4, 4) * 2 - 1), r2 = fb(v.x * 8, y0 * 8, v.z * 8, 3); dsp = dsp * (1 - bm) + bm * ((r1 - .55) * .32 + (r2 - .5) * .12 + .06); }
+      if (bm > 0) { const r1 = 1 - Math.abs(fb(v.x * 2.6, y0 * 2.6, v.z * 2.6 + 4, 4) * 2 - 1), r2 = fb(v.x * 9, y0 * 9, v.z * 9, 3), r3 = n3(v.x * 22, y0 * 22, v.z * 22); dsp = dsp * (1 - bm) + bm * ((r1 - .55) * .34 + (r2 - .5) * .16 + (r3 - .5) * .04 + .08); }
       v.addScaledVector(n, dsp);
       const top = ss(H / 2 - .6, H / 2 + .03, y0), bot = ss(H / 2 - .5, H / 2 + .03, -y0), xr = v.x / (W / 2);
       if (top > 0) { const crown = .22 * xr + .5 * Math.exp(-Math.pow((xr - .5) / .32, 2)) + .12 * Math.exp(-Math.pow((xr + .45) / .2, 2)) - .12,
@@ -2610,36 +2615,36 @@ async function openGlass(c0){
       P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (ang / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, y0 / H + .5)); }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
   const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xdfe7ef, map: streak.col, roughness: .08, metalness: 0, transparent: true, opacity: .4, normalMap: streak.normal, normalScale: new THREE.Vector2(.8, .8), clearcoat: 1, envMapIntensity: 1.4, depthWrite: false}
-    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: 2.1, ior: 1.31, dispersion: mobile ? 0 : 4.5,
-       normalMap: streak.normal, normalScale: new THREE.Vector2(.65, .65), clearcoat: .35, clearcoatRoughness: .12, iridescence: .2, iridescenceIOR: 1.25, iridescenceThicknessRange: [180, 520],
-       specularIntensity: 1, envMapIntensity: 1.1, attenuationColor: new THREE.Color(0xa9b2bd), attenuationDistance: 3.2});
+    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: 1.25, ior: 1.31, dispersion: mobile ? 0 : 7,
+       normalMap: streak.normal, normalScale: new THREE.Vector2(.5, .5), clearcoat: .25, clearcoatRoughness: .08,
+       specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* ---- le certificat : plaque fine légèrement bombée (relief), givre peint sur les bords ---- */
   const certTex = img => { const ar = img.width / img.height, cw = 1600, ch = Math.round(cw / ar), k = document.createElement("canvas"); k.width = cw; k.height = ch; const g = k.getContext("2d");
-    g.drawImage(img, 0, 0, cw, ch); g.fillStyle = "rgba(190,206,224,.1)"; g.fillRect(0, 0, cw, ch);
+    g.drawImage(img, 0, 0, cw, ch); g.fillStyle = "rgba(205,208,212,.08)"; g.fillRect(0, 0, cw, ch);
     const m = Math.min(cw, ch);
     for (const [x0, y0, x1, y1] of [[0, 0, m * .07, 0], [cw, 0, cw - m * .07, 0], [0, 0, 0, m * .07], [0, ch, 0, ch - m * .07]]) { const gr = g.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, "rgba(240,245,250,.7)"); gr.addColorStop(1, "rgba(240,245,250,0)"); g.fillStyle = gr; g.fillRect(0, 0, cw, ch); }
     for (let i = 0; i < 1200; i++) { const x = rnd() * cw, y = rnd() * ch, e = Math.min(x, cw - x, y, ch - y) / (m * .5); if (rnd() > Math.pow(1 - e, 4) + .012) continue;
       g.fillStyle = `rgba(245,248,252,${.05 + rnd() * .2})`; g.beginPath(); g.ellipse(x, y, 1 + rnd() * 5, 4 + rnd() * 24, (rnd() - .5) * .4, 0, 7); g.fill(); }
     const t = new THREE.CanvasTexture(k); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return {t, ar}; };
-  const edgeM = new THREE.MeshBasicMaterial({color: 0xdfe6ec, toneMapped: false});
-  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(2.15, 3.1 * ar), PH = PW / ar;
-    const g = new THREE.BoxGeometry(PW, PH, .035, 24, 16, 1), P = g.attributes.position;
-    for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .1 * x * x - .04 * y * y + .02 * Math.sin(x * 3 + y * 2)); }
+  const edgeM = new THREE.MeshBasicMaterial({color: 0xf4f6f8, toneMapped: false});
+  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(1.8, 2.6 * ar), PH = PW / ar;
+    const g = new THREE.BoxGeometry(PW, PH, .16, 24, 16, 1), P = g.attributes.position;
+    for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .06 * x * x - .03 * y * y); }
     g.computeVertexNormals();
     const front = new THREE.MeshBasicMaterial({map: t, toneMapped: false}), backM = new THREE.MeshBasicMaterial({map: t, toneMapped: false, color: new THREE.Color(.35, .37, .4)});
     const m = new THREE.Mesh(g, [edgeM, edgeM, edgeM, edgeM, front, backM]); m.userData = {PW, PH}; return m; };
   const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
-  let cert = certMesh(img0); const CB = {y: H * .07, z: .1};
+  let cert = certMesh(img0); const CB = {y: H * .07, z: .22};
   cert.rotation.set(.02, -.06, .04); cert.position.set(0, CB.y, CB.z);
   /* nuage sombre derrière le certificat (profondeur) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, e = Math.min(u, 1 - u, v, 1 - v) * 2; const f = fb(u * 5, v * 2.2, 5.5, 4) + fb(u * 40, v * 3, 2.2, 2) * .25 - e * .35;
       const k4 = (y * N + x) * 4; d.data[k4] = d.data[k4 + 1] = d.data[k4 + 2] = f > .56 ? 255 : 0; d.data[k4 + 3] = 255; }
     g.putImageData(d, 0, 0); return new THREE.CanvasTexture(k); })();
-  const fr1 = new THREE.Mesh(new THREE.PlaneGeometry(W * .82, H * .82), new THREE.MeshBasicMaterial({color: 0x7f8996, alphaMap: frost, alphaTest: .5, side: THREE.DoubleSide, toneMapped: false})); fr1.position.z = -.5;
-  const inner = new THREE.Group(); inner.add(cert); if (!low) inner.add(fr1);
+  const fr1 = new THREE.Mesh(new THREE.PlaneGeometry(W * .82, H * .82), new THREE.MeshBasicMaterial({color: 0x8b8e93, alphaMap: frost, alphaTest: .5, side: THREE.DoubleSide, toneMapped: false})); fr1.position.z = -.5;
+  const inner = new THREE.Group(); inner.add(cert);
   const ice = new THREE.Group(); ice.add(inner, iceMesh); scene.add(ice);
   /* ---- fissures lumineuses (rubans sur la face avant, révélés depuis le point d'impact) ---- */
   const crackU = {p: {value: 0}, k: {value: 0}};
@@ -2787,8 +2792,8 @@ async function openGlass(c0){
       ice.rotation.x = (Math.sin(t * .19) * .04 + mouse.sy * .15) * f; ice.rotation.z = -.13 * f; ice.rotation.y = (Math.sin(t * .2) * .5 + t * .0 + mouse.sx * .4) * f + S.spin; }
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mode === "idle" && mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
-    if (!low) { const ns = .65 - .5 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = 2.1 - 1.4 * prox; iceM.attenuationDistance = 3.2 + 5 * prox; }
-    if (mode === "idle") cert.position.z = CB.z + .38 * prox;
+    if (!low) { const ns = .5 - .35 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = 1.25 - .8 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
+    if (mode === "idle") cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
     if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1;
@@ -5284,7 +5289,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-06";
+const APP_VERSION = "2026-10-28-07";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
