@@ -866,10 +866,10 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-tv{text-align:right;font-variant-numeric:tabular-nums}.ig-tv b{display:block}
 .ig.hud .ig-lab,.ig.hud .ig-svg{opacity:1}
 .ig-cv{cursor:grab}.ig.grab .ig-cv{cursor:grabbing}
-.ig-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:auto auto;column-gap:28px;row-gap:8px;width:min(300px,70vw);font-size:12px;letter-spacing:.08em;pointer-events:none;transition:opacity .5s}
-.ig-load b{font-weight:700}.ig-load .ig-lp{text-align:right;font-variant-numeric:tabular-nums}
-.ig-load i{grid-column:1/-1;height:1px;background:rgba(255,255,255,.25);position:relative}.ig-load u{position:absolute;left:0;top:0;bottom:0;width:0;background:#fff;transition:width .3s}
-.ig-load small{grid-column:1/-1;font-size:10px;opacity:.7}.ig-load.done{opacity:0}
+.ig-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:14px;font-size:11px;letter-spacing:.1em;pointer-events:none;transition:opacity .5s}
+.ig-ring{position:relative;width:64px;height:64px;display:grid;place-items:center}.ig-ring svg{position:absolute;inset:0;width:100%;height:100%;animation:igSpin 1.1s linear infinite}
+.ig-ring circle{fill:none;stroke-width:1.5}.ig-ring .bgc{stroke:rgba(255,255,255,.22)}.ig-ring .fgc{stroke:#fff;stroke-linecap:round;stroke-dasharray:50 200}
+.ig-load .ig-lp{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}.ig-load small{font-size:10px;opacity:.75}.ig-load.done{opacity:0}@keyframes igSpin{to{transform:rotate(360deg)}}
 .ig-go{pointer-events:auto;cursor:pointer;transition:color .2s}.ig-go:hover{color:#dfeaff;text-shadow:0 0 14px rgba(255,255,255,.8)}
 .ig-hint span{display:block}.ig-hint .h1{opacity:.7;margin-bottom:4px}
 .ig-t b:nth-child(2n){text-align:right;font-variant-numeric:tabular-nums}
@@ -2502,7 +2502,7 @@ async function openGlass(c0){
     <div class="ig-bg"><span style="left:6%;top:15%">01 · CRY0\n004.0917</span><span style="left:72%;top:9%">LOCK  OFF/2</span><span style="left:4%;top:58%">ICE  0.2931</span>
       <span style="left:70%;top:58%">ARC  07\n31 10 2026</span><span style="left:30%;top:84%">PRE  SEAL  OFF/2</span></div>
     <div class="ig-dots"></div><div class="ig-grain"></div>
-    <div class="ig-load"><b>CRYO_INIT</b><span class="ig-lp">000%</span><i><u></u></i><small class="ig-lm">INITIALISATION</small></div>
+    <div class="ig-load"><div class="ig-ring"><svg viewBox="0 0 64 64"><circle class="bgc" cx="32" cy="32" r="28"/><circle class="fgc" cx="32" cy="32" r="28"/></svg><span class="ig-lp">0%</span></div><small class="ig-lm">INITIALISATION</small></div>
     <svg class="ig-svg"><path class="p1"/><path class="p2"/><path class="p3"/></svg>
     <div class="ig-lab ig-a"><b data-s=""></b><b data-s=""></b></div>
     <div class="ig-lab ig-t"><b data-s=""></b><b class="ig-tv" data-s=""></b><b>TEMP</b><b class="ig-tv ig-temp">-18.42</b></div>
@@ -2525,7 +2525,7 @@ async function openGlass(c0){
   ov.querySelector(".ig-close").addEventListener("click", back);
   requestAnimationFrame(() => ov.classList.add("on"));
   const loadEl = ov.querySelector(".ig-load"), tick = () => new Promise(r => setTimeout(r, 20));
-  const setP = (p, m) => { loadEl.querySelector(".ig-lp").textContent = String(Math.round(p)).padStart(3, "0") + "%"; loadEl.querySelector("u").style.width = p + "%"; if (m) loadEl.querySelector(".ig-lm").textContent = m; };
+  const setP = (p, m) => { loadEl.querySelector(".ig-lp").textContent = Math.round(p) + "%"; if (m) loadEl.querySelector(".ig-lm").textContent = m; };
   setP(4, "CHARGEMENT DU MOTEUR 3D");
   let THREE, gsap;
   try { [THREE, {gsap}] = await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap")]); }
@@ -2645,9 +2645,9 @@ async function openGlass(c0){
       P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (ang / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, y0 / H + .5)); }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
   const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xdfe7ef, map: streak.col, roughness: .08, metalness: 0, transparent: true, opacity: .4, normalMap: streak.normal, normalScale: new THREE.Vector2(.8, .8), clearcoat: 1, envMapIntensity: 1.4, depthWrite: false}
-    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .9, ior: 1.31, dispersion: mobile ? 0 : 7,
-       normalMap: streak.normal, normalScale: new THREE.Vector2(.2, .2), clearcoat: .25, clearcoatRoughness: .08,
-       specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
+    : {color: 0xffffff, map: streak.col, roughness: .35, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .6, ior: 1.31, dispersion: mobile ? 0 : 7,
+       normalMap: streak.normal, normalScale: new THREE.Vector2(.1, .1), clearcoat: .25, clearcoatRoughness: .08,
+       specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xb9bcc0), attenuationDistance: 7});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* ---- le certificat : plaque fine légèrement bombée (relief), givre peint sur les bords ---- */
   const certTex = img => { const ar = img.width / img.height, cw = 1600, ch = Math.round(cw / ar), k = document.createElement("canvas"); k.width = cw; k.height = ch; const g = k.getContext("2d");
@@ -2662,7 +2662,7 @@ async function openGlass(c0){
     const g = new THREE.BoxGeometry(PW, PH, .16, 24, 16, 1), P = g.attributes.position;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .06 * x * x - .03 * y * y); }
     g.computeVertexNormals();
-    const front = new THREE.MeshBasicMaterial({map: t, toneMapped: false}), backM = new THREE.MeshBasicMaterial({map: t, toneMapped: false, color: new THREE.Color(.35, .37, .4)});
+    const front = new THREE.MeshBasicMaterial({map: t, toneMapped: false}), backM = new THREE.MeshBasicMaterial({map: t, toneMapped: false, color: new THREE.Color(.75, .77, .8)});
     const m = new THREE.Mesh(g, [edgeM, edgeM, edgeM, edgeM, front, backM]); m.userData = {PW, PH}; return m; };
   const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
   setP(84, "CERTIFICAT"); await tick();
@@ -2709,7 +2709,7 @@ async function openGlass(c0){
     s.position.copy(s.userData.p0); s.rotation.copy(s.userData.r0); s.scale.setScalar(sc); shards.add(s); }
   /* ---- constellation : points de mesure et liaisons fines ---- */
   const PP = iceGeo.attributes.position, NN = iceGeo.attributes.normal, pts = [];
-  for (let i = 0; i < (mobile ? 34 : 56); i++) { const j = Math.floor(rnd() * PP.count), p = new V3().fromBufferAttribute(PP, j), nn = new V3().fromBufferAttribute(NN, j);
+  for (let i = 0; i < (mobile ? 14 : 22); i++) { const j = Math.floor(rnd() * PP.count), p = new V3().fromBufferAttribute(PP, j), nn = new V3().fromBufferAttribute(NN, j);
     if (Math.abs(p.z) < D * .2 && rnd() < .6) { i--; continue; } p.addScaledVector(nn, rnd() < .45 ? .02 : .1 + rnd() * .9); pts.push(p); }
   const seg = [], segPh = [];
   pts.forEach((p, i) => { pts.map((o, j) => [j, p.distanceTo(o)]).filter(([j, d]) => j > i && d < 1.5).sort((a, b) => a[1] - b[1]).slice(0, 2).forEach(([j]) => { seg.push(p.x, p.y, p.z, pts[j].x, pts[j].y, pts[j].z); segPh.push(i, j); }); });
@@ -2719,11 +2719,11 @@ async function openGlass(c0){
   const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3)); lg.setAttribute("ph", new THREE.Float32BufferAttribute(segPh.map(i => phs[i]), 1)); lg.setDrawRange(0, 0);
   const lines = new THREE.LineSegments(lg, new THREE.ShaderMaterial({uniforms: ptU, transparent: true, depthTest: false, depthWrite: false, fog: false,
     vertexShader: drift + "attribute float ph; uniform float t; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(drift(position, ph, t), 1.0); }",
-    fragmentShader: "uniform float k; void main(){ gl_FragColor = vec4(1., 1., 1., .32 * k); }"})); lines.renderOrder = 5;
+    fragmentShader: "uniform float k; void main(){ gl_FragColor = vec4(1., 1., 1., .16 * k); }"})); lines.renderOrder = 5;
   const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(pts.flatMap(p => [p.x, p.y, p.z]), 3)); pg.setAttribute("ph", new THREE.Float32BufferAttribute(phs, 1));
   const dots = new THREE.Points(pg, new THREE.ShaderMaterial({uniforms: ptU, transparent: true, depthTest: false, depthWrite: false, fog: false,
     vertexShader: drift + "attribute float ph; uniform float t, pr; varying float a; varying float c; void main(){ a = .45 + .55 * step(.25, fract(sin(floor(t * 3. + ph * 9.)) * 43.7)); c = step(.5, fract(ph * 1.7)); gl_PointSize = (c > .5 ? 11. : 5.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(drift(position, ph, t), 1.0); }",
-    fragmentShader: "uniform float k; varying float a; varying float c; void main(){ vec2 d = abs(gl_PointCoord - .5); float s = c > .5 ? (min(d.x, d.y) < .045 ? 1. - max(d.x, d.y) * 2. : 0.) : smoothstep(.5, .15, length(d)); gl_FragColor = vec4(1., 1., 1., s * a * k * .9); }"}));
+    fragmentShader: "uniform float k; varying float a; varying float c; void main(){ vec2 d = abs(gl_PointCoord - .5); float s = c > .5 ? (min(d.x, d.y) < .045 ? 1. - max(d.x, d.y) * 2. : 0.) : smoothstep(.5, .15, length(d)); gl_FragColor = vec4(1., 1., 1., s * a * k * .6); }"}));
   dots.renderOrder = 6; ice.add(lines, dots);
   /* ---- post-traitement : aberration chromatique vers les bords + vignette douce ---- */
   const rt = new THREE.WebGLRenderTarget(1, 1, {type: THREE.HalfFloatType, samples: low ? 0 : 4});
@@ -2823,7 +2823,7 @@ async function openGlass(c0){
     ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
-    if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
+    if (!low) { const ns = .1 - .07 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .6 - .35 * prox; iceM.attenuationDistance = 7 + 5 * prox; }
     cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
@@ -5320,7 +5320,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-10";
+const APP_VERSION = "2026-10-28-11";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
