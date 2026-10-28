@@ -858,7 +858,9 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-dots{position:absolute;inset:-40px;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.8) .9px,transparent 1.6px);background-size:68px 68px;opacity:.6}
 .ig-grain{position:absolute;inset:-50%;pointer-events:none;opacity:.05;background-size:220px 220px;mix-blend-mode:overlay;animation:lmGrain .9s steps(6) infinite}
 .ig-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;opacity:0;transition:opacity .6s}
-.ig-svg path{stroke:rgba(255,255,255,.9);stroke-width:1;fill:none}
+.ig-svg path{stroke:rgba(255,255,255,.9);stroke-width:1;fill:none;stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset .6s cubic-bezier(.7,0,.2,1)}.ig-svg path.off{stroke-dashoffset:1;transition-duration:.35s}
+.ig-lab.off{opacity:0!important;transition:opacity .3s steps(3)}.ig-lab.in{animation:igIn .7s steps(1) both}
+@keyframes igIn{0%{opacity:0}15%{opacity:1;clip-path:inset(0 60% 0 0)}30%{opacity:.3;clip-path:inset(0 0 50% 0)}45%{opacity:1;clip-path:inset(40% 0 0 0);transform-origin:left}60%{opacity:.6;clip-path:none}75%,100%{opacity:1;clip-path:none}}
 .ig-lab{position:absolute;left:0;top:0;font-size:13px;font-weight:700;letter-spacing:.03em;line-height:1.35;white-space:nowrap;text-shadow:0 0 10px rgba(255,255,255,.35);opacity:0;transition:opacity .5s;pointer-events:none}
 .ig-lab b{display:block;font-weight:700}
 .ig-d{text-align:right}
@@ -2516,7 +2518,7 @@ async function openGlass(c0){
       <span style="left:70%;top:58%">ARC  07\n31 10 2026</span><span style="left:30%;top:84%">PRE  SEAL  OFF/2</span></div>
     <div class="ig-dots"></div><div class="ig-grain"></div>
     <div class="ig-load"><div class="ig-ring"><svg viewBox="0 0 64 64"><circle class="bgc" cx="32" cy="32" r="28"/><circle class="fgc" cx="32" cy="32" r="28"/></svg><span class="ig-lp">0%</span></div><small class="ig-lm">INITIALISATION</small></div>
-    <svg class="ig-svg"><path class="p1"/><path class="p2"/><path class="p3"/></svg>
+    <svg class="ig-svg"><path class="p1" pathLength="1"/><path class="p2" pathLength="1"/><path class="p3" pathLength="1"/></svg>
     <div class="ig-lab ig-a"><b data-s=""></b><b data-s=""></b></div>
     <div class="ig-lab ig-t"><b data-s=""></b><b class="ig-tv" data-s=""></b><b>TEMP</b><b class="ig-tv ig-temp">-18.42</b></div>
     <div class="ig-lab ig-d"><b data-s=""></b><b class="ig-go" data-s="CLICK TO EXPLORE"></b></div>
@@ -2757,15 +2759,15 @@ async function openGlass(c0){
   const seg = [], segPh = [];
   pts.forEach((p, i) => { pts.map((o, j) => [j, p.distanceTo(o)]).filter(([j, d]) => j > i && d < 1.5).sort((a, b) => a[1] - b[1]).slice(0, 2).forEach(([j]) => { seg.push(p.x, p.y, p.z, pts[j].x, pts[j].y, pts[j].z); segPh.push(i, j); }); });
   const phs = pts.map(() => rnd() * 6.28);
-  const ptU = {t: {value: 0}, k: {value: 0}, pr: {value: renderer.getPixelRatio()}};
-  const drift = "vec3 drift(vec3 p, float ph, float t){ return p + vec3(sin(t * .55 + ph) * .05, cos(t * .47 + ph * 1.3) * .05, sin(t * .4 + ph * 2.1) * .04); }";
+  const ptU = {t: {value: 0}, k: {value: 0}, pr: {value: renderer.getPixelRatio()}, ms: {value: new THREE.Vector2(9, 9)}, asp: {value: 1}};
+  const drift = "uniform vec2 ms; uniform float asp; vec3 drift(vec3 p, float ph, float t){ return p + vec3(sin(t * (.3 + fract(ph) * .4) + ph) * .16, cos(t * (.25 + fract(ph * 3.) * .35) + ph * 1.3) * .14, sin(t * .3 + ph * 2.1) * .1); }\nvec4 place(vec3 p, float ph, float t){ vec4 c = projectionMatrix * modelViewMatrix * vec4(drift(p, ph, t), 1.0); vec2 n = c.xy / c.w, d = n - ms; d.x *= asp; float l = length(d), r = .3; if (l < r) { vec2 dr = d / max(l, 1e-4); dr.x /= asp; n += dr * (r - l) * 1.25; } c.xy = n * c.w; return c; }\n";
   const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(seg, 3)); lg.setAttribute("ph", new THREE.Float32BufferAttribute(segPh.map(i => phs[i]), 1)); lg.setDrawRange(0, 0);
   const lines = new THREE.LineSegments(lg, new THREE.ShaderMaterial({uniforms: ptU, transparent: true, depthTest: false, depthWrite: false, fog: false,
-    vertexShader: drift + "attribute float ph; uniform float t; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(drift(position, ph, t), 1.0); }",
+    vertexShader: drift + "attribute float ph; uniform float t; void main(){ gl_Position = place(position, ph, t); }",
     fragmentShader: "uniform float k; void main(){ gl_FragColor = vec4(1., 1., 1., .16 * k); }"})); lines.renderOrder = 5;
   const pg = new THREE.BufferGeometry(); pg.setAttribute("position", new THREE.Float32BufferAttribute(pts.flatMap(p => [p.x, p.y, p.z]), 3)); pg.setAttribute("ph", new THREE.Float32BufferAttribute(phs, 1));
   const dots = new THREE.Points(pg, new THREE.ShaderMaterial({uniforms: ptU, transparent: true, depthTest: false, depthWrite: false, fog: false,
-    vertexShader: drift + "attribute float ph; uniform float t, pr; varying float a; varying float c; void main(){ a = .45 + .55 * step(.25, fract(sin(floor(t * 3. + ph * 9.)) * 43.7)); c = step(.5, fract(ph * 1.7)); gl_PointSize = (c > .5 ? 11. : 5.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(drift(position, ph, t), 1.0); }",
+    vertexShader: drift + "attribute float ph; uniform float t, pr; varying float a; varying float c; void main(){ a = .45 + .55 * step(.25, fract(sin(floor(t * 3. + ph * 9.)) * 43.7)); c = step(.5, fract(ph * 1.7)); gl_PointSize = (c > .5 ? 11. : 5.) * pr; gl_Position = place(position, ph, t); }",
     fragmentShader: "uniform float k; varying float a; varying float c; void main(){ vec2 d = abs(gl_PointCoord - .5); float s = c > .5 ? (min(d.x, d.y) < .045 ? 1. - max(d.x, d.y) * 2. : 0.) : smoothstep(.5, .15, length(d)); gl_FragColor = vec4(1., 1., 1., s * a * k * .6); }"}));
   dots.renderOrder = 6; ice.add(lines, dots);
   /* ---- post-traitement : aberration chromatique vers les bords + vignette douce ---- */
@@ -2795,7 +2797,19 @@ async function openGlass(c0){
     a1.dataset.s = "CERTIFICAT_" + idx; a2.dataset.s = "/ " + up(c.firm || "CERTIFICAT").replace(/\s+/g, "_"); t1.dataset.s = up(c.kind || "RÉSULTAT"); t2.dataset.s = amt; d1.dataset.s = "D " + dd;
     ov.querySelector(".ig-count").textContent = `ARCHIVE_${idx} / ${String(list.length).padStart(2, "0")}`;
     ov.querySelectorAll("[data-s]").forEach(el => { el.textContent = ""; }); };
-  const showHud = () => { ov.classList.add("hud"); ov.querySelectorAll("[data-s]").forEach(scramble); };
+  /* étiquettes qui changent de place : chacune reste ~10 s, se brouille, puis réapparaît ailleurs (en décalé) */
+  const SLOTS = [{a: new V3(-W * .3, H * .36, D * .45), dx: 150, dy: -110, al: "l"}, {a: new V3(W * .42, H * .3, D * .2), dx: 30, dy: -70, al: "r"}, {a: new V3(W * .5, H * .02, 0), dx: 60, dy: -30, al: "r"},
+    {a: new V3(W * .36, -H * .33, D * .45), dx: 40, dy: 40, al: "r"}, {a: new V3(-W * .38, -H * .3, D * .4), dx: 60, dy: 40, al: "l"}, {a: new V3(-W * .5, H * .06, 0), dx: 70, dy: -40, al: "l"}];
+  const LABS = [{el: labA, p: p1, s: 0}, {el: labT, p: p2, s: 1}, {el: labD, p: p3, s: 3}]; let hudGen = 0;
+  const garble = el => { const bs = [...el.querySelectorAll("b")], ch = "#%/\\_+=<>01ABXZ"; let f = 0; const it = setInterval(() => { f++;
+    bs.forEach(b => { b.textContent = b.textContent.split("").map(x => x === " " ? " " : rnd() < f / 7 ? " " : ch[Math.floor(rnd() * ch.length)]).join(""); }); if (f >= 7) clearInterval(it); }, 45); };
+  const cycle = (Lb, delay, gen) => setTimeout(() => { if (!alive || gen !== hudGen) return; garble(Lb.el); Lb.el.classList.add("off"); Lb.p.classList.add("off");
+    setTimeout(() => { if (!alive || gen !== hudGen) return; const used = LABS.map(x => x.s), free = SLOTS.map((_, k) => k).filter(k => !used.includes(k)); Lb.s = free[Math.floor(rnd() * free.length)];
+      Lb.el.classList.remove("off", "in"); void Lb.el.offsetWidth; Lb.el.classList.add("in"); Lb.p.classList.remove("off");
+      Lb.el.querySelectorAll("[data-s]").forEach(scramble); if (Lb.el === labT) { const bs = labT.querySelectorAll("b"); bs[2].textContent = "TEMP"; }
+      cycle(Lb, 10000, gen); }, 1100); }, delay);
+  const showHud = () => { ov.classList.add("hud"); hudGen++; LABS.forEach(Lb => { Lb.el.classList.remove("off"); Lb.p.classList.remove("off"); });
+    ov.querySelectorAll("[data-s]").forEach(scramble); LABS.forEach((Lb, i) => cycle(Lb, 10000 + i * 3300, hudGen)); };
   setLabels(list[ci]);
   let T1 = -18.42; const tempEl = ov.querySelector(".ig-temp"), bgs = [...ov.querySelectorAll(".ig-bg span")];
   tmr = setInterval(() => { T1 = Math.max(-21, Math.min(-16, T1 + (rnd() - .5) * .22)); tempEl.textContent = (T1 < 0 ? "-" : "") + Math.abs(T1).toFixed(2).padStart(5, "0");
@@ -2872,7 +2886,7 @@ async function openGlass(c0){
     let saved = null; try { saved = localStorage.getItem("bdm-ice-color"); } catch (e) {} setIceColor(saved); }
   go = dir => { if (busy || list.length < 2) return; resetCarve(); const ni = ci + dir; if (ni < 0 || ni >= list.length) { gsap.fromTo(S, {drop: 0}, {drop: -dir * .15, duration: .18, yoyo: true, repeat: 1}); return; }
     busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
-    ov.classList.remove("hud");
+    ov.classList.remove("hud"); hudGen++;
     gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
       .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); cert.rotation.copy(old.rotation); cert.position.copy(old.position); inner.remove(old); inner.add(cert);
           old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
@@ -2886,6 +2900,7 @@ async function openGlass(c0){
     bgU.t.value = t; bgU.mx.value.set(mouse.sx, -mouse.sy); ptU.t.value = t;
     if (!rot.drag) { rot.yaw += rot.v; rot.v *= Math.pow(.92, dt * 60); rot.idle += dt; rot.pitch *= 1 - Math.min(1, dt * .7); }
     rot.yaw += dt * .22 * Math.min(1, Math.max(0, (rot.idle - 1.2) / 1.5));
+    ptU.asp.value = cam.aspect; if (mouse.in) ptU.ms.value.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); else ptU.ms.value.set(9, 9);
     S.kick *= Math.pow(.86, dt * 60); stepCarve(dt); wireU.uT.value = t; if (!busy) hoverTrail();
     ice.position.y = Math.sin(t * .55) * .09 + S.drop; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
     ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
@@ -2895,16 +2910,13 @@ async function openGlass(c0){
     cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
-    if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1;
-      const [ax, ay] = scr(anA, ww, hh), [bx, by] = scr(anT, ww, hh), [dx, dy] = scr(anD, ww, hh);
-      const aW = labA.offsetWidth, aH = labA.offsetHeight, lAx = Math.max(16, ax - 190 * sc), lAy = Math.max(cornerB + 14, ay - 120 * sc);
-      labA.style.transform = `translate(${lAx}px,${lAy}px)`; const uAx = lAx + Math.max(aW, 150 * sc) + 20 * sc;
-      p1.setAttribute("d", `M${lAx} ${lAy + aH + 6}H${uAx}L${ax} ${ay}`);
-      const tW = labT.offsetWidth, tx = Math.min(ww - tW - 12, bx + 16 * sc); labT.style.transform = `translate(${tx}px,${by - 40 * sc}px)`;
-      p2.setAttribute("d", `M${bx} ${by}L${tx - 4} ${by - 22 * sc}`);
-      const dW = labD.offsetWidth, dH = labD.offsetHeight, lDr = Math.min(ww - 12, dx + 26 * sc + Math.max(dW, 150 * sc)), lDy = dy + 30 * sc;
-      labD.style.transform = `translate(${lDr - dW}px,${lDy}px)`;
-      p3.setAttribute("d", `M${lDr} ${lDy + dH + 6}H${lDr - Math.max(dW, 150 * sc) - 6}L${dx} ${dy}`); }
+    if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1, cl = (v, a, b) => Math.max(a, Math.min(b, v));
+      LABS.forEach(Lb => { const sl = SLOTS[Lb.s], [ax, ay] = scr(sl.a, ww, hh), w = Lb.el.offsetWidth, hg = Lb.el.offsetHeight, uw = Math.max(w, 150 * sc);
+        let left = sl.al === "r" ? ax + sl.dx * sc : ax - sl.dx * sc - uw, top = ay + sl.dy * sc - (sl.dy < 0 ? hg : 0);
+        left = cl(left, 16, ww - uw - 16); top = cl(top, cornerB + 12, hh - hg - 80);
+        Lb.el.style.transform = `translate(${sl.al === "l" ? left + uw - w : left}px,${top}px)`; Lb.el.style.textAlign = sl.al === "l" ? "right" : "left";
+        const uy = top + hg + 6, near = sl.al === "r" ? left : left + uw, far = sl.al === "r" ? left + uw : left;
+        Lb.p.setAttribute("d", `M${ax} ${ay}L${near} ${uy}H${far}`); }); }
     dotsEl.style.transform = `translate(${-mouse.sx * 10}px,${-mouse.sy * 8}px)`; bgEl.style.transform = `translate(${-mouse.sx * 22}px,${-mouse.sy * 14}px)`; };
   loop();
 }
@@ -5388,7 +5400,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-16";
+const APP_VERSION = "2026-10-28-17";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
