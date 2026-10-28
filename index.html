@@ -2590,23 +2590,38 @@ async function openGlass(c0){
     const T = k => { const t = new THREE.CanvasTexture(k); t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 16; return t; };
     const col = T(cC); col.colorSpace = THREE.SRGBColorSpace; return {normal: T(cN), rough: T(cR), col}; })();
   /* ---- le glaçon (taille fixe, le certificat s'y adapte) ---- */
-  const W = 2.95, H = 4.78, D = 1.6;
-  const iceGeo = (() => { const q2 = low || mobile; let g = new THREE.BoxGeometry(W, H, D, q2 ? 64 : 130, q2 ? 80 : 150, q2 ? 30 : 64);
+  /* ---- modèle 3D du glaçon (ice.glb) : seule la forme est reprise, la matière glace est appliquée ici ---- */
+  let glbGeo = null;
+  try { const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js"); const gl = await new GLTFLoader().loadAsync("ice.glb?v=1"); gl.scene.updateMatrixWorld(true); let best = null;
+    gl.scene.traverse(o => { if (o.isMesh && (!best || o.geometry.attributes.position.count > best.geometry.attributes.position.count)) best = o; });
+    if (best) { const g0 = best.geometry.clone(); g0.applyMatrix4(best.matrixWorld); const A = g0.attributes.position, pos = new Float32Array(A.count * 3);
+      for (let i = 0; i < A.count; i++) { pos[i * 3] = A.getX(i); pos[i * 3 + 1] = A.getY(i); pos[i * 3 + 2] = A.getZ(i); }
+      let g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); if (g0.index) g.setIndex(new THREE.BufferAttribute(new Uint32Array(g0.index.array), 1));
+      const NA = g0.attributes.normal; if (NA) { const nr = new Float32Array(NA.count * 3); for (let i = 0; i < NA.count; i++) { nr[i * 3] = NA.getX(i); nr[i * 3 + 1] = NA.getY(i); nr[i * 3 + 2] = NA.getZ(i); } g.setAttribute("normal", new THREE.BufferAttribute(nr, 3)); }
+      g.computeBoundingBox(); const bb = g.boundingBox, c = bb.getCenter(new V3()), sz = bb.getSize(new V3()), k = 4.6 / sz.y;
+      g.translate(-c.x, -c.y, -c.z); g.scale(k, k, k); glbGeo = g; } } catch (e) {}
+  if (!alive) return;
+  let W = 3.35, H = 4.6, D = 2.1;
+  if (glbGeo) { glbGeo.computeBoundingBox(); const sz = glbGeo.boundingBox.getSize(new V3()); W = sz.x; H = sz.y; D = sz.z;
+    const P = glbGeo.attributes.position, uv = new Float32Array(P.count * 2);
+    for (let i = 0; i < P.count; i++) { uv[i * 2] = (Math.atan2(P.getX(i), P.getZ(i)) / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, P.getY(i) / H + .5)); }
+    glbGeo.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); if (!glbGeo.attributes.normal) glbGeo.computeVertexNormals(); }
+  const iceGeo = glbGeo || (() => { const q2 = low || mobile; let g = new THREE.BoxGeometry(W, H, D, q2 ? 64 : 130, q2 ? 80 : 150, q2 ? 30 : 64);
     g.deleteAttribute("normal"); g.deleteAttribute("uv"); g = mergeVertices(g);
     const P = g.attributes.position, v = new V3(), q = new V3(), n = new V3(), R = .07, iw = W / 2 - R, ih = H / 2 - R, id = D / 2 - R, uv = new Float32Array(P.count * 2);
     const cl = (x, a) => Math.max(-a, Math.min(a, x)), ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     const cuts = []; for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2 + .3 + rnd() * .35, tilt = (rnd() - .5) * .16, nn = new V3(Math.cos(a), tilt, Math.sin(a) * 1.2).normalize();
       const ext = Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2; cuts.push([nn, ext * (.8 + rnd() * .1)]); }
-    { const nn = new V3(-1, .04, 1.25).normalize(); cuts.push([nn, (Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2) * .74]); }
+    { const nn = new V3(-1, .04, 1.25).normalize(); cuts.push([nn, (Math.abs(nn.x) * W / 2 + Math.abs(nn.z) * D / 2) * .7]); }
     for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); q.set(cl(v.x, iw), cl(v.y, ih), cl(v.z, id)); n.subVectors(v, q); if (n.lengthSq() < 1e-9) n.set(0, 0, 1); n.normalize(); v.copy(q).addScaledVector(n, R);
       const y0 = v.y, yy = y0 / (H / 2);
       for (const [nn, d] of cuts) { const h = v.dot(nn); if (h > d) v.addScaledVector(nn, -(h - d)); }
       v.x *= 1 - .04 * yy; v.z *= 1 + .05 * Math.cos(yy * 1.7);
       const s = v.x + v.z * .93, ang = Math.atan2(v.x, v.z);
-      let dsp = (n3(s * 7, y0 * .15, 1.1) - .5) * .028 + (n3(s * 19, y0 * .3, 2.3) - .5) * .01 + (fb(v.x * .6, y0 * .4, v.z * .6, 2) - .4) * .07;
-      const bm = ss(-H / 2 + H * .3, -H / 2 + .05, y0);
+      let dsp = (n3(s * 7, y0 * .15, 1.1) - .5) * .012 + (n3(s * 19, y0 * .3, 2.3) - .5) * .005 + (fb(v.x * .6, y0 * .4, v.z * .6, 2) - .4) * .035;
+      const bm = ss(-H / 2 + H * .34, -H / 2 + .05, y0);
       const tm = ss(H / 2 - H * .24, H / 2 - .1, y0), rk = Math.max(bm, tm);
-      if (rk > 0) { const r1 = 1 - Math.abs(fb(v.x * 2.6, y0 * 2.6, v.z * 2.6 + 4, 4) * 2 - 1), r2 = fb(v.x * 9, y0 * 9, v.z * 9, 3), r3 = n3(v.x * 22, y0 * 22, v.z * 22); dsp = dsp * (1 - rk) + rk * ((r1 - .55) * .3 + (r2 - .5) * .15 + (r3 - .5) * .04 + .06); }
+      if (rk > 0) { const r1 = 1 - Math.abs(fb(v.x * 2.6, y0 * 2.6, v.z * 2.6 + 4, 4) * 2 - 1), r2 = fb(v.x * 9, y0 * 9, v.z * 9, 3), r3 = n3(v.x * 22, y0 * 22, v.z * 22); dsp = dsp * (1 - rk) + rk * ((r1 - .55) * (.3 + bm * .14) + (r2 - .5) * .15 + (r3 - .5) * .04 + .06); }
       v.addScaledVector(n, dsp);
       const top = ss(H / 2 - .6, H / 2 + .03, y0), bot = ss(H / 2 - .5, H / 2 + .03, -y0), xr = v.x / (W / 2);
       if (top > 0) { const crown = .18 * xr + .34 * Math.exp(-Math.pow((xr - .3) / .55, 2)) - .3 * ss(-.55, -.85, xr) + .1 * Math.exp(-Math.pow((xr + .35) / .18, 2)) - .1,
@@ -2616,8 +2631,8 @@ async function openGlass(c0){
       P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (ang / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, y0 / H + .5)); }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
   const iceM = new THREE.MeshPhysicalMaterial(low ? {color: 0xdfe7ef, map: streak.col, roughness: .08, metalness: 0, transparent: true, opacity: .4, normalMap: streak.normal, normalScale: new THREE.Vector2(.8, .8), clearcoat: 1, envMapIntensity: 1.4, depthWrite: false}
-    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: 1.25, ior: 1.31, dispersion: mobile ? 0 : 7,
-       normalMap: streak.normal, normalScale: new THREE.Vector2(.5, .5), clearcoat: .25, clearcoatRoughness: .08,
+    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .9, ior: 1.31, dispersion: mobile ? 0 : 7,
+       normalMap: streak.normal, normalScale: new THREE.Vector2(.2, .2), clearcoat: .25, clearcoatRoughness: .08,
        specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM);
   /* ---- le certificat : plaque fine légèrement bombée (relief), givre peint sur les bords ---- */
@@ -2629,7 +2644,7 @@ async function openGlass(c0){
       g.fillStyle = `rgba(245,248,252,${.05 + rnd() * .2})`; g.beginPath(); g.ellipse(x, y, 1 + rnd() * 5, 4 + rnd() * 24, (rnd() - .5) * .4, 0, 7); g.fill(); }
     const t = new THREE.CanvasTexture(k); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return {t, ar}; };
   const edgeM = new THREE.MeshBasicMaterial({color: 0xf4f6f8, toneMapped: false});
-  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(1.8, 2.6 * ar), PH = PW / ar;
+  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(W * .7, H * .5 * ar), PH = PW / ar;
     const g = new THREE.BoxGeometry(PW, PH, .16, 24, 16, 1), P = g.attributes.position;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .06 * x * x - .03 * y * y); }
     g.computeVertexNormals();
@@ -2637,8 +2652,8 @@ async function openGlass(c0){
     const m = new THREE.Mesh(g, [edgeM, edgeM, edgeM, edgeM, front, backM]); m.userData = {PW, PH}; return m; };
   const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
-  let cert = certMesh(img0); const CB = {y: H * .07, z: .22};
-  cert.rotation.set(.02, -.06, .04); cert.position.set(0, CB.y, CB.z);
+  let cert = certMesh(img0); const CB = {y: H * .03, z: .15}, CR = {x: .12, y: -.38, z: .42};
+  cert.rotation.set(CR.x, CR.y, CR.z); cert.position.set(0, CB.y, CB.z);
   /* nuage sombre derrière le certificat (profondeur) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
     for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N, e = Math.min(u, 1 - u, v, 1 - v) * 2; const f = fb(u * 5, v * 2.2, 5.5, 4) + fb(u * 40, v * 3, 2.2, 2) * .25 - e * .35;
@@ -2738,7 +2753,7 @@ async function openGlass(c0){
   cv.addEventListener("click", e => { if (mode === "idle" && proxAt(e.clientX, e.clientY) > .15) explore(); else if (mode === "open") reform(); });
   const dotsEl = ov.querySelector(".ig-dots"), bgEl = ov.querySelector(".ig-bg"), cornerEl = ov.querySelector(".ig-corner"); let cornerB = 0;
   onResize = () => { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cornerB = cornerEl.getBoundingClientRect().bottom;
-    const tn = Math.tan(cam.fov * Math.PI / 360); cam.position.z = Math.max(8, (W * 1.45 / 2) / (tn * cam.aspect) + D, (H * 1.32 / 2) / tn + D); cam.updateProjectionMatrix();
+    const tn = Math.tan(cam.fov * Math.PI / 360); cam.position.z = Math.max(8, (W * 1.45 / 2) / (tn * cam.aspect) + D * .5, (H * 1.22 / 2) / tn + D * .5); cam.updateProjectionMatrix();
     const bh = 2 * 60 * tn * 1.15; bg.scale.set(bh * cam.aspect, bh, 1); bgU.asp.value = cam.aspect; const pr = renderer.getPixelRatio(); rt.setSize(Math.floor(w * pr), Math.floor(h * pr)); };
   onResize(); addEventListener("resize", onResize);
   const proxAt = (x, y) => { const [bx, by] = scr(new V3(0, 0, 0), innerWidth, innerHeight); const d = Math.hypot(x - bx, (y - by) * .7) / (Math.min(innerWidth, innerHeight) * .42); return Math.max(0, 1 - d); };
@@ -2776,7 +2791,7 @@ async function openGlass(c0){
       .add(() => { ov.querySelector(".h1").textContent = "CERTIFICAT LIBÉRÉ"; ov.querySelector(".h2").textContent = "ÉCHAP · REFORMER LA GLACE"; }, 1.6); };
   reform = () => { if (busy || mode !== "open") return; busy = true; mode = "anim";
     const tl = gsap.timeline({onComplete: () => { mode = "idle"; busy = false; ov.classList.remove("explore"); showHud(); }});
-    tl.to(cert.position, {x: 0, y: CB.y, z: CB.z, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.rotation, {x: .02, y: -.06, z: .04, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.scale, {z: 1, duration: 1}, .2);
+    tl.to(cert.position, {x: 0, y: CB.y, z: CB.z, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.rotation, {x: CR.x, y: CR.y, z: CR.z, duration: 1.2, ease: "power3.inOut"}, 0).to(cert.scale, {z: 1, duration: 1}, .2);
     shards.children.forEach(s => { const u = s.userData; tl.to(s.scale, {x: u.s0, y: u.s0, z: u.s0, duration: .8, ease: "power2.out"}, .2 + rnd() * .3)
       .to(s.position, {x: u.p0.x, y: u.p0.y, z: u.p0.z, duration: 1.1, ease: "power3.inOut"}, .2).to(s.rotation, {x: u.r0.x, y: u.r0.y, z: u.r0.z, duration: 1.1, ease: "power3.inOut"}, .2); });
     tl.add(() => { iceMesh.visible = true; fr1.visible = true; shards.visible = false; }, 1.35).fromTo(iceMesh.scale, {x: .96, y: .96, z: .96}, {x: 1, y: 1, z: 1, duration: .5, ease: "back.out(2)"}, 1.35)
@@ -2793,7 +2808,7 @@ async function openGlass(c0){
       ice.rotation.x = (Math.sin(t * .19) * .04 + mouse.sy * .15) * f; ice.rotation.z = -.13 * f; ice.rotation.y = (Math.sin(t * .2) * .5 + t * .0 + mouse.sx * .4) * f + S.spin; }
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mode === "idle" && mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
-    if (!low) { const ns = .5 - .35 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = 1.25 - .8 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
+    if (!low) { const ns = .2 - .14 * prox; iceM.normalScale.set(ns, ns); iceM.thickness = .9 - .5 * prox; iceM.attenuationDistance = 4 + 5 * prox; }
     if (mode === "idle") cert.position.z = CB.z + .25 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
@@ -5290,7 +5305,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-08";
+const APP_VERSION = "2026-10-28-09";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
