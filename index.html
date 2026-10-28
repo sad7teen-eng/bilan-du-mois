@@ -2734,8 +2734,17 @@ async function openGlass(c0){
   const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = rej; i.src = src; });
   setP(84, "CERTIFICAT"); await tick();
   let img0; try { img0 = await loadImg(imOf(list[ci])); } catch (e) { close(); return; } if (!alive) return;
-  let cert = certMesh(img0); const CB = {y: H * .03, z: .15}, CR = {x: .12, y: -.38, z: .42};
-  const setDens = () => { const {PW, PH} = cert.userData, c = Math.cos(CR.z), s = Math.sin(CR.z); densU.certC.value.set(0, CB.y, 0); densU.certS.value.set((PW * c + PH * s) / 2 * .95, (PW * s + PH * c) / 2 * .95); }; setDens();
+  let cert = certMesh(img0); const CB = {y: H * .03, z: .05}, CR = {x: .12, y: -.38, z: .42};
+  /* le certificat doit rester entièrement dans la glace : on le réduit jusqu'à ce que tous ses coins soient à l'intérieur */
+  const testMesh = new THREE.Mesh(iceGeo, new THREE.MeshBasicMaterial({side: THREE.DoubleSide})), rcF = new THREE.Raycaster();
+  const fDirs = [new V3(1, .13, .07).normalize(), new V3(-.1, -1, .2).normalize(), new V3(.05, .2, -1).normalize()];
+  const insideIce = q => { let v = 0; for (const d of fDirs) { rcF.set(q, d); if (rcF.intersectObject(testMesh, false).length % 2 === 1) v++; } return v >= 2; };
+  const fitCert = m => { const {PW, PH} = m.userData; m.rotation.set(CR.x, CR.y, CR.z); m.position.set(0, CB.y, CB.z); let s = 1;
+    for (; s > .3; s -= .04) { let ok = true;
+      for (const [ax, ay] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) { for (const az of [-.12, .12]) { const q = new V3(ax * PW / 2 * s * 1.1, ay * PH / 2 * s * 1.1, az).applyEuler(m.rotation).add(m.position); if (!insideIce(q)) { ok = false; break; } } if (!ok) break; }
+      if (ok) break; }
+    m.scale.setScalar(s); m.userData.s = s; };
+  const setDens = () => { fitCert(cert); const PW = cert.userData.PW * cert.userData.s, PH = cert.userData.PH * cert.userData.s, c = Math.cos(CR.z), s = Math.sin(CR.z); densU.certC.value.set(0, CB.y, 0); densU.certS.value.set((PW * c + PH * s) / 2 * .95, (PW * s + PH * c) / 2 * .95); }; setDens();
   cert.rotation.set(CR.x, CR.y, CR.z); cert.position.set(0, CB.y, CB.z);
   /* nuage sombre derrière le certificat (profondeur) */
   const frost = (() => { const N = 256, k = document.createElement("canvas"); k.width = k.height = N; const g = k.getContext("2d"), d = g.createImageData(N, N);
@@ -2918,7 +2927,7 @@ async function openGlass(c0){
     busy = true; ci = ni; const pImg = loadImg(imOf(list[ci])).catch(() => null);
     ov.classList.remove("hud"); hudGen++;
     gsap.timeline().to(S, {wire: 0, duration: .35}, 0).to(ptU.k, {value: 0, duration: .35}, 0).to(S, {drop: -9, duration: .75, ease: "power2.in"}, 0).to(S, {spin: 1.2 * dir, duration: .75, ease: "power2.in"}, 0)
-      .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); setDens(); cert.rotation.copy(old.rotation); cert.position.copy(old.position); inner.remove(old); inner.add(cert);
+      .add(async () => { const im2 = await pImg; if (!alive) return; if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert);
           old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
         setLabels(list[ci]); arrive(() => { busy = false; }); }); };
   ice.position.set(0, 9, 0);
@@ -2939,7 +2948,7 @@ async function openGlass(c0){
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
     const pt = mouse.in && !busy ? proxAt(mouse.cx, mouse.cy) : 0; prox += (pt - prox) * Math.min(1, dt * 2.5);
     if (!low) { const ns = nsBase * (1 - .7 * prox); iceM.normalScale.set(ns, ns); iceM.thickness = 1.4 - .8 * prox; iceM.attenuationDistance = attBase + 5 * prox; }
-    cert.position.z = CB.z + .25 * prox;
+    cert.position.z = CB.z + .08 * prox;
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
     if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1, cl = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -5432,7 +5441,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-25";
+const APP_VERSION = "2026-10-28-26";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
