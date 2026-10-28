@@ -2502,7 +2502,7 @@ function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSe
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openGlass(c); }
 /* ===== Certificat : bloc de verre en vraie 3D (WebGL), lumière studio, montant en compteur ===== */
 /* préchargement du bloc de glace : moteur 3D + modèle, lancé dès qu'on approche des certificats */
-function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=1").then(r => r.arrayBuffer()), fetch("studio.hdr?v=1").then(r => r.arrayBuffer()), fetch("ice_n.jpg?v=1")]).catch(() => { window.__igPre = null; }); }
+function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=2").then(r => r.arrayBuffer()), fetch("studio.hdr?v=1").then(r => r.arrayBuffer()), fetch("ice_n.jpg?v=1")]).catch(() => { window.__igPre = null; }); }
 document.addEventListener("pointerover", e => { if (e.target.closest && e.target.closest("#certGrid")) igPreload(); }, {passive: true});
 addEventListener("hashchange", () => { if (/cert/.test(location.hash)) setTimeout(igPreload, 800); }); if (/cert/.test(location.hash)) setTimeout(igPreload, 2500);
 async function openGlass(c0){
@@ -2634,15 +2634,15 @@ async function openGlass(c0){
   /* ---- le glaçon (taille fixe, le certificat s'y adapte) ---- */
   /* ---- modèle 3D du glaçon (ice.glb) : seule la forme est reprise, la matière glace est appliquée ici ---- */
   setP(62, "MODÈLE 3D DU BLOC"); await tick();
-  let glbGeo = window.__igGlb ? window.__igGlb.clone() : null;
-  if (!glbGeo) try { const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js"); const gl = await new GLTFLoader().loadAsync("ice.glb?v=1"); gl.scene.updateMatrixWorld(true); let best = null;
+  let glbGeo = window.__igGlb2 ? window.__igGlb2.clone() : null;
+  if (!glbGeo) try { const {GLTFLoader} = await import("three/addons/loaders/GLTFLoader.js"); const gl = await new GLTFLoader().loadAsync("ice.glb?v=2"); gl.scene.updateMatrixWorld(true); let best = null;
     gl.scene.traverse(o => { if (o.isMesh && (!best || o.geometry.attributes.position.count > best.geometry.attributes.position.count)) best = o; });
     if (best) { const g0 = best.geometry.clone(); g0.applyMatrix4(best.matrixWorld); const A = g0.attributes.position, pos = new Float32Array(A.count * 3);
       for (let i = 0; i < A.count; i++) { pos[i * 3] = A.getX(i); pos[i * 3 + 1] = A.getY(i); pos[i * 3 + 2] = A.getZ(i); }
       let g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); if (g0.index) g.setIndex(new THREE.BufferAttribute(new Uint32Array(g0.index.array), 1));
       const NA = g0.attributes.normal; if (NA) { const nr = new Float32Array(NA.count * 3); for (let i = 0; i < NA.count; i++) { nr[i * 3] = NA.getX(i); nr[i * 3 + 1] = NA.getY(i); nr[i * 3 + 2] = NA.getZ(i); } g.setAttribute("normal", new THREE.BufferAttribute(nr, 3)); }
       g.computeBoundingBox(); const bb = g.boundingBox, c = bb.getCenter(new V3()), sz = bb.getSize(new V3()), k = 4.6 / sz.y;
-      g.translate(-c.x, -c.y, -c.z); g.scale(k, k, k); glbGeo = g; window.__igGlb = g.clone(); } } catch (e) {}
+      g.translate(-c.x, -c.y, -c.z); g.scale(k, k, k); glbGeo = g; window.__igGlb2 = g.clone(); } } catch (e) {}
   if (!alive) return;
   let W = 3.35, H = 4.6, D = 2.1;
   if (glbGeo) { glbGeo.computeBoundingBox(); const sz = glbGeo.boundingBox.getSize(new V3()); W = sz.x; H = sz.y; D = sz.z;
@@ -2725,7 +2725,7 @@ async function openGlass(c0){
       g.fillStyle = `rgba(245,248,252,${.05 + rnd() * .2})`; g.beginPath(); g.ellipse(x, y, 1 + rnd() * 5, 4 + rnd() * 24, (rnd() - .5) * .4, 0, 7); g.fill(); }
     const t = new THREE.CanvasTexture(k); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return {t, ar}; };
   const edgeM = new THREE.MeshBasicMaterial({color: 0xf4f6f8, toneMapped: false});
-  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(W * .7, H * .5 * ar), PH = PW / ar;
+  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(W * .8, H * .5 * ar), PH = PW / ar;
     const g = new THREE.BoxGeometry(PW, PH, .16, 24, 16, 1), P = g.attributes.position;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .06 * x * x - .03 * y * y); }
     g.computeVertexNormals();
@@ -5432,7 +5432,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-24";
+const APP_VERSION = "2026-10-28-25";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
