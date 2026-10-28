@@ -2478,8 +2478,9 @@ async function openGlass(c){
   const onEsc = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", onEsc);
   ov.querySelector(".lm-close").addEventListener("click", close);
   requestAnimationFrame(() => ov.classList.add("on"));
-  let THREE, gsap, EffectComposer, RenderPass, UnrealBloomPass, OutputPass, ConvexGeometry;
-  try { [THREE, {gsap}, {EffectComposer}, {RenderPass}, {UnrealBloomPass}, {OutputPass}, {ConvexGeometry}] = await Promise.all([import("three"), import("gsap"),
+  let THREE, gsap, EffectComposer, RenderPass, UnrealBloomPass, OutputPass, ConvexGeometry, RoundedBoxGeometry, RoomEnvironment;
+  try { [THREE, {gsap}, {RoundedBoxGeometry}, {RoomEnvironment}, {EffectComposer}, {RenderPass}, {UnrealBloomPass}, {OutputPass}, {ConvexGeometry}] = await Promise.all([import("three"), import("gsap"),
+      import("three/addons/geometries/RoundedBoxGeometry.js"), import("three/addons/environments/RoomEnvironment.js"),
       import("three/addons/postprocessing/EffectComposer.js"), import("three/addons/postprocessing/RenderPass.js"), import("three/addons/postprocessing/UnrealBloomPass.js"),
       import("three/addons/postprocessing/OutputPass.js"), import("three/addons/geometries/ConvexGeometry.js")]); }
   catch (e) { alive = false; removeEventListener("keydown", onEsc); fallback(); return; }
@@ -2490,6 +2491,7 @@ async function openGlass(c){
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05; renderer.setClearColor(0x030304, 1);
   const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x030304, .045);
   const cam = new THREE.PerspectiveCamera(mobile ? 52 : 38, 1, .05, 120);
+  { const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(renderer), .04).texture; scene.environmentIntensity = .22; }
   /* ---- lumières : un faisceau doux du haut, presque rien d'autre ---- */
   scene.add(new THREE.AmbientLight(0x3a3a44, .18));
   const spot = new THREE.SpotLight(0xfff1dc, 0, 30, .42, .85, 1.2); spot.position.set(-1.6, 11, 1.2); spot.target.position.set(0, 1.2, 0); scene.add(spot, spot.target);
@@ -2510,36 +2512,54 @@ async function openGlass(c){
     fragmentShader: "uniform float k; varying vec3 vN; varying vec3 vV; varying float vY; void main(){ float f = pow(abs(dot(normalize(vN), normalize(vV))), 2.2); float h = smoothstep(0., .55, vY) * (1. - smoothstep(.85, 1., vY) * .6); gl_FragColor = vec4(vec3(1., .95, .88), f * h * .075 * k); }"}));
   beam.position.set(-.75, 6.6, .45); beam.rotation.z = -.14; scene.add(beam);
   /* ---- pierre : texture procédurale (couleur + relief) ---- */
-  const stoneTex = (() => { const N = mobile ? 256 : 512, c2 = document.createElement("canvas"); c2.width = c2.height = N; const g = c2.getContext("2d"), d = g.createImageData(N, N);
+  const stone = (() => { const N = mobile ? 512 : 1024, H = new Float32Array(N * N), C = new Float32Array(N * N);
     const h = (x, y) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
-    const vn = (x, y) => { x = ((x % 16) + 16) % 16; y = ((y % 16) + 16) % 16; const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), x1 = (xi + 1) % 16, y1 = (yi + 1) % 16;
+    const vn = (x, y, P) => { x = ((x % P) + P) % P; y = ((y % P) + P) % P; const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), x1 = (xi + 1) % P, y1 = (yi + 1) % P;
       return h(xi, yi) * (1 - u) * (1 - v) + h(x1, yi) * u * (1 - v) + h(xi, y1) * (1 - u) * v + h(x1, y1) * u * v; };
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let f = 0, a = .55, q = 1; for (let o = 0; o < 6; o++) { f += a * vn(x / N * 4 * q, y / N * 4 * q * 1.8); q *= 2; a *= .5; }
-      const v = Math.max(0, Math.min(1, .25 + f * .75 - (h(x * .9, y * 1.7) > .995 ? .25 : 0))) * 255, i = (y * N + x) * 4; d.data[i] = v * .96; d.data[i + 1] = v * .96; d.data[i + 2] = v; d.data[i + 3] = 255; }
-    g.putImageData(d, 0, 0); const t = new THREE.CanvasTexture(c2); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; })();
-  const stoneMat = new THREE.MeshStandardMaterial({color: 0x6c6a67, map: stoneTex, bumpMap: stoneTex, bumpScale: 4, roughness: .95, metalness: 0, flatShading: true});
+    const cells = Array.from({length: 40}, () => [Math.random(), Math.random()]);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const u = x / N, v = y / N; let f = 0, a = .5, q = 6;
+      for (let o = 0; o < 7; o++) { f += a * vn(u * q, v * q * 1.4, q); q *= 2; a *= .5; }
+      let ridge = 1 - Math.abs(vn(u * 10, v * 10, 10) * 2 - 1); ridge = ridge * ridge;
+      let d1 = 9, d2 = 9; for (const [cx, cy] of cells) { let dx = Math.abs(u - cx), dy = Math.abs(v - cy); dx = Math.min(dx, 1 - dx); dy = Math.min(dy, 1 - dy); const d = dx * dx + dy * dy; if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d; }
+      const crack = Math.max(0, 1 - (Math.sqrt(d2) - Math.sqrt(d1)) * 140), pit = h(x * .73, y * 1.17) > .994 ? .3 : 0;
+      H[y * N + x] = f * .8 + ridge * .25 - crack * .45 - pit; C[y * N + x] = vn(u * 3, v * 3, 3); }
+    const mk = () => { const c2 = document.createElement("canvas"); c2.width = c2.height = N; return c2; };
+    const cC = mk(), cN = mk(), cR = mk(), dC = cC.getContext("2d").createImageData(N, N), dN = cN.getContext("2d").createImageData(N, N), dR = cR.getContext("2d").createImageData(N, N);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, k = i * 4, hv = H[i];
+      const hx = H[y * N + (x + 1) % N] - H[y * N + (x - 1 + N) % N], hy = H[((y + 1) % N) * N + x] - H[((y - 1 + N) % N) * N + x];
+      let nx = -hx * 9, ny = -hy * 9, nz = 1; const l = Math.hypot(nx, ny, nz); dN.data[k] = (nx / l * .5 + .5) * 255; dN.data[k + 1] = (ny / l * .5 + .5) * 255; dN.data[k + 2] = (nz / l * .5 + .5) * 255; dN.data[k + 3] = 255;
+      const lum = Math.max(0, Math.min(1, .28 + hv * .62)), w = C[i]; dC.data[k] = lum * (232 + 18 * w); dC.data[k + 1] = lum * (228 + 10 * w); dC.data[k + 2] = lum * (222 - 6 * w); dC.data[k + 3] = 255;
+      const r = Math.max(.45, Math.min(1, .95 - hv * .35)); dR.data[k] = dR.data[k + 1] = dR.data[k + 2] = r * 255; dR.data[k + 3] = 255; }
+    cC.getContext("2d").putImageData(dC, 0, 0); cN.getContext("2d").putImageData(dN, 0, 0); cR.getContext("2d").putImageData(dR, 0, 0);
+    const T = c2 => { const t = new THREE.CanvasTexture(c2); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; t.repeat.set(2, 1.4); return t; };
+    const map = T(cC); map.colorSpace = THREE.SRGBColorSpace; return {map, normal: T(cN), rough: T(cR)}; })();
+  const stoneMat = new THREE.MeshStandardMaterial({color: 0x8d8a85, map: stone.map, normalMap: stone.normal, normalScale: new THREE.Vector2(1.8, 1.8), roughnessMap: stone.rough, roughness: 1, metalness: 0, envMapIntensity: .25});
+  const debrisMat = stoneMat.clone(); debrisMat.color.set(0x77746f); debrisMat.flatShading = true;
   const roughen = (geo, amt, seed) => { const P = geo.attributes.position, m = new Map(), v = new V3();
     for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const key = [v.x, v.y, v.z].map(x => Math.round(x * 1e3)).join(",");
       if (!m.has(key)) m.set(key, new V3(Math.sin(v.y * 7 + seed) + (rnd() - .5), Math.sin(v.x * 5 + v.z * 3 + seed) * .5 + (rnd() - .5) * .6, Math.cos(v.z * 6 + seed) + (rnd() - .5)).multiplyScalar(amt));
       v.add(m.get(key)); P.setXYZ(i, v.x, v.y, v.z); } geo.computeVertexNormals(); return geo; };
   /* ---- socle : gros bloc de pierre brute suspendu, en deux étages irréguliers ---- */
   const rise = new THREE.Group(); scene.add(rise);
-  const pedTop = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.7, 1.8, .5, 9, 3), .08, 1), stoneMat); pedTop.position.y = -.25;
-  const pedMid = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.6, 1.45, 1.7, 8, 6), .16, 2), stoneMat); pedMid.position.y = -1.35;
-  const pedLow = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.4, .5, 1.6, 7, 5), .22, 3), stoneMat); pedLow.position.y = -2.95;
+  const pedTop = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.7, 1.8, .5, 22, 4), .07, 1), stoneMat); pedTop.position.y = -.25;
+  const pedMid = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.6, 1.45, 1.7, 20, 8), .13, 2), stoneMat); pedMid.position.y = -1.35;
+  const pedLow = new THREE.Mesh(roughen(new THREE.CylinderGeometry(1.4, .5, 1.6, 18, 7), .18, 3), stoneMat); pedLow.position.y = -2.95;
   [pedTop, pedMid, pedLow].forEach(m => { m.rotation.y = rnd() * 6; rise.add(m); });
   /* ---- le certificat : plaque fine (épaisseur visible), image sur la face avant, reflet qui glisse ---- */
   const tex = await new THREE.TextureLoader().loadAsync(im).catch(() => null); if (!alive) return; if (!tex) { close(); return; }
   tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
   const ar = tex.image.width / tex.image.height, PW = 2.8, PH = PW / ar, TH = .07;
-  const edgeM = new THREE.MeshStandardMaterial({color: 0xd9d6d0, roughness: .35, metalness: .6}), backM = new THREE.MeshStandardMaterial({color: 0x15161a, roughness: .5, metalness: .3});
-  const faceM = new THREE.MeshStandardMaterial({map: tex, roughness: .32, metalness: .05, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: .6});
-  const plate = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, TH), [edgeM, edgeM, edgeM, edgeM, faceM, backM]);
+  const TB = .3, glassM = new THREE.MeshPhysicalMaterial(low ? {color: 0xffffff, roughness: .05, transparent: true, opacity: .16, clearcoat: 1, envMapIntensity: 1.4}
+    : {color: 0xffffff, roughness: .02, transmission: 1, thickness: .9, ior: 1.49, clearcoat: 1, clearcoatRoughness: .02, specularIntensity: 1, envMapIntensity: 1.5, attenuationColor: new THREE.Color(0xeef4f2), attenuationDistance: 4});
+  const glass = new THREE.Mesh(new RoundedBoxGeometry(PW * 1.1, PH * 1.1 + .06, TB, 6, .05), glassM);
+  const printM = new THREE.MeshBasicMaterial({map: tex, toneMapped: false}), printF = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), printM); printF.position.z = TB / 2 + .002;
+  const printB = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.MeshBasicMaterial({map: tex, toneMapped: false, side: THREE.BackSide})); printB.position.z = -TB / 2 - .002; printB.material.color.setScalar(.25);
+  const plate = new THREE.Group(); plate.add(glass, printF, printB);
   const sheenU = {o: {value: -1}, k: {value: 0}};
   const sheen = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH), new THREE.ShaderMaterial({uniforms: sheenU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }",
-    fragmentShader: "uniform float o, k; varying vec2 vUv; void main(){ float x = vUv.x * .8 + vUv.y * .45; float b = exp(-pow((x - o) * 7.0, 2.0)); gl_FragColor = vec4(vec3(1., .97, .92), b * .22 * k); }"}));
-  sheen.position.z = TH / 2 + .003;
+    fragmentShader: "uniform float o, k; varying vec2 vUv; void main(){ float x = vUv.x * .8 + vUv.y * .45; float b = exp(-pow((x - o) * 6.0, 2.0)); gl_FragColor = vec4(vec3(1., .97, .92), b * .3 * k); }"}));
+  sheen.position.z = TB / 2 + .006;
   const cert = new THREE.Group(); cert.add(plate, sheen); cert.position.y = .35 + PH / 2 + .25; rise.add(cert);
   /* ---- anneaux d'orbite ambrés : tubes fins, tracés à l'ouverture ---- */
   const ringM = new THREE.MeshBasicMaterial({color: new THREE.Color(1, .72, .38).multiplyScalar(3.2), toneMapped: false});
@@ -2554,7 +2574,7 @@ async function openGlass(c){
   const rockGeos = Array.from({length: 5}, (_, k) => { const pts = []; for (let i = 0; i < 10 + k * 2; i++) pts.push(new V3((rnd() - .5) * 2, (rnd() - .5) * 2 * (k % 2 ? .55 : .9), (rnd() - .5) * 2));
     const g = new ConvexGeometry(pts); g.computeVertexNormals(); const P = g.attributes.position, uv = []; for (let i = 0; i < P.count; i++) uv.push(P.getX(i) * .5 + P.getZ(i) * .3, P.getY(i) * .5); g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2)); return g; });
   const ND = mobile || low ? 32 : 78, deb = [];
-  for (let i = 0; i < ND; i++) { const m = new THREE.Mesh(rockGeos[i % rockGeos.length], stoneMat); scene.add(m);
+  for (let i = 0; i < ND; i++) { const m = new THREE.Mesh(rockGeos[i % rockGeos.length], debrisMat); scene.add(m);
     const big = rnd() < .12; deb.push({m, a: rnd() * Math.PI * 2, r: 2.4 + rnd() * 3.4, y: -3 + rnd() * 6.2, sp: (.05 + rnd() * .09) * (rnd() < .82 ? 1 : -1), vy: (rnd() - .5) * .08,
       s: big ? .16 + rnd() * .14 : .04 + rnd() * .09, ax: new V3(rnd() - .5, rnd() - .5, rnd() - .5).normalize(), spin: (rnd() - .5) * 1.4, appear: 0, push: new V3(), ph: rnd() * 7}); m.scale.setScalar(0); }
   /* ---- rendu : bloom pour les anneaux ---- */
@@ -5089,7 +5109,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-01";
+const APP_VERSION = "2026-10-28-02";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
