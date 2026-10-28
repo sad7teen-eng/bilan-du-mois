@@ -2729,7 +2729,7 @@ async function openGlass(c0){
       g.fillStyle = `rgba(245,248,252,${.05 + rnd() * .2})`; g.beginPath(); g.ellipse(x, y, 1 + rnd() * 5, 4 + rnd() * 24, (rnd() - .5) * .4, 0, 7); g.fill(); }
     const t = new THREE.CanvasTexture(k); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy(); return {t, ar}; };
   const edgeM = new THREE.MeshBasicMaterial({color: 0xf4f6f8, toneMapped: false});
-  const certMesh = (img) => { const {t, ar} = certTex(img); const PW = Math.min(W * .8, H * .5 * ar), PH = PW / ar;
+  const texCache = new Map(); const certMesh = (img) => { if (!texCache.has(img)) texCache.set(img, certTex(img)); const {t, ar} = texCache.get(img); const PW = Math.min(W * .8, H * .5 * ar), PH = PW / ar;
     const g = new THREE.BoxGeometry(PW, PH, .16, 24, 16, 1), P = g.attributes.position;
     for (let i = 0; i < P.count; i++) { const x = P.getX(i) / (PW / 2), y = P.getY(i) / (PH / 2); P.setZ(i, P.getZ(i) - .06 * x * x - .03 * y * y); }
     g.computeVertexNormals();
@@ -2742,7 +2742,13 @@ async function openGlass(c0){
   /* le certificat doit rester entièrement dans la glace : on le réduit jusqu'à ce que tous ses coins soient à l'intérieur */
   const testMesh = new THREE.Mesh(iceGeo, new THREE.MeshBasicMaterial({side: THREE.DoubleSide})), rcF = new THREE.Raycaster();
   const fDirs = [new V3(1, .13, .07).normalize(), new V3(-.1, -1, .2).normalize(), new V3(.05, .2, -1).normalize()];
-  const insideIce = q => { let v = 0; for (const d of fDirs) { rcF.set(q, d); if (rcF.intersectObject(testMesh, false).length % 2 === 1) v++; } return v >= 2; };
+  /* carte des distances centre → surface (calculée une fois) : test « dans la glace » instantané */
+  const RB = 32, RA = 16, distMap = new Float32Array(RB * RA), cIce = new V3(0, 0, 0);
+  for (let j = 0; j < RA; j++) for (let i = 0; i < RB; i++) { const th = (j + .5) / RA * Math.PI, ph = i / RB * Math.PI * 2, d = new V3(Math.sin(th) * Math.cos(ph), Math.cos(th), Math.sin(th) * Math.sin(ph));
+    rcF.set(cIce, d); const hit = rcF.intersectObject(testMesh, false)[0]; distMap[j * RB + i] = hit ? hit.distance : 0; }
+  const insideIce = q => { const d = q.clone().sub(cIce), L = d.length(); if (L < 1e-4) return true; d.divideScalar(L);
+    const j = Math.min(RA - 1, Math.floor(Math.acos(Math.max(-1, Math.min(1, d.y))) / Math.PI * RA)), i = ((Math.round((Math.atan2(d.z, d.x) / (Math.PI * 2)) * RB) % RB) + RB) % RB;
+    let m = 1e9; for (const [dj, di] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const jj = Math.max(0, Math.min(RA - 1, j + dj)), ii = (i + di + RB) % RB; m = Math.min(m, distMap[jj * RB + ii]); } return L < m * .92; };
   const fitCert = m => { const {PW, PH} = m.userData; m.rotation.set(CR.x, CR.y, CR.z); m.position.set(0, CB.y, CB.z); let s = 1;
     for (; s > .3; s -= .04) { let ok = true;
       for (const [ax, ay] of [[1, 1], [1, -1], [-1, 1], [-1, -1], [1, 0], [-1, 0], [0, 1], [0, -1]]) { for (const az of [-.12, .12]) { const q = new V3(ax * PW / 2 * s * 1.1, ay * PH / 2 * s * 1.1, az).applyEuler(m.rotation).add(m.position); if (!insideIce(q)) { ok = false; break; } } if (!ok) break; }
@@ -2927,15 +2933,15 @@ async function openGlass(c0){
     ov.addEventListener("pointerdown", e => { if (!e.target.closest(".ig-col")) pop.hidden = true; });
     let saved = null; try { saved = localStorage.getItem("bdm-ice-color"); } catch (e) {} setIceColor(saved); }
   /* ---- défilement à la molette : le bloc descend avec la molette, s'arrête où l'on s'arrête, et le suivant arrive par le haut ---- */
-  const SCR = {t: ci, v: ci}; let shownK = ci, swapping = false, hudOn = true; const imgP = {};
+  const SCR = {t: ci, v: ci}; ov._scr = SCR; let shownK = ci, swapping = false, hudOn = true; const imgP = {};
   const getImg = k => imgP[k] || (imgP[k] = loadImg(imOf(list[k])).catch(() => null));
   const clampS = x => Math.max(-.42, Math.min(list.length - 1 + .42, x));
   const swapCert = async k => { swapping = true; const im2 = await getImg(k); swapping = false; if (!alive) return;
-    if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert); old.geometry.dispose(); old.material[4].map.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
+    if (im2) { const old = cert; cert = certMesh(im2); setDens(); inner.remove(old); inner.add(cert); old.geometry.dispose(); old.material[4].dispose(); old.material[5].dispose(); }
     ci = k; setLabels(list[k]); hudOn = false; };
   go = dir => { if (busy) return; SCR.t = clampS(Math.round(SCR.t) + dir); };
-  ov.addEventListener("wheel", e => { e.preventDefault(); if (busy) return; const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1); SCR.t = clampS(SCR.t + Math.max(-140, Math.min(140, dy)) * .0011); }, {passive: false});
-  const stepScroll = dt => { if (busy) return; SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
+  let lastWheel = 0; ov.addEventListener("wheel", e => { e.preventDefault(); if (busy) return; lastWheel = performance.now(); const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1); SCR.t = clampS(SCR.t + Math.max(-900, Math.min(900, dy)) * .0011); }, {passive: false});
+  const stepScroll = dt => { if (busy) return; if (performance.now() - lastWheel > 3000 && Math.abs(SCR.t - Math.round(SCR.t)) > .001) SCR.t = clampS(Math.max(0, Math.min(list.length - 1, Math.round(SCR.t)))); SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
     const k = Math.max(0, Math.min(list.length - 1, Math.round(SCR.v)));
     if (k !== shownK && !swapping) { shownK = k; resetCarve(); swapCert(k); for (const j of [k - 1, k + 1]) if (j >= 0 && j < list.length) getImg(j); }
     const off = SCR.v - shownK, a = Math.abs(off), tn = Math.tan(cam.fov * Math.PI / 360);
@@ -5464,7 +5470,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-28";
+const APP_VERSION = "2026-10-28-29";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
