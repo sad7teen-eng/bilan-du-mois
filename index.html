@@ -2889,11 +2889,11 @@ async function openGlass(c0){
   const lastTr = new V3(1e9, 0, 0); let hoverN = 0, lastTrT = 0, overIce = false;
   const hoverTrail = () => { if (++hoverN & 1) return; let hit = null;
     if (mouse.in && !rot.drag) { ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); hit = ray.intersectObject(iceMesh, false)[0]; }
-    if (!!hit !== overIce) { overIce = !!hit; ov.classList.toggle("ig-over", overIce); if (!overIce) ov._sfxStop && ov._sfxStop("shard"); }
+    if (!!hit !== overIce) { overIce = !!hit; ov.classList.toggle("ig-over", overIce); if (!overIce) ov._sfxStop && ov._sfxStop("shard"); else { ov._sfx && ov._sfx("shard"); lastTrT = performance.now(); } }
     { const pxW = innerHeight / (2 * Math.tan(cam.fov * Math.PI / 360) * cam.position.z); wireU.uR.value = 70 / pxW; }
     if (!hit) { wireU.uOn.value = 0; return; } wireU.uOn.value = 1; const hl = ice.worldToLocal(hit.point.clone());
     if (hl.distanceTo(lastTr) < .06) { trail[0].set(trail[0].x, trail[0].y, trail[0].z, wireU.uT.value); return; }
-    lastTr.copy(hl); { const now = performance.now(); if (now - lastTrT > 1100 && mouse.v > 120) ov._sfx && ov._sfx("shard"); lastTrT = now; }
+    lastTr.copy(hl); { const now = performance.now(); if (now - lastTrT > 1100 && mouse.v > 120) { ov._sfx && ov._sfx("shard"); lastTrT = now; } }
     for (let i = NT - 1; i > 0; i--) trail[i].copy(trail[i - 1]); trail[0].set(hl.x, hl.y, hl.z, wireU.uT.value); };
 
   cv.addEventListener("pointerdown", e => { if (busy) return; rot.drag = true; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved = 0; rot.v = 0; try { cv.setPointerCapture(e.pointerId); } catch (er) {} ov.classList.add("grab"); });
@@ -5488,7 +5488,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-36";
+const APP_VERSION = "2026-10-28-37";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
