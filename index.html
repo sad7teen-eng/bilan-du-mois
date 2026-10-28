@@ -2809,6 +2809,22 @@ async function openGlass(c0){
   let ty = null, tx0 = 0; ov.addEventListener("touchstart", e => { ty = e.touches[0].clientY; tx0 = e.touches[0].clientX; }, {passive: true});
   ov.addEventListener("touchend", e => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY, dx = Math.abs(tx0 - e.changedTouches[0].clientX); ty = null; if (Math.abs(d) > 70 && dx < Math.abs(d) * .5) go(d > 0 ? 1 : -1); });
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), vT = new V3();
+  /* ---- au survol : un maillage lumineux (triangles + points) apparaît sous la souris et laisse une traînée qui s'efface ---- */
+  const NT = 28, trail = Array.from({length: NT}, () => new THREE.Vector4(0, 0, 0, -99)); let trailI = 0;
+  const wireU = {trail: {value: trail}, uT: {value: 0}, pr: {value: renderer.getPixelRatio()}};
+  const wireFn = "uniform vec4 trail[" + NT + "]; uniform float uT; float glowAt(vec3 p){ float g = 0.; for (int i = 0; i < " + NT + "; i++) { vec4 T = trail[i]; float age = uT - T.w; if (age > 1.6) continue; g = max(g, (1. - smoothstep(.15, 1.6, age)) * smoothstep(.55, .1, distance(p, T.xyz))); } return g; }\n";
+  const wire = new THREE.LineSegments(new THREE.WireframeGeometry(iceGeo), new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: wireFn + "varying float vG; void main(){ vG = glowAt(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.004, 1.0); }",
+    fragmentShader: "varying float vG; void main(){ if (vG < .01) discard; gl_FragColor = vec4(vec3(.92, .96, 1.), vG * .42); }"}));
+  const wdots = new THREE.Points(iceGeo, new THREE.ShaderMaterial({uniforms: wireU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: wireFn + "uniform float pr; varying float vG; void main(){ vG = glowAt(position); gl_PointSize = (1.5 + vG * 2.) * pr; gl_Position = projectionMatrix * modelViewMatrix * vec4(position * 1.005, 1.0); }",
+    fragmentShader: "varying float vG; void main(){ if (vG < .02) discard; vec2 d = gl_PointCoord - .5; gl_FragColor = vec4(1., 1., 1., vG * smoothstep(.5, .1, length(d))); }"}));
+  wire.renderOrder = 3; wdots.renderOrder = 4; if (!(mobile && low)) ice.add(wire, wdots);
+  const lastTr = new V3(1e9, 0, 0); let hoverN = 0;
+  const hoverTrail = () => { if (!mouse.in || ++hoverN % 2) return; ndc.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+    const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit) return; const hl = ice.worldToLocal(hit.point.clone()); if (hl.distanceTo(lastTr) < .14) return;
+    lastTr.copy(hl); trail[trailI % NT].set(hl.x, hl.y, hl.z, wireU.uT.value); trailI++; };
+
   cv.addEventListener("pointerdown", e => { if (busy) return; rot.drag = true; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved = 0; rot.v = 0; try { cv.setPointerCapture(e.pointerId); } catch (er) {} ov.classList.add("grab"); });
   cv.addEventListener("pointermove", e => { if (!rot.drag) return; const dx = e.clientX - rot.lx, dy = e.clientY - rot.ly; rot.lx = e.clientX; rot.ly = e.clientY; rot.moved += Math.abs(dx) + Math.abs(dy);
     rot.yaw += dx * .009; rot.v = dx * .009; rot.pitch = Math.max(-.6, Math.min(.6, rot.pitch + dy * .005)); rot.idle = 0; });
@@ -2870,7 +2886,7 @@ async function openGlass(c0){
     bgU.t.value = t; bgU.mx.value.set(mouse.sx, -mouse.sy); ptU.t.value = t;
     if (!rot.drag) { rot.yaw += rot.v; rot.v *= Math.pow(.92, dt * 60); rot.idle += dt; rot.pitch *= 1 - Math.min(1, dt * .7); }
     rot.yaw += dt * .22 * Math.min(1, Math.max(0, (rot.idle - 1.2) / 1.5));
-    S.kick *= Math.pow(.86, dt * 60); stepCarve(dt);
+    S.kick *= Math.pow(.86, dt * 60); stepCarve(dt); wireU.uT.value = t; if (!busy) hoverTrail();
     ice.position.y = Math.sin(t * .55) * .09 + S.drop; ice.position.x = mouse.sx * .1 + Math.sin(t * 60) * .025 * S.kick;
     ice.rotation.y = rot.yaw + S.spin + (rot.drag ? 0 : mouse.sx * .2); ice.rotation.x = rot.pitch + Math.sin(t * .19) * .04 + mouse.sy * .1; ice.rotation.z = -.1;
     /* lisibilité : plus la souris est proche, plus la glace s'éclaircit et le certificat avance */
@@ -5372,7 +5388,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-28-15";
+const APP_VERSION = "2026-10-28-16";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
