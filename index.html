@@ -1116,6 +1116,31 @@ html body .brbtn{background:#0b0b0c!important;color:#fff!important;border-color:
 .brinfo ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.brinfo li{font-size:12.5px;padding:5px 8px;border-radius:7px;background:color-mix(in srgb,currentColor 6%,transparent)}
 .brinfo .r,.brinfo li.r{color:#e5484d}
 .brz footer{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;opacity:.5;pointer-events:none;padding:0 16px}
+/* ---------- Cerveau 3D ---------- */
+.s-b3{grid-column:span 6;padding:0!important;overflow:hidden;position:relative}
+.b3{position:relative;height:max(560px,calc(100vh - 230px));width:100%;overflow:hidden;border-radius:inherit;user-select:none}
+.b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
+.b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.b3lab{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--fg);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);padding:2px 6px;border-radius:5px;cursor:pointer;transition:opacity .25s;will-change:transform}
+.b3lab.hub{font-weight:700;letter-spacing:.16em;padding:4px 9px;border:1px solid color-mix(in srgb,var(--fg) 25%,transparent);background:color-mix(in srgb,var(--bg,#fff) 82%,transparent)}
+.b3lab.hub:hover{background:var(--fg);color:var(--bg,#fff)}
+.b3lab.core{font-size:15px;font-weight:700;letter-spacing:.02em;background:none;pointer-events:none}
+.b3lab.r{color:var(--loss)}.b3lab.tr{font-size:9px}
+.b3read{position:absolute;left:0;top:0;font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;transition:opacity .3s;pointer-events:none}
+.b3hud{position:absolute;left:18px;top:16px;pointer-events:none}.b3hud small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted)}
+.b3hud small::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--loss);margin-right:7px;animation:sBlink 1s steps(2) infinite}
+.b3t{display:block;font-size:26px;letter-spacing:-.02em;margin-top:2px}.b3k{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.b3nav{position:absolute;left:12px;right:12px;bottom:14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.b3nav button{font:inherit;font-size:12px;padding:7px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fg) 18%,transparent);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);color:var(--fg);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.b3nav button.on{background:var(--fg)!important;color:var(--bg,#fff)!important;border-color:var(--fg)!important}
+.b3info{position:absolute;top:16px;right:16px;width:min(280px,calc(100% - 32px));max-height:calc(100% - 90px);overflow:auto;padding:14px 16px;border-radius:16px;border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);background:color-mix(in srgb,var(--bg,#fff) 85%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(16,18,24,.12)}
+.b3info small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--muted);margin-top:8px}.b3info h3{margin:4px 0 8px;font-size:16px}.b3info p{margin:4px 0;font-size:13px}
+.b3info ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.b3info li{font-size:12px;padding:5px 8px;border-radius:7px;background:color-mix(in srgb,var(--fg) 5%,transparent)}
+.b3info .r{color:var(--loss)}.b3x{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:var(--fg);cursor:pointer;font:inherit}
+.b3tip{position:absolute;right:16px;top:70px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);pointer-events:none;max-width:220px;text-align:right}
+.s-none{grid-column:span 6;align-items:center;text-align:center;padding:60px 20px!important;gap:14px!important}
+.s-none h2{margin:0;font-size:24px;letter-spacing:-.02em}.s-none p{margin:0;color:var(--muted);max-width:440px}
+@media (max-width:760px){.b3{height:max(480px,calc(100vh - 260px))}.b3tip{display:none}.b3t{font-size:20px}}
 .rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sring .sviz{height:110px}
 .stxt{margin:6px 0 0;white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.5}
 @media (max-width:760px){.sg2 .s-tf2,.sg2 .s-bias,.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 6}.rings{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -4844,9 +4869,13 @@ function renderStrat(){ stratKaelRestore();
   const head = `<header class="top vhead"><div><h1>Stratégie</h1></div>
       <div class="tools"><button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
     <div class="sbar">${L.map(x => x.id === act && stratRen ? `<input class="sren" id="sRen" value="${esc(x.name)}" maxlength="28">` : `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}">${esc(x.name)}${x.id === act ? ` <i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle</button></div>`;
-  if (C.empty) {
-    $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile scard s-empty"><span class="lab2">Pas encore de stratégie</span>
-      <p class="stxt">Pas de souci. Tradez normalement : cette page montre déjà ce que révèle votre journal. Quand vous serez prêt, touchez « Décrire ma stratégie ».</p></section>${stratReal(null)}</div>`;
+  if (C.empty || !C.steps.length) {
+    $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
+      <p>Expliquez comment vous tradez, en quelques phrases ou à la voix. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
+    $("stratDescB2").onclick = () => openStratDescribe();
+  } else if (window.__stratClassic !== true) {
+    $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-b3"><div class="b3" id="b3"></div></section></div>`;
+    mountBrain3($("b3"), C);
   } else {
     const tfs = C.tfs, ex = tfs.length ? tfs[tfs.length - 1].tf : "";
     const tfMode = tfs.length < 2 ? "" : (C.bias === "none" || C.misalign === "none") ? "zoom" : "align";
@@ -5420,6 +5449,140 @@ function openStratBrain(){
   const close = () => { run = false; ov.remove(); document.body.style.overflow = ""; removeEventListener("resize", size); };
   ov.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; if (b.classList.contains("brx")) return close(); const z = +b.dataset.z; if (z) zoomAt(z, innerWidth / 2, innerHeight / 2); else { cam = stratBrainFit(B, innerWidth * .9, innerHeight * .78); show(null); } });
   addEventListener("keydown", function k(e){ if (!document.body.contains(ov)) return removeEventListener("keydown", k); if (e.key === "Escape") close(); });
+}
+/* ===== Cerveau 3D de la stratégie : mindmap vivante, on tourne, on zoome dans chaque famille ===== */
+let brain3 = null;
+async function mountBrain3(host, C){
+  if (brain3) { brain3.destroy(); brain3 = null; }
+  let THREE; try { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); } catch (e) { THREE = null; }
+  if (!host.isConnected) return;
+  const cs = getComputedStyle(host), FG = cs.getPropertyValue("--fg").trim() || "#0b0b0c", MU = cs.getPropertyValue("--muted").trim() || "#8b8b8b", LS = cs.getPropertyValue("--loss").trim() || "#e5484d", MONO = cs.getPropertyValue("--mono");
+  const F = stratBrainData(C), nF = F.length; let sd = 3; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647, gs = () => { let u = 0; for (let k = 0; k < 4; k++) u += rnd(); return (u - 2) / 2; };
+  host.innerHTML = `<canvas class="b3c"></canvas><div class="b3l"></div>
+    <div class="b3hud"><div><small>CERVEAU · CALCUL EN DIRECT</small><b class="b3t">${esc(C.market === "_" ? (C.marketOther || "Stratégie") : C.market)}</b><span class="b3k">0 combinaisons testées</span></div></div>
+    <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
+    <aside class="b3info" hidden></aside><div class="b3tip">Glisser pour tourner · molette / pincer pour zoomer · cliquer une famille pour entrer dedans</div>`;
+  const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k");
+  if (!THREE) { host.querySelector(".b3tip").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { host.querySelector(".b3tip").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); ren.setClearColor(0, 0);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 1, 1, 6000), root = new THREE.Group(); scene.add(root);
+  const col = c => new THREE.Color(c), cFG = col(FG), cMU = col(MU), cLS = col(LS);
+  const dotTex = (() => { const k = document.createElement("canvas"); k.width = k.height = 64; const x = k.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.55, "rgba(255,255,255,1)"); gr.addColorStop(.7, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(k); })();
+  const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .15, sizeAttenuation: false, transparent: true, depthWrite: false}, o));
+  /* ---- placement : familles sur une sphère, éléments autour, nuages de points ---- */
+  const R = 320, hubs = [], items = [], clouds = [];
+  F.forEach((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, hp = new THREE.Vector3(Math.cos(th) * rr * R, y * R * .62, Math.sin(th) * rr * R);
+    const hub = {f, i, p: hp, l: f.label, kind: "hub"}; hubs.push(hub); f.hub3 = hub; f.items3 = [];
+    const m = f.items.length, dense = m > 14;
+    f.items.forEach((it, k) => { let p; if (f.key === "seq") { const a = (k / Math.max(1, m - 1) - .5) * Math.PI * 1.4; p = hp.clone().add(new THREE.Vector3(Math.cos(a + th) * 105, (k / Math.max(1, m - 1) - .5) * 120, Math.sin(a + th) * 105)); }
+      else { const yy = 1 - (k + .5) / m * 2, r2 = Math.sqrt(1 - yy * yy), t2 = k * 2.39996, rad = dense ? 70 + rnd() * 30 : 95; p = hp.clone().add(new THREE.Vector3(Math.cos(t2) * r2 * rad, yy * rad * .8, Math.sin(t2) * r2 * rad)); }
+      const nd = Object.assign({f, i: k, p, kind: "item", hub}, it); items.push(nd); f.items3.push(nd); });
+    const n = f.key === "trades" ? 420 : 560 + m * 30, pts = []; for (let k = 0; k < n; k++) pts.push(new THREE.Vector3(hp.x + gs() * 70, hp.y + gs() * 60, hp.z + gs() * 70)); clouds.push({f, pts}); });
+  const core = {p: new THREE.Vector3(), l: C.market === "_" ? (C.marketOther || "Stratégie") : C.market, kind: "core"};
+  /* ---- liens (même logique que la carte 2D) ---- */
+  const links = [], L = (a, b, k) => links.push({a, b, k}); hubs.forEach(h => L(core, h, "core")); items.forEach(n => L(n.hub, n, "branch"));
+  const by = k => (F.find(f => f.key === k) || {items3: []}).items3, seq = by("seq"); seq.forEach((x, i) => { if (seq[i + 1]) L(x, seq[i + 1], "flow"); });
+  by("ut").forEach(u => seq.forEach(s => { if (s.l.includes(u.tf)) L(u, s, "cross"); })); by("zones").forEach(z => seq.forEach(s => { if (["zone", "mark", "rebound"].includes(s.step)) L(z, s, "cross"); }));
+  by("bias").forEach(b => seq.forEach(s => { if (s.step === "bias") L(b, s, "cross"); })); const tps = by("gest").filter(x => x.tp), sls = by("gest").filter(x => x.sl), ses = by("rules").filter(x => x.ses);
+  by("gest").forEach(gn => seq.forEach(s => { if ((gn.sl || gn.tp) && (s.step === "manage" || s.step === "entry")) L(gn, s, "cross"); }));
+  by("trades").forEach(tn => { const s = ses.find(x => x.ses === tn.ses); if (s) L(s, tn, "cross"); const o = tn.win ? tps[0] : sls[0]; if (o) L(o, tn, "cross"); });
+  /* ---- géométries ---- */
+  const curve = (a, b, off) => { const mid = a.clone().add(b).multiplyScalar(.5); mid.add(mid.clone().normalize().multiplyScalar(30 + off.length() * .3)).add(off); return new THREE.QuadraticBezierCurve3(a, mid, b); };
+  const strands = {core: [], branch: [], flow: [], cross: []}, curves = [];
+  links.forEach(l => { const n = l.k === "core" ? 22 : l.k === "flow" ? 10 : l.k === "branch" ? 4 : 6, bad = (l.a.bad || l.b.bad) && l.k !== "core"; l.cv = [];
+    for (let s = 0; s < n; s++) { const off = new THREE.Vector3(gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18)), c = curve(l.a.p, l.b.p, off), P = c.getPoints(l.k === "branch" ? 8 : 22); l.cv.push(P); curves.push({P, bad, l}); strands[l.k].push({P, bad}); } });
+  const lineSeg = (list, op) => { const pos = [], colr = []; list.forEach(({P, bad}) => { const c = bad ? cLS : cFG; for (let k = 0; k < P.length - 1; k++) { pos.push(P[k].x, P[k].y, P[k].z, P[k + 1].x, P[k + 1].y, P[k + 1].z); colr.push(c.r, c.g, c.b, c.r, c.g, c.b); } });
+    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3));
+    const o = new THREE.LineSegments(g, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: op, depthWrite: false})); root.add(o); return o; };
+  const lCore = lineSeg(strands.core, .16), lBr = lineSeg(strands.branch, .22), lFlow = lineSeg(strands.flow, .4), lCross = lineSeg(strands.cross, .1);
+  /* nuages : points + réseau interne */
+  const cloudPos = [], cloudBase = [], cloudPh = []; clouds.forEach(c => c.pts.forEach(p => { cloudBase.push(p.clone()); cloudPos.push(p.x, p.y, p.z); cloudPh.push(rnd() * 6.28); }));
+  const cg = new THREE.BufferGeometry(); cg.setAttribute("position", new THREE.Float32BufferAttribute(cloudPos, 3));
+  const cloudPts = new THREE.Points(cg, PM({color: cFG, size: 2.2, opacity: .6})); root.add(cloudPts);
+  const edges = []; let off0 = 0; clouds.forEach(c => { const n = c.pts.length; for (let k = 0; k < n; k++) { if (rnd() > .55) continue; let b1 = -1, b2 = -1, d1 = 1e9, d2 = 1e9; for (let j = 0; j < 40; j++) { const q = Math.floor(rnd() * n); if (q === k) continue; const d = c.pts[k].distanceToSquared(c.pts[q]); if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = q; } else if (d < d2) { d2 = d; b2 = q; } } if (b1 >= 0) edges.push([off0 + k, off0 + b1]); if (b2 >= 0) edges.push([off0 + k, off0 + b2]); } off0 += n; });
+  const eg = new THREE.BufferGeometry(), ePos = new Float32Array(edges.length * 6); eg.setAttribute("position", new THREE.BufferAttribute(ePos, 3));
+  const edgeLines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .13, depthWrite: false})); root.add(edgeLines);
+  const AE = 700, ag = new THREE.BufferGeometry(), aPos = new Float32Array(AE * 6); ag.setAttribute("position", new THREE.BufferAttribute(aPos, 3));
+  const activeLines = new THREE.LineSegments(ag, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .55, depthWrite: false})); root.add(activeLines);
+  /* noeuds : centre, familles, éléments, satellites de calcul */
+  const mkPts = (arr, size, op) => { const g = new THREE.BufferGeometry(), pos = [], colr = []; arr.forEach(n => { pos.push(n.p.x, n.p.y, n.p.z); const c = n.bad ? cLS : n.fam === "trades" || (n.f && n.f.key === "trades" && !n.win) ? (n.win ? cFG : cMU) : cFG; colr.push(c.r, c.g, c.b); });
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3)); const o = new THREE.Points(g, PM({vertexColors: true, size, opacity: op})); root.add(o); return o; };
+  mkPts([core], 22, 1); mkPts(hubs, 15, 1); mkPts(items, 9, .95);
+  const SAT = 14, sg = new THREE.BufferGeometry(), sPos = new Float32Array(items.length * SAT * 3); sg.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
+  const sats = new THREE.Points(sg, PM({color: cFG, size: 2.6, opacity: .75})); root.add(sats);
+  const coreN = 900, cgc = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 10 + Math.pow(rnd(), .6) * 46, .2 + rnd() * .8]);
+  cgc.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); const corePts = new THREE.Points(cgc, PM({color: cFG, size: 2.2, opacity: .8})); root.add(corePts);
+  /* impulsions + trades testés */
+  const PN = 700, pg = new THREE.BufferGeometry(), pPos = new Float32Array(PN * 3), pCol = new Float32Array(PN * 3); pg.setAttribute("position", new THREE.BufferAttribute(pPos, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
+  const pulsePts = new THREE.Points(pg, PM({vertexColors: true, size: 3.6, opacity: .95})); root.add(pulsePts);
+  const pulses = Array.from({length: PN}, () => ({c: curves[Math.floor(rnd() * curves.length)], u: rnd(), v: .004 + rnd() * .012}));
+  const TN = 900, tg = new THREE.BufferGeometry(), tPos = new Float32Array(TN * 6), tCol = new Float32Array(TN * 6); tg.setAttribute("position", new THREE.BufferAttribute(tPos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tCol, 3));
+  const testLines = new THREE.LineSegments(tg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: .9, depthWrite: false})); root.add(testLines);
+  const tests = []; let nextTest = 0, combos = 0;
+  /* ---- étiquettes HTML ---- */
+  const labs = []; const addLab = (n, cls) => { const d = document.createElement("div"); d.className = "b3lab " + cls + (n.bad ? " r" : ""); d.textContent = n.kind === "hub" ? n.l.toUpperCase() : n.l; labL.appendChild(d); labs.push({n, d}); n.el = d; return d; };
+  addLab(core, "core"); hubs.forEach(h => { addLab(h, "hub").onclick = () => focus(h.i); }); items.forEach(n => { const d = addLab(n, "item" + (n.f.key === "trades" ? " tr" : "")); d.onclick = () => show(n); });
+  const READ = 9, reads = Array.from({length: READ}, () => { const d = document.createElement("div"); d.className = "b3read"; labL.appendChild(d); return {d, p: new THREE.Vector3()}; });
+  /* ---- caméra orbitale maison ---- */
+  const st = {th: .6, ph: 1.15, dist: 1050, tgt: new THREE.Vector3(), th0: .6, ph0: 1.15, dist0: 1050, tgt0: new THREE.Vector3()}; let focusI = -1, idle = 0, drag = null; const ptrs = new Map();
+  const focus = i => { focusI = i; host.querySelectorAll(".b3nav button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.tgt0.set(0, 0, 0); st.dist0 = 1050; info.hidden = true; } else { st.tgt0.copy(hubs[i].p); st.dist0 = 290; } };
+  host.querySelector(".b3nav").onclick = e => { const b = e.target.closest("button"); if (b) focus(+b.dataset.f); };
+  const size = () => { const w = host.clientWidth, h = host.clientHeight; ren.setSize(w, h, false); cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }; size(); const ro = new ResizeObserver(size); ro.observe(host);
+  cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); drag = {x: e.clientX, y: e.clientY, moved: false}; idle = 0; });
+  cv.addEventListener("pointermove", e => { if (!ptrs.has(e.pointerId)) return; const pr = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(120, Math.min(2200, st.dist0 * d1 / d2)); drag.moved = true; return; }
+    st.th0 -= (e.clientX - pr[0]) * .006; st.ph0 = Math.max(.25, Math.min(2.9, st.ph0 - (e.clientY - pr[1]) * .006)); if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; });
+  cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); if (drag && !drag.moved) { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; let best = null, bd = 18; [...hubs, ...items].forEach(n => { if (!n.sp || n.sp[2] > 1) return; const d = Math.hypot(n.sp[0] - x, n.sp[1] - y); if (d < bd) { bd = d; best = n; } }); if (best) best.kind === "hub" ? focus(best.i) : show(best); } drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0; st.dist0 = Math.max(120, Math.min(2200, st.dist0 * (e.deltaY > 0 ? 1.12 : 1 / 1.12))); }, {passive: false});
+  cv.addEventListener("dblclick", () => focus(-1));
+  const show = n => { const all = allTrades(); let extra = ""; if (n.ses) { const ts = all.filter(t => t.time && sessionOf(t) === n.ses), wn = ts.filter(t => t.pnl > 0).length; extra = `<p><b>${ts.length}</b> trade${pl(ts.length)} · <b>${ts.length ? Math.round(wn / ts.length * 100) : 0} %</b> de réussite</p>`; }
+    if (n.t) extra = `<p>${esc(n.t.time || "")} · ${esc(n.ses || "")}</p><p><b class="${n.win ? "" : "r"}">${n.win ? "Gagnant" : "Perdant"}</b> · ${esc(money(n.t.pnl))}</p>${n.v && n.v.length ? `<p class="r">Hors stratégie : ${esc(n.v.join(", "))}</p>` : "<p>Conforme à la stratégie</p>"}`;
+    const lk = [...new Set(links.filter(l => l.a === n || l.b === n).map(l => l.a === n ? l.b : l.a))].filter(x => x !== core && x.kind !== "hub");
+    info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.f ? n.f.label : "")}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}${lk.length ? `<small>RELIÉ À</small><ul>${lk.slice(0, 12).map(x => `<li class="${x.bad ? "r" : ""}">${esc(x.l)}</li>`).join("")}</ul>` : ""}`;
+    info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; if (n.f) focus(n.f.hub3.i); };
+  /* ---- boucle ---- */
+  const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0;
+  const RDF = {ut: ["H4 ▲", "H1 ▲", "M15 ▼", "align 0.82", "Δ UT 2"], bias: ["HH", "HL", "p(▲) 0.71", "structure +1", "BOS ✓"], zones: ["OB 0.62", "Fibo 50 %", "FVG", "liq ×3", "zone ✓"], seq: ["shift ✓", "corps ✓", "retest", "étape 4/7", "délai 12 min"],
+    gest: ["RR 2.8", "SL 1R", "TP1 ✓", "BE", "risque 1 %"], rules: ["session ✓", "news ✗", "max 1", "nuit ✗", "OK"], trades: ["+2.4R", "−1R", "+3.1R", "réussite 74 %", "n 13"]};
+  const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected) { destroy(); return; } if (document.hidden || host.closest("[hidden]")) return;
+    const t = (now - t0) / 1000; fr++; idle += 1 / 60; if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
+    st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * .07; st.tgt.lerp(st.tgt0, .07);
+    cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt);
+    /* nuages qui respirent */
+    const cp = cg.attributes.position.array; for (let k = 0; k < cloudBase.length; k++) { const b = cloudBase[k], ph = cloudPh[k]; cp[k * 3] = b.x + Math.sin(t * .8 + ph) * 3; cp[k * 3 + 1] = b.y + Math.cos(t * .7 + ph * 1.3) * 3; cp[k * 3 + 2] = b.z + Math.sin(t * .6 + ph * .7) * 3; } cg.attributes.position.needsUpdate = true;
+    for (let k = 0; k < edges.length; k++) { const [a, b] = edges[k]; ePos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } eg.attributes.position.needsUpdate = true;
+    /* calcul en direct : des liaisons s'allument dans les nuages */
+    if (fr % 4 === 0) { for (let k = 0; k < AE; k++) { const e = edges[Math.floor(Math.random() * edges.length)], [a, b] = e; aPos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } ag.attributes.position.needsUpdate = true; combos += 40 + Math.floor(Math.random() * 60); }
+    activeLines.material.opacity = .25 + .3 * Math.abs(Math.sin(t * 3));
+    /* noyau en orbite */
+    for (let k = 0; k < coreN; k++) { const [a, b, r, s] = cSeed[k], aa = a + t * s * (k % 2 ? 1 : -1) * .6, rr = r * (1 + .08 * Math.sin(t * 2 + k)); cPos[k * 3] = Math.sin(b) * Math.cos(aa) * rr; cPos[k * 3 + 1] = Math.cos(b) * rr * .9; cPos[k * 3 + 2] = Math.sin(b) * Math.sin(aa) * rr; } cgc.attributes.position.needsUpdate = true;
+    /* satellites autour de chaque élément */
+    items.forEach((n, i) => { for (let s = 0; s < SAT; s++) { const a = t * (.8 + s * .09) + s * 1.7 + i, b = s * .9 + t * .3, r = 9 + (s % 4) * 4; const o = (i * SAT + s) * 3; sPos[o] = n.p.x + Math.cos(a) * Math.sin(b) * r; sPos[o + 1] = n.p.y + Math.cos(b) * r; sPos[o + 2] = n.p.z + Math.sin(a) * Math.sin(b) * r; } }); sg.attributes.position.needsUpdate = true;
+    /* impulsions */
+    pulses.forEach((pu, k) => { pu.u += pu.v; if (pu.u >= 1) { pu.c = curves[Math.floor(Math.random() * curves.length)]; pu.u = 0; } const P = pu.c.P, f = pu.u * (P.length - 1), i0 = Math.floor(f), e = f - i0, a = P[i0], b = P[Math.min(P.length - 1, i0 + 1)];
+      pPos[k * 3] = a.x + (b.x - a.x) * e; pPos[k * 3 + 1] = a.y + (b.y - a.y) * e; pPos[k * 3 + 2] = a.z + (b.z - a.z) * e; const c = pu.c.bad ? cLS : cFG; pCol[k * 3] = c.r; pCol[k * 3 + 1] = c.g; pCol[k * 3 + 2] = c.b; });
+    pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
+    /* trades testés : un trait parcourt le déroulé jusqu'au TP… ou s'arrête en rouge */
+    if (seq.length && t > nextTest) { nextTest = t + .45 + Math.random() * .5; const win = Math.random() < .68, stop = win ? seq.length : 1 + Math.floor(Math.random() * Math.max(1, seq.length - 1)), path = [core.p, ...seq.slice(0, stop).map(x => x.p)], end = (win ? tps[0] : sls[0]); if (end) path.push(end.p); tests.push({t0: t, path, win: win && stop >= seq.length}); combos += 1; }
+    while (tests.length && t - tests[0].t0 > 5) tests.shift(); let ti = 0;
+    tests.forEach(ts => { const prog = (t - ts.t0) * 3; for (let k = 0; k < ts.path.length - 1 && ti < TN; k++) { const u = prog - k; if (u <= 0) break; const a = ts.path[k], b = ts.path[k + 1], e = Math.min(1, u), fade = Math.max(0, 1 - (prog - k - 1) / 4), last = k === ts.path.length - 2, c = last && !ts.win ? cLS : cFG;
+      tPos.set([a.x, a.y, a.z, a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, a.z + (b.z - a.z) * e], ti * 6); tCol.set([c.r * fade + (1 - fade), c.g * fade + (1 - fade), c.b * fade + (1 - fade), c.r, c.g, c.b], ti * 6); ti++; } });
+    for (let k = ti; k < TN; k++) tPos.fill(0, k * 6, k * 6 + 6); tg.attributes.position.needsUpdate = true; tg.attributes.color.needsUpdate = true; tg.setDrawRange(0, ti * 2);
+    ren.render(scene, cam);
+    /* étiquettes projetées */
+    const w = host.clientWidth, h = host.clientHeight;
+    const proj = p => { v3.copy(p).applyMatrix4(root.matrixWorld).project(cam); return [(v3.x + 1) / 2 * w, (1 - v3.y) / 2 * h, v3.z]; };
+    labs.forEach(({n, d}) => { const sp = proj(n.p); n.sp = sp; const dc = cam.position.distanceTo(n.p), near = n.kind !== "item" || (focusI >= 0 && n.f && n.f.hub3.i === focusI) || dc < 380;
+      if (sp[2] > 1 || !near || (n.f && n.f.key === "trades" && dc > 300)) { d.style.opacity = 0; d.style.pointerEvents = "none"; return; }
+      d.style.opacity = n.kind === "item" ? Math.min(1, (520 - dc) / 200) : 1; d.style.pointerEvents = "auto"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "-50%" : "8px"})`; });
+    hubs.forEach(hb => { if (hb.sp) hb.el.style.fontSize = (10 + Math.max(0, (900 - cam.position.distanceTo(hb.p)) / 90)) + "px"; });
+    if (focusI >= 0 && t - lastRead > .35) { lastRead = t; const f = F[focusI], pool = RDF[f.key] || ["calc"], cl = clouds[focusI].pts; reads.forEach(r => { r.p.copy(cl[Math.floor(Math.random() * cl.length)]); const base = pool[Math.floor(Math.random() * pool.length)]; r.d.textContent = base + "  " + (Math.random() * 9.99).toFixed(2); r.on = 1; }); }
+    reads.forEach(r => { if (focusI < 0) { r.d.style.opacity = 0; return; } const sp = proj(r.p); r.d.style.opacity = sp[2] > 1 ? 0 : .75; r.d.style.transform = `translate(${sp[0]}px,${sp[1]}px)`; });
+    if (fr % 6 === 0) kTxt.textContent = combos.toLocaleString("fr-FR") + " combinaisons testées"; };
+  requestAnimationFrame(loop);
+  const destroy = () => { run = false; ro.disconnect(); ren.dispose(); scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); if (brain3 && brain3.host === host) brain3 = null; };
+  brain3 = {host, destroy};
 }
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
 const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + des repères à partir des étapes */
@@ -6698,7 +6861,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-57";
+const APP_VERSION = "2026-10-29-58";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
