@@ -934,6 +934,12 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .cz-get{margin-top:8px;padding:10px 14px!important;border-radius:10px!important;background:#f2f2f2!important;color:#0b0b0d!important;border:0!important;font:inherit;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}.cz-get.busy{opacity:.5}
 .cz-x{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:18px;width:42px;height:42px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid rgba(255,255,255,.35)!important;cursor:pointer}
 .cz.out{background:rgba(0,0,0,0)!important;backdrop-filter:none!important}.cz.out .cz-fig,.cz.out .cz-side{opacity:0;transition:opacity .3s}
+/* boutons du zoom : même style que les onglets du haut (verre clair, texte simple) */
+.cz-btn,.cz-get{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500}
+.cz-btn{padding:11px 16px!important;border-radius:11px!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.35)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(20,25,35,.3);transition:background .25s,border-color .25s,transform .28s cubic-bezier(.2,.8,.2,1)}
+.cz-btn:hover{background:rgba(255,255,255,.24)!important;border-color:rgba(255,255,255,.55)!important;transform:scale(1.03)}
+.cz-get{padding:10px 14px!important;border-radius:10px!important;background:rgba(255,255,255,.9)!important;color:#111!important}
+.cz-prev{border-radius:11px;border-color:rgba(255,255,255,.35)}.cz-prev small{font-family:var(--display);letter-spacing:.04em;text-transform:none}
 @media (max-width:760px){.cz-row{flex-direction:column}.cz-side{flex:none;width:100%}}
 /* barre du haut sur le fond gris de la page Certificats : textes clairs et lisibles, onglet actif en verre */
 body.incerts.certbg .topnav .tn{color:rgba(255,255,255,.82)!important;text-shadow:0 1px 6px rgba(20,25,35,.35)}
@@ -2605,7 +2611,7 @@ function openCertZoom(c){
     <div class="cz-row"><figure class="cz-fig"><img alt="Certificat ${esc(c.firm || "")}" src="${im}"></figure>
       <div class="cz-side">
         <div class="cz-dd open"><button type="button" class="cz-btn cz-dlb" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span><svg class="cz-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
-          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>APERÇU</small></div><button type="button" class="cz-get">Télécharger</button></div></div></div>
+          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div><button type="button" class="cz-get">Télécharger</button></div></div></div>
         <button type="button" class="cz-btn cz-go"><i></i><span>Lancer l'animation</span></button>
       </div></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
@@ -5723,7 +5729,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-23";
+const APP_VERSION = "2026-10-29-24";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
