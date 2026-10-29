@@ -4267,7 +4267,7 @@ function applyTheme(light){
 }
 let startLight = true; try { startLight = localStorage.getItem(THEME_KEY) !== "dark"; } catch(e) {}
 applyTheme(startLight);
-$("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("light"));
+$("btnTheme").onclick = () => { applyTheme(!document.body.classList.contains("light")); if (document.body.classList.contains("instrat") && document.getElementById("b3fix")) renderStrat(); };
 
 /* ---------- Menu ordinateur ---------- */
 document.querySelector(".side").addEventListener("click", e => {
@@ -7025,7 +7025,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-74";
+const APP_VERSION = "2026-10-29-75";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
