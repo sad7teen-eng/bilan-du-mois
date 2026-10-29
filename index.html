@@ -1117,8 +1117,9 @@ html body .brbtn{background:#0b0b0c!important;color:#fff!important;border-color:
 .brinfo .r,.brinfo li.r{color:#e5484d}
 .brz footer{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;opacity:.5;pointer-events:none;padding:0 16px}
 /* ---------- Cerveau 3D ---------- */
-.s-b3{grid-column:span 6;padding:0!important;overflow:hidden;position:relative}
-.b3{position:relative;height:max(560px,calc(100vh - 230px));width:100%;overflow:hidden;border-radius:inherit;user-select:none}
+html body .tile.s-b3,html body.light .tile.s-b3{grid-column:span 6;padding:0!important;overflow:visible;position:relative;background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!important;box-shadow:none!important}
+.b3{position:relative;height:max(600px,calc(100vh - 200px));width:100%;overflow:hidden;user-select:none;-webkit-mask-image:radial-gradient(120% 100% at 50% 50%,#000 70%,transparent 100%);mask-image:radial-gradient(120% 100% at 50% 50%,#000 70%,transparent 100%)}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
 .b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .b3lab{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--fg);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);padding:2px 6px;border-radius:5px;cursor:pointer;transition:opacity .25s;will-change:transform}
@@ -1127,9 +1128,9 @@ html body .brbtn{background:#0b0b0c!important;color:#fff!important;border-color:
 .b3lab.core{font-size:15px;font-weight:700;letter-spacing:.02em;background:none;pointer-events:none}
 .b3lab.r{color:var(--loss)}.b3lab.tr{font-size:9px}
 .b3read{position:absolute;left:0;top:0;font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;transition:opacity .3s;pointer-events:none}
-.b3hud{position:absolute;left:18px;top:16px;pointer-events:none}.b3hud small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted)}
+.b3hud{position:absolute;left:4px;top:4px;pointer-events:none}.b3hud small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted)}
 .b3hud small::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--loss);margin-right:7px;animation:sBlink 1s steps(2) infinite}
-.b3t{display:block;font-size:26px;letter-spacing:-.02em;margin-top:2px}.b3k{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.b3t{display:block;font-size:30px;letter-spacing:-.02em}.b3k{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}.b3k::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--loss);animation:sBlink 1s steps(2) infinite}
 .b3nav{position:absolute;left:12px;right:12px;bottom:14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .b3nav button{font:inherit;font-size:12px;padding:7px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fg) 18%,transparent);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);color:var(--fg);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .b3nav button.on{background:var(--fg)!important;color:var(--bg,#fff)!important;border-color:var(--fg)!important}
@@ -5459,17 +5460,18 @@ async function mountBrain3(host, C){
   const cs = getComputedStyle(host), FG = cs.getPropertyValue("--fg").trim() || "#0b0b0c", MU = cs.getPropertyValue("--muted").trim() || "#8b8b8b", LS = cs.getPropertyValue("--loss").trim() || "#e5484d", MONO = cs.getPropertyValue("--mono");
   const F = stratBrainData(C), nF = F.length; let sd = 3; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647, gs = () => { let u = 0; for (let k = 0; k < 4; k++) u += rnd(); return (u - 2) / 2; };
   host.innerHTML = `<canvas class="b3c"></canvas><div class="b3l"></div>
-    <div class="b3hud"><div><small>CERVEAU · CALCUL EN DIRECT</small><b class="b3t">${esc(C.market === "_" ? (C.marketOther || "Stratégie") : C.market)}</b><span class="b3k">0 combinaisons testées</span></div></div>
+    <div class="b3hud"><div><b class="b3t">${esc(C.market === "_" ? (C.marketOther || "Stratégie") : C.market)}</b><span class="b3k">0 combinaisons testées</span></div></div>
     <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
-    <aside class="b3info" hidden></aside><div class="b3tip">Glisser pour tourner · molette / pincer pour zoomer · cliquer une famille pour entrer dedans</div>`;
+    <aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k");
-  if (!THREE) { host.querySelector(".b3tip").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
-  let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { host.querySelector(".b3tip").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  if (!THREE) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); ren.setClearColor(0, 0);
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 1, 1, 6000), root = new THREE.Group(); scene.add(root);
+  const BG = document.body.classList.contains("light") ? "#f3f4f6" : "#0b0b0c"; scene.fog = new THREE.Fog(BG, 900, 2300);
   const col = c => new THREE.Color(c), cFG = col(FG), cMU = col(MU), cLS = col(LS);
   const dotTex = (() => { const k = document.createElement("canvas"); k.width = k.height = 64; const x = k.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.55, "rgba(255,255,255,1)"); gr.addColorStop(.7, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(k); })();
-  const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .15, sizeAttenuation: false, transparent: true, depthWrite: false}, o));
+  const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .15, sizeAttenuation: true, transparent: true, depthWrite: false, fog: true}, o));
   /* ---- placement : familles sur une sphère, éléments autour, nuages de points ---- */
   const R = 320, hubs = [], items = [], clouds = [];
   F.forEach((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, hp = new THREE.Vector3(Math.cos(th) * rr * R, y * R * .62, Math.sin(th) * rr * R);
@@ -5490,32 +5492,32 @@ async function mountBrain3(host, C){
   /* ---- géométries ---- */
   const curve = (a, b, off) => { const mid = a.clone().add(b).multiplyScalar(.5); mid.add(mid.clone().normalize().multiplyScalar(30 + off.length() * .3)).add(off); return new THREE.QuadraticBezierCurve3(a, mid, b); };
   const strands = {core: [], branch: [], flow: [], cross: []}, curves = [];
-  links.forEach(l => { const n = l.k === "core" ? 22 : l.k === "flow" ? 10 : l.k === "branch" ? 4 : 6, bad = (l.a.bad || l.b.bad) && l.k !== "core"; l.cv = [];
+  links.forEach(l => { const n = l.k === "core" ? 14 : l.k === "flow" ? 8 : l.k === "branch" ? 3 : 4, bad = (l.a.bad || l.b.bad) && l.k !== "core"; l.cv = [];
     for (let s = 0; s < n; s++) { const off = new THREE.Vector3(gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18)), c = curve(l.a.p, l.b.p, off), P = c.getPoints(l.k === "branch" ? 8 : 22); l.cv.push(P); curves.push({P, bad, l}); strands[l.k].push({P, bad}); } });
   const lineSeg = (list, op) => { const pos = [], colr = []; list.forEach(({P, bad}) => { const c = bad ? cLS : cFG; for (let k = 0; k < P.length - 1; k++) { pos.push(P[k].x, P[k].y, P[k].z, P[k + 1].x, P[k + 1].y, P[k + 1].z); colr.push(c.r, c.g, c.b, c.r, c.g, c.b); } });
     const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3));
     const o = new THREE.LineSegments(g, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: op, depthWrite: false})); root.add(o); return o; };
-  const lCore = lineSeg(strands.core, .16), lBr = lineSeg(strands.branch, .22), lFlow = lineSeg(strands.flow, .4), lCross = lineSeg(strands.cross, .1);
+  const lCore = lineSeg(strands.core, .15), lBr = lineSeg(strands.branch, .22), lFlow = lineSeg(strands.flow, .42), lCross = lineSeg(strands.cross, .08);
   /* nuages : points + réseau interne */
   const cloudPos = [], cloudBase = [], cloudPh = []; clouds.forEach(c => c.pts.forEach(p => { cloudBase.push(p.clone()); cloudPos.push(p.x, p.y, p.z); cloudPh.push(rnd() * 6.28); }));
   const cg = new THREE.BufferGeometry(); cg.setAttribute("position", new THREE.Float32BufferAttribute(cloudPos, 3));
-  const cloudPts = new THREE.Points(cg, PM({color: cFG, size: 2.2, opacity: .6})); root.add(cloudPts);
+  const cloudPts = new THREE.Points(cg, PM({color: cFG, size: 2.8, opacity: .65})); root.add(cloudPts);
   const edges = []; let off0 = 0; clouds.forEach(c => { const n = c.pts.length; for (let k = 0; k < n; k++) { if (rnd() > .55) continue; let b1 = -1, b2 = -1, d1 = 1e9, d2 = 1e9; for (let j = 0; j < 40; j++) { const q = Math.floor(rnd() * n); if (q === k) continue; const d = c.pts[k].distanceToSquared(c.pts[q]); if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = q; } else if (d < d2) { d2 = d; b2 = q; } } if (b1 >= 0) edges.push([off0 + k, off0 + b1]); if (b2 >= 0) edges.push([off0 + k, off0 + b2]); } off0 += n; });
   const eg = new THREE.BufferGeometry(), ePos = new Float32Array(edges.length * 6); eg.setAttribute("position", new THREE.BufferAttribute(ePos, 3));
-  const edgeLines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .13, depthWrite: false})); root.add(edgeLines);
+  const edgeLines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .11, depthWrite: false})); root.add(edgeLines);
   const AE = 700, ag = new THREE.BufferGeometry(), aPos = new Float32Array(AE * 6); ag.setAttribute("position", new THREE.BufferAttribute(aPos, 3));
   const activeLines = new THREE.LineSegments(ag, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .55, depthWrite: false})); root.add(activeLines);
   /* noeuds : centre, familles, éléments, satellites de calcul */
   const mkPts = (arr, size, op) => { const g = new THREE.BufferGeometry(), pos = [], colr = []; arr.forEach(n => { pos.push(n.p.x, n.p.y, n.p.z); const c = n.bad ? cLS : n.fam === "trades" || (n.f && n.f.key === "trades" && !n.win) ? (n.win ? cFG : cMU) : cFG; colr.push(c.r, c.g, c.b); });
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3)); const o = new THREE.Points(g, PM({vertexColors: true, size, opacity: op})); root.add(o); return o; };
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3)); const o = new THREE.Points(g, PM({vertexColors: true, size: size * 1.4, opacity: op})); root.add(o); return o; };
   mkPts([core], 22, 1); mkPts(hubs, 15, 1); mkPts(items, 9, .95);
   const SAT = 14, sg = new THREE.BufferGeometry(), sPos = new Float32Array(items.length * SAT * 3); sg.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
-  const sats = new THREE.Points(sg, PM({color: cFG, size: 2.6, opacity: .75})); root.add(sats);
+  const sats = new THREE.Points(sg, PM({color: cFG, size: 2.2, opacity: .6})); root.add(sats);
   const coreN = 900, cgc = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 10 + Math.pow(rnd(), .6) * 46, .2 + rnd() * .8]);
-  cgc.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); const corePts = new THREE.Points(cgc, PM({color: cFG, size: 2.2, opacity: .8})); root.add(corePts);
+  cgc.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); const corePts = new THREE.Points(cgc, PM({color: cFG, size: 1.8, opacity: .7})); root.add(corePts);
   /* impulsions + trades testés */
   const PN = 700, pg = new THREE.BufferGeometry(), pPos = new Float32Array(PN * 3), pCol = new Float32Array(PN * 3); pg.setAttribute("position", new THREE.BufferAttribute(pPos, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-  const pulsePts = new THREE.Points(pg, PM({vertexColors: true, size: 3.6, opacity: .95})); root.add(pulsePts);
+  const pulsePts = new THREE.Points(pg, PM({vertexColors: true, size: 4, opacity: .9})); root.add(pulsePts);
   const pulses = Array.from({length: PN}, () => ({c: curves[Math.floor(rnd() * curves.length)], u: rnd(), v: .004 + rnd() * .012}));
   const TN = 900, tg = new THREE.BufferGeometry(), tPos = new Float32Array(TN * 6), tCol = new Float32Array(TN * 6); tg.setAttribute("position", new THREE.BufferAttribute(tPos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tCol, 3));
   const testLines = new THREE.LineSegments(tg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: .9, depthWrite: false})); root.add(testLines);
@@ -5532,7 +5534,7 @@ async function mountBrain3(host, C){
   cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); drag = {x: e.clientX, y: e.clientY, moved: false}; idle = 0; });
   cv.addEventListener("pointermove", e => { if (!ptrs.has(e.pointerId)) return; const pr = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(120, Math.min(2200, st.dist0 * d1 / d2)); drag.moved = true; return; }
-    st.th0 -= (e.clientX - pr[0]) * .006; st.ph0 = Math.max(.25, Math.min(2.9, st.ph0 - (e.clientY - pr[1]) * .006)); if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; });
+    st.th0 += (e.clientX - pr[0]) * .006; st.ph0 = Math.max(.25, Math.min(2.9, st.ph0 + (e.clientY - pr[1]) * .006)); if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; });
   cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); if (drag && !drag.moved) { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; let best = null, bd = 18; [...hubs, ...items].forEach(n => { if (!n.sp || n.sp[2] > 1) return; const d = Math.hypot(n.sp[0] - x, n.sp[1] - y); if (d < bd) { bd = d; best = n; } }); if (best) best.kind === "hub" ? focus(best.i) : show(best); } drag = null; });
   cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0; st.dist0 = Math.max(120, Math.min(2200, st.dist0 * (e.deltaY > 0 ? 1.12 : 1 / 1.12))); }, {passive: false});
   cv.addEventListener("dblclick", () => focus(-1));
@@ -5554,7 +5556,7 @@ async function mountBrain3(host, C){
     for (let k = 0; k < edges.length; k++) { const [a, b] = edges[k]; ePos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } eg.attributes.position.needsUpdate = true;
     /* calcul en direct : des liaisons s'allument dans les nuages */
     if (fr % 4 === 0) { for (let k = 0; k < AE; k++) { const e = edges[Math.floor(Math.random() * edges.length)], [a, b] = e; aPos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } ag.attributes.position.needsUpdate = true; combos += 40 + Math.floor(Math.random() * 60); }
-    activeLines.material.opacity = .25 + .3 * Math.abs(Math.sin(t * 3));
+    activeLines.material.opacity = .18 + .22 * Math.abs(Math.sin(t * 3));
     /* noyau en orbite */
     for (let k = 0; k < coreN; k++) { const [a, b, r, s] = cSeed[k], aa = a + t * s * (k % 2 ? 1 : -1) * .6, rr = r * (1 + .08 * Math.sin(t * 2 + k)); cPos[k * 3] = Math.sin(b) * Math.cos(aa) * rr; cPos[k * 3 + 1] = Math.cos(b) * rr * .9; cPos[k * 3 + 2] = Math.sin(b) * Math.sin(aa) * rr; } cgc.attributes.position.needsUpdate = true;
     /* satellites autour de chaque élément */
@@ -6861,7 +6863,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-58";
+const APP_VERSION = "2026-10-29-60";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
