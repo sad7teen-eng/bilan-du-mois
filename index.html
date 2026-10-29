@@ -3042,7 +3042,6 @@ async function openGlassRun(c0, forceLite){
     const dt = Math.min(clock.getDelta(), .05); t += dt; mouse.sx += (mouse.x - mouse.sx) * Math.min(1, dt * 3); mouse.sy += (mouse.y - mouse.sy) * Math.min(1, dt * 3);
     bgU.t.value = t; bgU.mx.value.set(mouse.sx, -mouse.sy); ptU.t.value = t;
     if (!rot.drag) { rot.yaw += rot.v; rot.v *= Math.pow(.92, dt * 60); rot.idle += dt; rot.pitch *= 1 - Math.min(1, dt * .7); }
-    rot.yaw += dt * .22 * Math.min(1, Math.max(0, (rot.idle - 1.2) / 1.5));
     ptU.asp.value = cam.aspect; if (mouse.in) ptU.ms.value.set(mouse.cx / innerWidth * 2 - 1, -(mouse.cy / innerHeight) * 2 + 1); else ptU.ms.value.set(9, 9);
     music.volume = Math.min(1, audio.volume * MUS);
     mist.position.set(ice.position.x, ice.position.y, ice.position.z); mist.children.forEach(m => { const u = m.userData; m.position.x = u.x0 + Math.sin(t * u.sp + u.ph) * .45; m.material.rotation = Math.sin(t * u.sp * .7 + u.ph) * .4; });
@@ -3057,7 +3056,8 @@ async function openGlassRun(c0, forceLite){
     lg.setDrawRange(0, Math.floor(seg.length / 3 * S.wire / 2) * 2);
     renderer.setRenderTarget(rt); renderer.render(scene, cam); renderer.setRenderTarget(null); renderer.render(pScene, pCam);
     if (ov.classList.contains("hud")) { const ww = innerWidth, hh = innerHeight, sc = ww < 760 ? .62 : 1, cl = (v, a, b) => Math.max(a, Math.min(b, v));
-      LABS.forEach(Lb => { const sl = SLOTS[Lb.s], [ax, ay] = scr(sl.a, ww, hh), w = Lb.el.offsetWidth, hg = Lb.el.offsetHeight, uw = Math.max(w, 150 * sc);
+      const mk = Math.max(0, Math.min(1, (MELT.s - .45) / .25)), cpw = cert.userData.PW * (cert.userData.s || 1) / 2, cph = cert.userData.PH * (cert.userData.s || 1) / 2;
+      LABS.forEach(Lb => { const sl = SLOTS[Lb.s], ca = new V3(Math.sign(sl.a.x || 1) * cpw, CB.y + Math.sign(sl.a.y) * cph * (Math.abs(sl.a.y) > H * .1 ? 1 : .2), CB.z), [ax, ay] = scr(sl.a.clone().lerp(ca, mk), ww, hh), w = Lb.el.offsetWidth, hg = Lb.el.offsetHeight, uw = Math.max(w, 150 * sc);
         let left = sl.al === "r" ? ax + sl.dx * sc : ax - sl.dx * sc - uw, top = ay + sl.dy * sc - (sl.dy < 0 ? hg : 0);
         left = cl(left, 16, ww - uw - 16); top = cl(top, cornerB + 12, hh - hg - 80);
         Lb.el.style.transform = `translate(${sl.al === "l" ? left + uw - w : left}px,${top}px)`; Lb.el.style.textAlign = sl.al === "l" ? "right" : "left";
@@ -5548,7 +5548,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-10";
+const APP_VERSION = "2026-10-29-12";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
