@@ -2711,12 +2711,12 @@ function layoutDeck(){
     const cw = c.offsetWidth || 440; c.style.transform = `translate(-50%,-50%) translateX(${d * Math.min(gap, cw * .3)}px) translateY(${a * a * 9}px) rotate(${d * 5}deg) scale(${Math.max(.6, 1 - a * .09)})`;
     c.style.zIndex = 100 - a * 2 + (d < 0 ? 0 : -1); c.style.opacity = a > 4 ? 0 : 1; c.style.pointerEvents = a > 4 ? "none" : "";
     c.style.filter = a ? `brightness(${Math.max(.35, 1 - a * .2)}) blur(${Math.min(3, a * .8)}px)` : "brightness(1) blur(0px)"; c.classList.toggle("on", !d); c.tabIndex = d ? -1 : 0; });
-  if (!deckIntro) st.querySelectorAll(".dcard").forEach(c => c.getAnimations().forEach(a => { if (a.effect && a.effect.getTiming().fill === "backwards") a.cancel(); }));
+  if (!deckIntro) st.querySelectorAll(".dcard").forEach(c => { (c._intro || []).forEach(a => a.cancel()); c._intro = null; });
   if (deckIntro && !matchMedia("(prefers-reduced-motion: reduce)").matches) { deckIntro = false; deckMovedAt = performance.now() + 1800;
     st.querySelectorAll(".dcard").forEach(c => { const a = Math.abs(+c.dataset.ci - deckSel); if (a > 4) return; const fin = c.style.transform, op = c.style.opacity || 1, fl = c.style.filter || "brightness(1)";
-      c.animate([{transform: `translate(-50%,-50%) translateY(${70 + a * 10}px) scale(${.72 - a * .03})`, opacity: 0, filter: "blur(22px) brightness(.3)"},
+      c._intro = [c.animate([{transform: `translate(-50%,-50%) translateY(${70 + a * 10}px) scale(${.72 - a * .03})`, opacity: 0, filter: "blur(22px) brightness(.3)"},
         {transform: `translate(-50%,-50%) translateX(${(+c.dataset.ci - deckSel) * 18}px) translateY(18px) scale(.9)`, opacity: op * .7, filter: "blur(8px) brightness(.6)", offset: .45},
-        {transform: fin, opacity: op, filter: fl.replace(/^$/, "brightness(1)") + " blur(0px)"}], {duration: 1500 + a * 120, delay: 120 + a * 140, easing: "cubic-bezier(.16,.84,.24,1)", fill: "backwards"}); }); }
+        {transform: fin, opacity: op, filter: fl.replace(/^$/, "brightness(1)") + " blur(0px)"}], {duration: 1500 + a * 120, delay: 120 + a * 140, easing: "cubic-bezier(.16,.84,.24,1)", fill: "backwards"})]; }); }
   else deckIntro = false;
   document.querySelectorAll("#certGrid .deck-dots i").forEach((x, i) => x.classList.toggle("on", i === deckSel));
   const c = deckList[deckSel]; if (!c) return; const A = certAmt(c);
@@ -7131,7 +7131,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-107";
+const APP_VERSION = "2026-10-29-108";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
