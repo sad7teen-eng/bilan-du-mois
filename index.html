@@ -2559,7 +2559,7 @@ async function openGlassRun(c0, forceLite){
   const close = () => { if (!alive) return; alive = false; clearInterval(tmr); try { localStorage.removeItem("bdm-ice-try"); } catch (e) {} removeEventListener("keydown", onKey, true); removeEventListener("resize", onResize);
     ov.classList.add("out"); ov._stopSnd && ov._stopSnd(); setTimeout(() => { cancelAnimationFrame(raf); try { renderer && renderer.dispose(); renderer && renderer.forceContextLoss(); } catch (e) {} ov.remove(); document.body.style.overflow = ""; }, 650); };
   let explore = () => {}, reform = () => {}, go = () => {};
-  const back = () => { if (ov._refreeze && ov._refreeze()) return; if (mode === "open") reform(); else if (mode === "idle") close(); };
+  const back = () => { if (mode === "open") reform(); else if (mode === "idle") close(); };
   const onKey = e => { if (["Escape", "Enter", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight", " "].includes(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); } if (e.key === "Escape") back(); else if (e.key === "ArrowDown" || e.key === "ArrowRight") go(1); else if (e.key === "ArrowUp" || e.key === "ArrowLeft") go(-1); else if (e.key === "Enter") explore(); };
   addEventListener("keydown", onKey, true); try { document.activeElement && document.activeElement.blur(); } catch (e) {}
   ov.querySelector(".ig-close").addEventListener("click", back);
@@ -2997,21 +2997,21 @@ async function openGlassRun(c0, forceLite){
   /* ---- défilement à la molette : le bloc descend avec la molette, s'arrête où l'on s'arrête, et le suivant arrive par le haut ---- */
   const SCR = {t: ci, v: ci}; let shownK = ci, swapping = false, hudOn = true; const imgP = {};
   const getImg = k => imgP[k] || (imgP[k] = loadImg(imOf(list[k])).catch(() => null));
-  const clampS = x => Math.max(-.42, Math.min(list.length - 1 + .42, x));
+  const clampS = x => list.length < 2 ? Math.max(-.42, Math.min(.42, x)) : x; const wrapK = k => ((k % list.length) + list.length) % list.length; /* défilement en boucle */
   /* certificats préparés à l'avance (texture + maillage + envoi à la carte graphique) quand le navigateur est libre : plus de saccade au changement */
   const meshC = new Map([[ci, cert]]), idle = f => (window.requestIdleCallback ? requestIdleCallback(f, {timeout: 600}) : setTimeout(f, 60));
   const prepare = k => { if (meshC.has(k)) return Promise.resolve(meshC.get(k)); return getImg(k).then(im => { if (!im || !alive) return null; if (meshC.has(k)) return meshC.get(k);
       const m = certMesh(im); try { renderer.initTexture(m.material[4].map); } catch (e) {} meshC.set(k, m); return m; }); };
-  const prefetch = k => { for (const j of [k + 1, k - 1]) if (j >= 0 && j < list.length && !meshC.has(j)) idle(() => prepare(j)); };
+  const prefetch = k => { for (const j0 of [k + 1, k - 1]) { const j = wrapK(j0); if (!meshC.has(j)) idle(() => prepare(j)); } };
   const swapCert = async k => { swapping = true; const m = await prepare(k); swapping = false; if (!alive) return;
     if (m && m !== cert) { inner.remove(cert); cert = m; inner.add(cert); setDens(); }
     ci = k; setLabels(list[k]); hudOn = false; prefetch(k); cert.add(thaw); placeThaw(); MELT.v = MELT.s = 0; };
   go = dir => { if (busy || MELT.v >= .7) return; SCR.t = clampS(Math.round(SCR.t) + dir); };
   let lastWheel = 0; ov.addEventListener("wheel", e => { e.preventDefault(); if (busy) return; if (MELT.v >= .7) { MELT.zt = Math.max(1, Math.min(2.6, MELT.zt - e.deltaY * .0016)); return; } lastWheel = performance.now(); const dy = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 600 : 1); SCR.t = clampS(SCR.t + Math.max(-900, Math.min(900, dy)) * .0011); }, {passive: false});
-  const stepScroll = dt => { if (busy) return; if (performance.now() - lastWheel > 3000 && Math.abs(SCR.t - Math.round(SCR.t)) > .001) SCR.t = clampS(Math.max(0, Math.min(list.length - 1, Math.round(SCR.t)))); SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
-    const k = Math.max(0, Math.min(list.length - 1, Math.round(SCR.v)));
+  const stepScroll = dt => { if (busy) return; if (performance.now() - lastWheel > 3000 && Math.abs(SCR.t - Math.round(SCR.t)) > .001) SCR.t = Math.round(SCR.t); SCR.v += (SCR.t - SCR.v) * Math.min(1, dt * 4.5);
+    const kr = Math.round(SCR.v), k = wrapK(kr);
     if (k !== shownK && !swapping) { shownK = k; resetCarve(); swapCert(k); }
-    const off = SCR.v - shownK, a = Math.abs(off), tn = Math.tan(cam.fov * Math.PI / 360);
+    const off = SCR.v - kr, a = Math.abs(off), tn = Math.tan(cam.fov * Math.PI / 360);
     S.scrollY = off * 2 * (tn * cam.position.z + H * .75); S.scrollSpin = off * 2.2; S.wire = Math.max(0, 1 - a * 4); ptU.k.value = S.wire;
     if (a > .16 && hudOn) { hudOn = false; ov.classList.remove("hud"); hudGen++; }
     else if (a < .08 && !hudOn && !swapping) { hudOn = true; showHud(); } };
@@ -5548,7 +5548,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-12";
+const APP_VERSION = "2026-10-29-13";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
