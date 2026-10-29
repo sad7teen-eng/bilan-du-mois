@@ -1097,6 +1097,25 @@ canvas[data-viz="sess"]{cursor:crosshair}
 .swk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:6px 9px;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);animation:swIn .25s ease}
 .swz .swbody>.swb{flex:none}
 @media (max-width:760px){.realk{grid-template-columns:repeat(2,minmax(0,1fr))}.sg2>section{grid-column:span 6!important}}
+/* ---------- Cerveau de la stratégie ---------- */
+.s-hero canvas[data-viz="brain"]{cursor:zoom-in}
+html body .brbtn{background:#0b0b0c!important;color:#fff!important;border-color:#0b0b0c!important}body:not(.light) .brbtn{background:#fff!important;color:#000!important;border-color:#fff!important}
+.brbtn{align-self:flex-start;margin-top:12px;font:inherit;font-size:13px;font-weight:600;padding:10px 16px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fg) 25%,transparent);background:var(--fg);color:var(--bg,#fff);cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .2s}
+.brbtn:hover{transform:translateY(-1px)}.brbtn i{width:7px;height:7px;border-radius:50%;background:#e5484d;animation:sBlink 1.4s steps(2) infinite}
+.brz{position:fixed;inset:0;z-index:70;background:rgba(10,10,12,.96);color:#f2f2f2;font-family:var(--display)}
+.brz.lt{background:rgba(244,245,247,.97);color:#0b0b0c;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.brz canvas{position:absolute;inset:0;touch-action:none;cursor:grab}
+.brz header{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.brz header small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;opacity:.55}.brz header b{font-size:20px;letter-spacing:-.01em}
+.brz button{pointer-events:auto;font:inherit;cursor:pointer;border-radius:10px;border:1px solid color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,currentColor 6%,transparent);color:inherit}
+.brz .brx{width:40px;height:40px;font-size:15px}
+.brtools{position:absolute;right:16px;bottom:calc(52px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px}.brtools button{width:40px;height:40px;font-size:18px}
+.brinfo{position:absolute;top:80px;right:16px;width:min(300px,calc(100vw - 32px));max-height:calc(100vh - 200px);overflow:auto;padding:16px;border-radius:16px;border:1px solid color-mix(in srgb,currentColor 14%,transparent);background:color-mix(in srgb,currentColor 4%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.brz.lt .brinfo{background:rgba(255,255,255,.75);box-shadow:0 20px 50px rgba(16,18,24,.12)}
+.brinfo small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;opacity:.55;margin-top:8px}.brinfo h3{margin:4px 0 8px;font-size:17px}.brinfo p{margin:4px 0;font-size:13px;opacity:.85}
+.brinfo ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.brinfo li{font-size:12.5px;padding:5px 8px;border-radius:7px;background:color-mix(in srgb,currentColor 6%,transparent)}
+.brinfo .r,.brinfo li.r{color:#e5484d}
+.brz footer{position:absolute;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.14em;opacity:.5;pointer-events:none;padding:0 16px}
 .rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sring .sviz{height:110px}
 .stxt{margin:6px 0 0;white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.5}
 @media (max-width:760px){.sg2 .s-tf2,.sg2 .s-bias,.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 6}.rings{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -4846,9 +4865,9 @@ function renderStrat(){ stratKaelRestore();
     const N = small.length, span = k => N === 1 ? 6 : N === 2 || N === 4 ? 3 : N === 3 || N === 6 ? 2 : (k < 2 ? 3 : 2);
     $("stratView").innerHTML = head + `<div class="sgrid sg2">
       <section class="tile scard s-hero"><span class="lab2">${esc(mk)}${tfs.length ? " · " + tfs.map(x => x.tf).join(" → ") : ""}</span>
-        <div class="hero-in"><canvas class="sviz" data-viz="hero"></canvas>
+        <div class="hero-in"><canvas class="sviz" data-viz="brain" id="brainPrev" title="Ouvrir le cerveau"></canvas>
           <div class="hero-txt"><b class="hero-word">${esc(mk)}</b><span class="hero-sub">${tfs.map((x, i) => `<span class="hl" data-hl="${i + 1}">${esc(x.tf)}</span>`).join(" · ")}</span>
-            ${kp.length ? `<div class="hero-kpi" style="grid-template-columns:repeat(${kp.length},1fr)">${kp.map(([a, b], i) => `<div class="hl" data-hl="${i + 5}"><small>${a}</small><b>${b}</b></div>`).join("")}</div>` : ""}</div></div></section>
+            ${kp.length ? `<div class="hero-kpi" style="grid-template-columns:repeat(${kp.length},1fr)">${kp.map(([a, b], i) => `<div class="hl" data-hl="${i + 5}"><small>${a}</small><b>${b}</b></div>`).join("")}</div>` : ""}<button type="button" class="brbtn" id="brainOpen"><i></i>Ouvrir le cerveau</button></div></div></section>
       ${C.steps.length ? `<section class="tile scard s-entry2"><span class="lab2">Déroulé de l'entrée</span><canvas class="sviz" data-viz="seq"></canvas></section>` : ""}
       ${small.map((x, k) => x.replace(`<section class="tile scard">`, `<section class="tile scard" style="grid-column:span ${span(k)}">`)).join("")}
       ${C.zones.length ? `<section class="tile scard s-zones"><span class="lab2">Zone${C.zones.length > 1 ? "s" : ""}</span><div class="zgrid${C.zones.length === 1 ? " one" : ""}">${C.zones.map(z => `<div><canvas class="sviz" data-viz="zone" data-z="${z}"></canvas><small>${esc(zoneName(C, z))}</small></div>`).join("")}</div></section>` : ""}
@@ -4856,6 +4875,7 @@ function renderStrat(){ stratKaelRestore();
       ${C.comment ? `<section class="tile scard s-com"><span class="lab2">Note</span><p class="stxt">${esc(C.comment)}</p></section>` : ""}
     </div>`;
   }
+  if ($("brainOpen")) { $("brainOpen").onclick = () => openStratBrain(); $("brainPrev").onclick = () => openStratBrain(); }
   $("stratEditB").onclick = () => openStratWizard();
   $("stratDescB").onclick = () => openStratDescribe();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
@@ -5262,6 +5282,125 @@ function openStratWizard(){
   draw();
 }
 
+/* ===== Cerveau de la stratégie : chaque stratégie devient un réseau vivant (aperçu + page zoomable) ===== */
+function stratBrainData(C){
+  const all = allTrades(), F = [], fam = (key, label, items) => { if (items.length) F.push({key, label, items}); };
+  fam("ut", "Unités de temps", C.tfs.map(x => ({l: x.tf, s: SC.roles[x.role] || "", tf: x.tf})));
+  fam("bias", "Biais", [{l: SC.bias[C.bias] || "Biais"}].concat(C.bias !== "none" && C.bias !== "pd" ? [{l: "Désaligné : " + (SC.mis[C.misalign] || "").toLowerCase()}] : []).concat((C.noTrade || []).map(x => ({l: "Si " + x + " → pas de trade", bad: 1}))));
+  fam("zones", "Zones", C.zones.map(z => ({l: zoneName(C, z)})));
+  fam("seq", "Déroulé", C.steps.map((s, i) => ({l: (i + 1) + ". " + stratStepLabel(C, s, i), step: s, i})));
+  const gi = []; if (C.risk) gi.push({l: "Risque " + String(C.risk).replace(".", ",") + " %"}); if (C.rrMin) gi.push({l: "RR min " + C.rrMin + "R"}); if (C.rrTarget) gi.push({l: "RR visé " + C.rrTarget + "R"});
+  if (C.slTxt || C.sl) gi.push({l: "SL " + (C.slTxt || (SC.sl[C.sl] || "").toLowerCase()), sl: 1});
+  if (C.tpTxt) C.tpTxt.split(" · ").forEach(x => gi.push({l: /^TP\d/.test(x) ? x : "TP " + x, tp: 1})); else C.tp.forEach(x => gi.push({l: "TP " + SC.tp[x], tp: 1}));
+  if (C.be) gi.push({l: "Break-even" + (C.beAt ? " à " + C.beAt + "R" : "")}); C.ifs.forEach(r => gi.push({l: "Si " + ifLabel(r), bad: r.a === "stop" ? 1 : 0}));
+  fam("gest", "Gestion", gi);
+  const ri = []; C.sessions.forEach(x => ri.push({l: x, ses: x})); if (C.maxTrades) ri.push({l: C.maxTrades === "0" ? "Trades illimités" : C.maxTrades + " trade max / " + (C.maxPer === "jour" ? "jour" : "session")});
+  C.rules.forEach(x => ri.push({l: SC.rules[x], bad: 1})); (C.ruleTxt || []).forEach(x => ri.push({l: x}));
+  fam("rules", "Règles", ri);
+  fam("trades", "Vos trades", all.slice(-40).map(t => { const ses = t.time ? sessionOf(t) : "", v = [];
+    if (C.sessions.length && ses && !C.sessions.includes(ses)) v.push("hors session (" + ses + ")");
+    if (C.rrMin && t.pnl > 0 && isNum(t.r) && t.r < num(C.rrMin) - 1e-9) v.push("RR sous " + C.rrMin + "R");
+    if ((C.side === "long" && t.side === "Short") || (C.side === "short" && t.side === "Long")) v.push("sens interdit");
+    return {l: (t.side || "Trade") + " " + (isNum(t.r) ? (t.r >= 0 ? "+" : "") + t.r.toFixed(1).replace(".", ",") + "R" : ""), t, ses, win: t.pnl > 0, bad: v.length ? 1 : 0, v}; }));
+  return F;
+}
+function stratBrainBuild(C){
+  const F = stratBrainData(C), N = [], L = [], n = F.length, R = 330;
+  let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const core = {id: "core", l: C.market === "_" ? (C.marketOther || "Stratégie") : C.market, x: 0, y: 0, r: 16, kind: "core"}; N.push(core);
+  F.forEach((f, fi) => { const a = -Math.PI / 2 + fi / n * Math.PI * 2, hx = Math.cos(a) * R * (f.key === "trades" ? 1.12 : 1), hy = Math.sin(a) * R * .82 * (f.key === "trades" ? 1.12 : 1);
+    const hub = {id: "h" + fi, l: f.label, x: hx, y: hy, r: 9, kind: "hub", fam: f.key, fi}; N.push(hub); L.push({a: core, b: hub, k: "core"});
+    const dense = f.items.length > 12, cl = [];
+    f.items.forEach((it, k) => { let ang = k * 2.39996 + fi, rad = (dense ? 34 : 52) + (dense ? 12 : 21) * Math.sqrt(k + 1);
+      if (f.key === "seq") { const m = f.items.length, span = Math.min(Math.PI * 1.5, .5 * m); ang = a - span / 2 + (m > 1 ? k / (m - 1) : .5) * span; rad = 70 + m * 6; }
+      const nd = Object.assign({id: "n" + fi + "_" + k, x: hx + Math.cos(ang) * rad, y: hy + Math.sin(ang) * rad * .9, r: f.key === "trades" ? 3.2 : 5, kind: "item", fam: f.key, fi, hub}, it);
+      N.push(nd); cl.push(nd); L.push({a: hub, b: nd, k: "branch"}); });
+    f.nodes = cl; f.hub = hub;
+    /* nuage de fond : particules reliées à leurs voisines */
+    const ext = Math.max(70, ...cl.map(x => Math.hypot(x.x - hx, x.y - hy))) * .85, P = [];
+    for (let k = 0; k < 90; k++) { const ang = rnd() * Math.PI * 2, rr = Math.sqrt(rnd()) * ext; P.push({x: hx + Math.cos(ang) * rr, y: hy + Math.sin(ang) * rr * .9, ph: rnd() * 6.28}); }
+    const E = []; P.forEach((p, i) => { const d = P.map((q, j) => [j, (q.x - p.x) ** 2 + (q.y - p.y) ** 2]).filter(x => x[0] !== i).sort((u, v) => u[1] - v[1]).slice(0, 2); d.forEach(([j]) => { if (j > i) E.push([i, j]); }); });
+    f.cloud = {P, E}; });
+  const byF = k => (F.find(f => f.key === k) || {nodes: []}).nodes;
+  const seq = byF("seq"); seq.forEach((x, i) => { if (seq[i + 1]) L.push({a: x, b: seq[i + 1], k: "flow"}); });
+  byF("ut").forEach(u => seq.forEach(s => { if (s.l.includes(u.tf)) L.push({a: u, b: s, k: "cross"}); }));
+  byF("zones").forEach(z => seq.forEach(s => { if (s.step === "zone" || s.step === "mark" || s.step === "rebound") L.push({a: z, b: s, k: "cross"}); }));
+  byF("gest").forEach(gn => seq.forEach(s => { if ((gn.sl || gn.tp) && (s.step === "manage" || s.step === "entry")) L.push({a: gn, b: s, k: "cross"}); }));
+  byF("bias").forEach(bn => seq.forEach(s => { if (s.step === "bias") L.push({a: bn, b: s, k: "cross"}); }));
+  const tps = byF("gest").filter(x => x.tp), sls = byF("gest").filter(x => x.sl), ses = byF("rules").filter(x => x.ses);
+  byF("trades").forEach(tn => { const s = ses.find(x => x.ses === tn.ses); if (s) L.push({a: s, b: tn, k: "cross"}); const o = tn.win ? tps[0] : sls[0]; if (o) L.push({a: o, b: tn, k: "cross"}); });
+  N.forEach(nd => nd.links = []); L.forEach(l => { l.a.links.push(l); l.b.links.push(l); l.c = (rnd() - .5) * 120; });
+  return {F, N, L, core, pulses: []};
+}
+/* dessin commun (aperçu et page) — cam = {x, y, z, rot} */
+function stratBrainDraw(g, w, h, t, B, cam, C, hov){
+  const A2 = (cc, a) => { if (cc[0] === "#") { let x = cc.slice(1); if (x.length === 3) x = x.split("").map(y => y + y).join(""); const n = parseInt(x, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } const m = cc.match(/\d+(\.\d+)?/g); return m ? `rgba(${m[0]},${m[1]},${m[2]},${a})` : cc; };
+  const cr = Math.cos(cam.rot || 0), sr = Math.sin(cam.rot || 0), P = (x, y) => { const X = x * cr - y * sr, Y = x * sr + y * cr; return [(X - cam.x) * cam.z + w / 2, (Y - cam.y) * cam.z + h / 2]; };
+  const lit = hov ? new Set([hov, ...hov.links.flatMap(l => [l.a, l.b])]) : null, dim = n => lit && !lit.has(n);
+  /* noyau : particules en orbite */
+  { const [cx, cy] = P(0, 0); for (let k = 0; k < 140; k++) { const ph = k * 2.39996, rr = (14 + (k % 17) * 2.6) * Math.max(.6, cam.z), a = ph + t * (.25 + (k % 5) * .06) * (k % 2 ? 1 : -1), x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * .8, s = .8 + (k % 3) * .5;
+      g.fillStyle = A2(C.fg, .25 + (Math.sin(t * 3 + k) + 1) * .2); g.fillRect(x - s / 2, y - s / 2, s, s); } }
+  /* nuages */
+  B.F.forEach(f => { const {P: Q, E} = f.cloud, sp = Q.map(q => P(q.x + Math.sin(t * .7 + q.ph) * 4, q.y + Math.cos(t * .6 + q.ph) * 4)), fa = lit && !lit.has(f.hub) && !f.nodes.some(x => lit.has(x)) ? .25 : 1;
+    g.strokeStyle = A2(C.mu, .18 * fa); g.lineWidth = .6; g.beginPath(); E.forEach(([i, j]) => { g.moveTo(sp[i][0], sp[i][1]); g.lineTo(sp[j][0], sp[j][1]); }); g.stroke();
+    g.fillStyle = A2(C.fg, .35 * fa); sp.forEach(([x, y], i) => { const s = 1 + (Math.sin(t * 2 + i) + 1) * .5; g.fillRect(x - s / 2, y - s / 2, s, s); }); });
+  /* liens */
+  B.L.forEach(l => { const [x1, y1] = P(l.a.x, l.a.y), [x2, y2] = P(l.b.x, l.b.y), on = lit && lit.has(l.a) && lit.has(l.b) && (l.a === hov || l.b === hov), bad = l.b.bad || l.a.bad;
+    const base = l.k === "core" ? .5 : l.k === "branch" ? .28 : l.k === "flow" ? .7 : .16, al = lit ? (on ? .95 : base * .2) : base;
+    g.strokeStyle = A2(bad && (l.k === "cross" || on) ? C.ls : C.fg, al); g.lineWidth = (l.k === "flow" ? 1.6 : l.k === "core" ? 1.2 : .7) * (on ? 1.6 : 1);
+    const mx = (x1 + x2) / 2 - (y2 - y1) * .12 + l.c * cam.z * .3, my = (y1 + y2) / 2 + (x2 - x1) * .12; g.beginPath(); g.moveTo(x1, y1); g.quadraticCurveTo(mx, my, x2, y2); g.stroke(); l._q = [x1, y1, mx, my, x2, y2]; });
+  /* impulsions qui circulent */
+  if (B.pulses.length < 46 && Math.random() < .5) { const l = B.L[Math.floor(Math.random() * B.L.length)]; if (l.k !== "branch" || Math.random() < .3) B.pulses.push({l, p: 0, v: .006 + Math.random() * .012}); }
+  B.pulses = B.pulses.filter(pu => (pu.p += pu.v) < 1);
+  B.pulses.forEach(pu => { const q = pu.l._q; if (!q) return; const u = pu.p, x = (1 - u) ** 2 * q[0] + 2 * (1 - u) * u * q[2] + u * u * q[4], y = (1 - u) ** 2 * q[1] + 2 * (1 - u) * u * q[3] + u * u * q[5];
+    if (lit && !(lit.has(pu.l.a) && lit.has(pu.l.b))) return; g.fillStyle = A2(pu.l.b.bad ? C.ls : C.fg, .9); g.beginPath(); g.arc(x, y, 1.8, 0, 7); g.fill(); });
+  /* noeuds + étiquettes */
+  const showLab = cam.z > .75;
+  B.N.forEach(nd => { const [x, y] = P(nd.x, nd.y); nd._s = [x, y]; const d = dim(nd), r = nd.r * Math.max(.7, Math.min(1.6, cam.z)) * (nd === hov ? 1.5 : 1);
+    if (nd.kind === "core") { const pr = r + 6 + Math.sin(t * 2) * 3; g.strokeStyle = A2(C.fg, .35); g.beginPath(); g.arc(x, y, pr, 0, 7); g.stroke(); g.beginPath(); g.arc(x, y, pr + 10 + Math.sin(t * 1.3) * 4, 0, 7); g.strokeStyle = A2(C.fg, .15); g.stroke(); }
+    g.fillStyle = nd.bad ? A2(C.ls, d ? .3 : .95) : nd.kind === "item" && nd.fam === "trades" && !nd.win ? A2(C.mu, d ? .3 : .9) : A2(C.fg, d ? .25 : 1);
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (nd.kind !== "item") { g.strokeStyle = A2(C.fg, d ? .2 : .6); g.beginPath(); g.arc(x, y, r + 4, 0, 7); g.stroke(); }
+    const want = nd.kind !== "item" || nd === hov || (showLab && nd.fam !== "trades") || (lit && lit.has(nd) && nd.fam !== "trades") || (cam.z > 1.6);
+    if (want) { g.font = (nd.kind !== "item" ? "600 " : "") + (nd.kind === "core" ? 15 : nd.kind === "hub" ? 11 : 10) + "px " + C.mono; g.textAlign = "center";
+      const lb = nd.kind === "hub" ? nd.l.toUpperCase() : nd.l.length > 34 && nd !== hov ? nd.l.slice(0, 33) + "…" : nd.l;
+      g.fillStyle = A2(C.bg || "#ffffff", d ? .3 : .75); const tw = g.measureText(lb).width; g.fillRect(x - tw / 2 - 3, y + r + 4, tw + 6, 13);
+      g.fillStyle = nd.bad ? A2(C.ls, d ? .35 : 1) : A2(C.fg, d ? .3 : 1); g.fillText(lb, x, y + r + 14); g.textAlign = "left"; } });
+}
+function stratBrainFit(B, w, h){ const xs = B.N.map(n => n.x), ys = B.N.map(n => n.y), x0 = Math.min(...xs) - 60, x1 = Math.max(...xs) + 60, y0 = Math.min(...ys) - 50, y1 = Math.max(...ys) + 50;
+  return {x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: Math.min(w / (x1 - x0), h / (y1 - y0)), rot: 0}; }
+/* page plein écran : zoom molette / pincement, glisser, survol, clic = détails */
+function openStratBrain(){
+  const C = stratCfg(), B = stratBrainBuild(C), host = $("stratView"), cs = getComputedStyle(host);
+  const CC = {fg: cs.getPropertyValue("--fg").trim() || "#0b0b0c", mu: cs.getPropertyValue("--muted").trim() || "#8b8b8b", ls: cs.getPropertyValue("--loss").trim() || "#e5484d", bg: document.body.classList.contains("light") ? "#f4f5f7" : "#0b0b0c", mono: cs.getPropertyValue("--mono")};
+  const ov = document.createElement("div"); ov.className = "brz" + (document.body.classList.contains("light") ? " lt" : ""); document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  ov.innerHTML = `<canvas></canvas><header><div><small>CERVEAU DE LA STRATÉGIE</small><b>${esc(strat().list ? (stratEntry().name || "") : "")} · ${esc(B.core.l)}</b></div><button type="button" class="brx" aria-label="Fermer">✕</button></header>
+    <div class="brtools"><button type="button" data-z="1.25">+</button><button type="button" data-z="0.8">−</button><button type="button" data-z="0">⟲</button></div>
+    <aside class="brinfo" hidden></aside><footer>Glisser pour se déplacer · molette ou pincer pour zoomer · cliquer un point pour le détail</footer>`;
+  const cv = ov.querySelector("canvas"), info = ov.querySelector(".brinfo"); let cam = null, hov = null, sel = null, run = true; const t0 = performance.now();
+  const size = () => { const d = Math.min(2, devicePixelRatio || 1); cv.width = innerWidth * d; cv.height = innerHeight * d; cv.style.width = innerWidth + "px"; cv.style.height = innerHeight + "px"; if (!cam) cam = stratBrainFit(B, innerWidth * .9, innerHeight * .78); };
+  size(); addEventListener("resize", size);
+  const frame = now => { if (!run) return; requestAnimationFrame(frame); const d = Math.min(2, devicePixelRatio || 1), g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, innerWidth, innerHeight); stratBrainDraw(g, innerWidth, innerHeight, (now - t0) / 1000, B, cam, CC, sel || hov); };
+  requestAnimationFrame(frame);
+  const pick = (x, y) => { let best = null, bd = 16; B.N.forEach(n => { if (!n._s) return; const dd = Math.hypot(n._s[0] - x, n._s[1] - y); if (dd < bd) { bd = dd; best = n; } }); return best; };
+  const zoomAt = (f, x, y) => { const nz = Math.max(.3, Math.min(4, cam.z * f)); cam.x += (x - innerWidth / 2) / cam.z - (x - innerWidth / 2) / nz; cam.y += (y - innerHeight / 2) / cam.z - (y - innerHeight / 2) / nz; cam.z = nz; };
+  const show = n => { sel = n; if (!n) { info.hidden = true; return; } const all = allTrades(), lk = [...new Set(n.links.map(l => l.a === n ? l.b : l.a))].filter(x => x.kind !== "core");
+    let extra = ""; if (n.ses) { const ts = all.filter(t => t.time && sessionOf(t) === n.ses), wn = ts.filter(t => t.pnl > 0).length; extra = `<p><b>${ts.length}</b> trade${pl(ts.length)} dans cette session · <b>${ts.length ? Math.round(wn / ts.length * 100) : 0} %</b> de réussite</p>`; }
+    if (n.t) extra = `<p>${esc(n.t.at instanceof Date ? n.t.at.toLocaleDateString("fr-FR") : "")} ${esc(n.t.time || "")} · ${esc(n.ses || "")}</p><p><b class="${n.win ? "" : "r"}">${n.win ? "Gagnant" : "Perdant"}</b> · ${esc(money(n.t.pnl))}</p>${n.v.length ? `<p class="r">Hors stratégie : ${esc(n.v.join(", "))}</p>` : "<p>Conforme à la stratégie</p>"}`;
+    info.innerHTML = `<small>${esc(n.kind === "hub" ? "FAMILLE" : n.kind === "core" ? "CENTRE" : (B.F[n.fi] || {}).label || "")}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}
+      ${lk.length ? `<small>RELIÉ À</small><ul>${lk.slice(0, 14).map(x => `<li class="${x.bad ? "r" : ""}">${esc(x.l)}</li>`).join("")}</ul>` : ""}`; info.hidden = false; };
+  let drag = null; const pts = new Map();
+  cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); drag = {x: e.clientX, y: e.clientY, moved: false}; });
+  cv.addEventListener("pointermove", e => { if (pts.has(e.pointerId)) { const prev = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+      if (pts.size === 2) { const [a, b] = [...pts.values()], [pa] = [...pts.entries()].filter(([k]) => k !== e.pointerId).map(x => x[1]), d1 = Math.hypot(prev[0] - pa[0], prev[1] - pa[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) zoomAt(d2 / d1, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); drag.moved = true; return; }
+      cam.x -= (e.clientX - prev[0]) / cam.z; cam.y -= (e.clientY - prev[1]) / cam.z; if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; }
+    else { hov = pick(e.clientX, e.clientY); cv.style.cursor = hov ? "pointer" : "grab"; } });
+  cv.addEventListener("pointerup", e => { pts.delete(e.pointerId); if (drag && !drag.moved) show(pick(e.clientX, e.clientY)); drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX, e.clientY); }, {passive: false});
+  cv.addEventListener("dblclick", () => { cam = stratBrainFit(B, innerWidth * .9, innerHeight * .78); });
+  const close = () => { run = false; ov.remove(); document.body.style.overflow = ""; removeEventListener("resize", size); };
+  ov.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; if (b.classList.contains("brx")) return close(); const z = +b.dataset.z; if (z) zoomAt(z, innerWidth / 2, innerHeight / 2); else { cam = stratBrainFit(B, innerWidth * .9, innerHeight * .78); show(null); } });
+  addEventListener("keydown", function k(e){ if (!document.body.contains(ov)) return removeEventListener("keydown", k); if (e.key === "Escape") close(); });
+}
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
 const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + des repères à partir des étapes */
   cfg = cfg || {}; let fvs = null, lvlK = null, p = .5, hi = .5, lo = .5, swingHi = .55, liqHi = null, liqLo = null, sweep = null, swept = false; const pts = [p], ev = [];
@@ -5365,6 +5504,9 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
       if (wide) c.ifs.forEach((r, i) => { const s = ("SI " + ifLabel(r)).toUpperCase(), on = ifLabel(r) === why; g.font = F(C, 9, on); g.fillStyle = A(on ? C.ls : C.mu, on ? 1 : .8); g.fillText(s.length > 26 ? s.slice(0, 25) + "…" : s, 5, 62 + i * 13); });
       else if (why) { g.font = F(C, 9, 1); g.fillStyle = A(C.ls, .9); g.fillText(("SI " + why).toUpperCase(), 5, 58); }
     },
+    brain(g, w, h, t, C, cv){ const c = KC(cv), key = [c.steps.join(), c.zones.join(), c.tfs.map(x => x.tf).join(), c.sessions.join(), c.rules.join(), allTrades().length, c.tpTxt, c.slTxt].join("|");
+      if (!cv._B || cv._k !== key) { cv._B = stratBrainBuild(c); cv._k = key; } const cam = stratBrainFit(cv._B, w, h); cam.z *= 1.04; cam.rot = Math.sin(t * .05) * .12;
+      stratBrainDraw(g, w, h, t, cv._B, cam, Object.assign({}, C, {bg: document.body.classList.contains("light") ? "#f4f5f7" : "#0b0b0c"}), null); },
     real(g, w, h, t, C, cv){ let d = {}; try { d = JSON.parse(cv.dataset.s || "{}"); } catch (e) {} const keys = ["Asie", "Londres", "NY AM", "NY PM", "Hors session"], mx = Math.max(1, ...keys.map(k => d[k] || 0)), c = KC(cv);
       const bw = (w - 20) / keys.length; keys.forEach((k, i) => { const v = d[k] || 0, x = 10 + i * bw, hh = (h - 34) * v / mx * Math.min(1, (t % 8) / 1.2), on = c.sessions.includes(k);
         g.fillStyle = A(on ? C.fg : C.mu, on ? .85 : .45); g.fillRect(x + bw * .25, h - 20 - hh, bw * .5, Math.max(1, hh)); lab(g, C, k.toUpperCase(), x + bw / 2, h - 6, on ? 1 : .6, "center"); if (v) lab(g, C, String(v), x + bw / 2, h - 24 - hh, 1, "center"); }); },
@@ -6536,7 +6678,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-55";
+const APP_VERSION = "2026-10-29-56";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
