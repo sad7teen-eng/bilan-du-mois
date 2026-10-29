@@ -1133,6 +1133,7 @@ html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!impor
 body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
 body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}html:has(body.instrat){overflow:hidden!important;overscroll-behavior:none}
 body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
+body.instrat .shead{display:none!important}.tn-strat{display:flex;gap:6px;align-items:center;margin-left:4px}.tn-strat > button,.tn-strat .sdd-b{font-size:12px!important;padding:6px 11px!important;min-height:0!important;border-radius:999px!important;white-space:nowrap}.tn-strat .sdd-m{right:auto;left:0}
 body.instrat .shead{margin-bottom:0}body.instrat .shead .tools{gap:8px;align-items:center}body.instrat .shead .tools > button{font-size:12px!important;padding:6px 12px!important;min-height:0!important}
 .sdd{position:relative}.sdd-b{display:flex;align-items:center;gap:6px;font-size:12px!important;padding:6px 12px!important}.sdd-b svg{opacity:.7}
 .sdd-m{position:absolute;right:0;top:calc(100% + 6px);min-width:200px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:12px;background:rgba(18,19,22,.92);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);z-index:30;box-shadow:0 20px 50px rgba(0,0,0,.5)}
@@ -4793,7 +4794,7 @@ function setView0(v, keepScroll){
   if (v === "analytics") renderAna();
   if (v === "certs") { deckIntro = true; loadCerts(); }
   if (v === "certs" && !document.body.classList.contains("incerts") && certFogOn) certTitleIn();
-  document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") b3Remove();
+  document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") { b3Remove(); document.querySelectorAll(".tn-strat").forEach(x => x.remove()); }
   { let lt = true; try { lt = localStorage.getItem(THEME_KEY) !== "dark"; } catch (e) {} document.body.classList.toggle("light", v === "strategie" ? false : lt); }
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
@@ -4992,6 +4993,7 @@ function renderStrat(){ stratKaelRestore();
     </div>`;
   }
   if ($("brainOpen")) { $("brainOpen").onclick = () => openStratBrain(); $("brainPrev").onclick = () => openStratBrain(); }
+  document.querySelectorAll(".tn-strat").forEach(x => x.remove()); { const tl = $("stratView").querySelector(".shead .tools"), na = document.querySelector(".topnav .tn-act"); if (tl && na) { tl.classList.add("tn-strat"); na.appendChild(tl); } }
   $("stratEditB").onclick = () => openStratWizard();
   $("stratDescB").onclick = () => openStratDescribe();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
@@ -5001,7 +5003,7 @@ let stratRen = false; addEventListener("pointerdown", e => { if (!e.target.close
 function stratDelete(){ const S = strat(), L = stratList(), k = L.findIndex(x => x.id === S.active);
   if (L.length > 1) { L.splice(k, 1); S.active = L[Math.max(0, k - 1)].id; } else { L[0].cfg = stratBlank(); L[0].name = "Stratégie 1"; }
   S.at = Date.now(); stratSync(); save(); renderStrat(); }
-$("stratView").addEventListener("click", e => { const S = strat();
+document.addEventListener("click", e => { if (!e.target.closest("#stratView, .tn-strat")) return; const S = strat();
   if (e.target.closest("#sddB")) { const m = e.target.closest(".sdd").querySelector(".sdd-m"); m.hidden = !m.hidden; return; }
   if (e.target.closest(".spen")) { stratRen = true; renderStrat(); return; }
   const tb = e.target.closest("[data-sid]"); if (tb && tb.dataset.sid !== S.active) { S.active = tb.dataset.sid; S.at = Date.now(); stratSync(); save(); renderStrat(); return; }
@@ -5655,7 +5657,7 @@ async function mountBrain3(host, C){
     <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
     <div class="b3help">GLISSER · ORBITE — MOLETTE OU PINCER · ZOOM — GLISSER UN NŒUD · TIRER — Z · VOLER — DOUBLE-CLIC · RECENTRER</div><aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k"), nav = host.querySelector(".b3nav");
-  { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".vhead"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
+  { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".vhead"); host.querySelector(".b3hud").style.left = "28px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = Math.max(76, sb.getBoundingClientRect().bottom + 10); host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
   { const nv = e => host.classList.toggle("navon", e.clientY > innerHeight - 170); addEventListener("mousemove", nv); host._nv = nv; }
   if (!THREE) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
@@ -5761,6 +5763,13 @@ async function mountBrain3(host, C){
   scene.add(new THREE.Points(ug, glowMat)); const pulses = [];
   /* ---- étiquettes ---- */
   const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls; d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
+  /* orbites autour de la carte, comme autour de la planète Macro */
+  const orbs = [[RH * 1.55, RH * 1.05, .35, .2, false], [RH * 1.9, RH * 1.3, -.5, 1.4, true], [RH * 1.25, RH * .7, .9, 2.6, true], [RH * 2.2, RH * 1.6, -.15, 4.1, false]].map(([a, b, tilt, rot, dash], k) => {
+    const pts = []; for (let i = 0; i <= 256; i++) { const t = i / 256 * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(t) * a, 0, Math.sin(t) * b)); }
+    const g = new THREE.BufferGeometry().setFromPoints(pts), m = dash ? new THREE.LineDashedMaterial({color: 0xffffff, transparent: true, opacity: .16, dashSize: 6, gapSize: 9, depthWrite: false}) : new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: .1, depthWrite: false});
+    const ln = new THREE.Line(g, m); if (dash) ln.computeLineDistances(); const grp = new THREE.Group(); grp.add(ln); grp.rotation.set(tilt, rot, tilt * .4); scene.add(grp);
+    const sat = new THREE.Mesh(new THREE.SphereGeometry(k % 2 ? 3.2 : 4.5, 12, 8), new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: .85})); grp.add(sat);
+    return {grp, ln, sat, a, b, sp: (k % 2 ? -1 : 1) * (.05 + k * .018), ph: k * 1.7, op: m.opacity}; });
   const bhM = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 20), new THREE.MeshBasicMaterial({color: 0x000000})); bhM.renderOrder = -1; bhM.visible = false; scene.add(bhM);
   /* easter egg : l'interface est aspirée lettre par lettre par le trou noir */
   const EAT_SEL = ".topnav, #stratView .vhead, .b3hud, .b3nav, .b3help, .b3info"; let eatWraps = [], eatAnims = [];
@@ -5893,6 +5902,7 @@ async function mountBrain3(host, C){
       const gk = dark ? Math.min(1, .25 + G[n.sec.i] * .75) : 1; nCol.set([c.r * gk, c.g * gk, c.b * gk], k * 3); nSz[k] = (1 - U.uBH.value) * (n.cell.f.key === "trades" ? 16 : 26) * grow * (1 + lit * .8 + (n === hovN ? .6 : 0)) * (nb && !nb.has(n) ? .7 : 1); });
     const kc = nodes.length; nPos.set([coreN.p.x, coreN.p.y, coreN.p.z], kc * 3); nCol.set([white.r, white.g, white.b], kc * 3); nSz[kc] = 46 * (1 + .15 * Math.sin(t * 1.3)) * Math.min(1, bu * 5) * (1 - U.uBH.value);
     ng.attributes.position.needsUpdate = true; ng.attributes.color.needsUpdate = true; ng.attributes.aZ.needsUpdate = true;
+    orbs.forEach(o => { const t = U.uT.value * o.sp + o.ph, k = 1 - U.uBH.value; o.sat.position.set(Math.cos(t) * o.a, 0, Math.sin(t) * o.b); o.grp.rotation.y += .0004; o.grp.position.copy(coreN.p); o.ln.material.opacity = o.op * k; o.sat.material.opacity = .85 * k; });
     ren.render(scene, cam);
     if (fr % 5 === 0 && !eaten) kTxt.textContent = (combos += Math.floor((2 + Math.random() * 6) * (idle < 2 ? 3 : 1))).toLocaleString("fr-FR") + " combinaisons explorées";
     /* étiquettes */
@@ -7195,7 +7205,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-116";
+const APP_VERSION = "2026-10-29-117";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
