@@ -1081,9 +1081,12 @@ section[data-view="strategie"] .mt-b i{position:relative;overflow:hidden}section
 /* ---------- Stratégie v2 : page visuelle + éditeur par étapes ---------- */
 .sg2 .s-hero{grid-column:span 6}.sg2 .s-tf2,.sg2 .s-bias{grid-column:span 3}.sg2 .s-entry2{grid-column:span 6}
 .sg2 .s-zones{grid-column:span 6}.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 2}.sg2 .s-resp2{grid-column:span 6}.sg2 .s-com{grid-column:span 6}
-.s-tf2 .sviz{height:170px}.s-bias .sviz{height:170px}.s-entry2 .sviz{height:230px}.s-risk2 .sviz,.s-sess .sviz{height:180px}.s-rules2 .sviz{height:180px}
+.s-tf2 .sviz{height:190px}.s-bias .sviz{height:190px}.s-entry2 .sviz{height:230px}.s-risk2 .sviz,.s-sess .sviz{height:180px}.s-rules2 .sviz{height:180px}
 .zgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.zgrid>div{border:1px solid color-mix(in srgb,var(--fg) 10%,transparent);border-radius:4px;padding:6px}
 .zgrid .sviz{height:90px}.zgrid small,.sring small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;text-align:center}
+.hero-txt .hl{cursor:default;transition:color .2s,border-color .2s,transform .2s}.hero-sub .hl:hover{color:var(--fg)}.hero-kpi .hl:hover{border-color:color-mix(in srgb,var(--fg) 55%,transparent);transform:translateY(-2px)}
+canvas[data-viz="sess"]{cursor:crosshair}
+#anaView .s-resp2{margin-top:12px}
 .rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sring .sviz{height:110px}
 .stxt{margin:6px 0 0;white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.5}
 @media (max-width:760px){.sg2 .s-tf2,.sg2 .s-bias,.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 6}.rings{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -4722,8 +4725,8 @@ function stratCfg(){
 /* les anciens champs servent au suivi « respect de la stratégie » : on les garde synchronisés */
 function stratSync(){ const S = strat(), C = stratCfg(); S.market = C.market === "_" ? (C.marketOther || "Autre") : C.market; S.risk = C.risk; S.rrMin = C.rrMin; S.rrTarget = C.rrTarget; S.maxTrades = C.maxTrades; S.sessions = C.sessions.slice(); }
 
-function renderStrat(){
-  const S = strat(), C = stratCfg(), all = allTrades(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
+function stratRespectHTML(){
+  const S = strat(), all = allTrades();
   const rrMin = num(S.rrMin), maxT = parseInt(S.maxTrades, 10);
   const wR = all.filter(t => t.pnl > 0 && isNum(t.r)), okRR = isFinite(rrMin) && wR.length ? wR.filter(t => t.r >= rrMin - 1e-9).length / wR.length : null;
   const timed = all.filter(t => t.time), inSes = timed.length ? timed.filter(t => S.sessions.includes(sessionOf(t))).length / timed.length : null;
@@ -4731,6 +4734,11 @@ function renderStrat(){
   const okMax = isFinite(maxT) && per.size ? [...per.values()].filter(n => n <= maxT).length / per.size : null;
   const lR = all.filter(t => t.pnl < 0 && isNum(t.r)), okStop = lR.length ? lR.filter(t => t.r >= -1.15).length / lR.length : null;
   const ring = (lab, v) => `<div class="sring"><canvas class="sviz" data-viz="ring" data-v="${v == null ? -1 : v}"></canvas><small>${lab}</small></div>`;
+  return `<section class="tile s-resp2"><div class="c3h"><span class="lab2">Respect de la stratégie</span><small>${all.length} trade${pl(all.length)}</small></div>
+    <div class="rings">${ring("RR min", okRR)}${ring("Stop 1R", okStop)}${ring("Sessions", inSes)}${ring("Max / session", okMax)}</div></section>`;
+}
+function renderStrat(){
+  const S = strat(), C = stratCfg(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
   const tfs = C.tfs.length ? C.tfs : [{tf: "H4", role: "bias"}];
   $("stratView").innerHTML = `
     <header class="top vhead"><div><h1>Stratégie</h1></div>
@@ -4738,8 +4746,8 @@ function renderStrat(){
     <div class="sgrid sg2">
       <section class="tile scard s-hero"><span class="lab2">${esc(mk)} · ${tfs.map(x => x.tf).join(" → ")}</span>
         <div class="hero-in"><canvas class="sviz" data-viz="hero"></canvas>
-          <div class="hero-txt"><b class="hero-word">${esc(mk)}</b><span class="hero-sub">${tfs.map(x => esc(x.tf)).join(" · ")}</span>
-            <div class="hero-kpi"><div><small>RISQUE</small><b>${esc(C.risk || "—")}%</b></div><div><small>RR</small><b>${esc(C.rrTarget || "—")}R</b></div><div><small>MAX</small><b>${C.maxTrades === "0" ? "∞" : esc(C.maxTrades)}/S</b></div></div></div></div></section>
+          <div class="hero-txt"><b class="hero-word">${esc(mk)}</b><span class="hero-sub">${tfs.map((x, i) => `<span class="hl" data-hl="${i + 1}">${esc(x.tf)}</span>`).join(" · ")}</span>
+            <div class="hero-kpi"><div class="hl" data-hl="5"><small>RISQUE</small><b>${esc(C.risk || "—")}%</b></div><div class="hl" data-hl="6"><small>RR</small><b>${esc(C.rrTarget || "—")}R</b></div><div class="hl" data-hl="7"><small>MAX</small><b>${C.maxTrades === "0" ? "∞" : esc(C.maxTrades)}/S</b></div></div></div></div></section>
       <section class="tile scard s-tf2"><span class="lab2">Unités de temps</span><canvas class="sviz" data-viz="tf"></canvas></section>
       <section class="tile scard s-bias"><span class="lab2">Biais · ${esc(SC.bias[C.bias] || "")}</span><canvas class="sviz" data-viz="bias"></canvas></section>
       <section class="tile scard s-entry2"><span class="lab2">Déroulé de l'entrée</span><canvas class="sviz" data-viz="seq"></canvas></section>
@@ -4747,12 +4755,13 @@ function renderStrat(){
       <section class="tile scard s-risk2"><span class="lab2">Gestion · SL ${esc(SC.sl[C.sl] || "")}</span><canvas class="sviz" data-viz="risk"></canvas></section>
       <section class="tile scard s-sess"><span class="lab2">Sessions</span><canvas class="sviz" data-viz="sess"></canvas></section>
       <section class="tile scard s-rules2"><span class="lab2">Règles</span><canvas class="sviz" data-viz="rules"></canvas></section>
-      <section class="tile scard s-resp2"><span class="lab2">Respect <em>${all.length} trade${pl(all.length)}</em></span>
-        <div class="rings">${ring("RR min", okRR)}${ring("Stop 1R", okStop)}${ring("Sessions", inSes)}${ring("Max / session", okMax)}</div></section>
       ${C.comment ? `<section class="tile scard s-com"><span class="lab2">Note</span><p class="stxt">${esc(C.comment)}</p></section>` : ""}
     </div>`;
   $("stratEditB").onclick = () => openStratWizard();
 }
+$("stratView").addEventListener("mouseover", e => { const x = e.target.closest("[data-hl]"); window.__heroHL = x ? +x.dataset.hl : 0; });
+["mousemove", "touchmove"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"]'); if (!c) return; const r = c.getBoundingClientRect(), p = e.touches ? e.touches[0] : e; c._m = {x: p.clientX - r.left, y: p.clientY - r.top}; }, {passive: true}));
+["mouseout", "touchend"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"]'); if (c) c._m = null; }));
 
 /* ---------- Éditeur étape par étape ---------- */
 function openStratWizard(){
@@ -4820,11 +4829,11 @@ function openStratWizard(){
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
 const stratSeq = steps => { /* construit une courbe de prix (bougies) + des repères à partir des étapes */
   let p = .5, hi = .5, lo = .5, swingHi = .55; const pts = [p], ev = [];
-  const go = (n, d, wob) => { for (let k = 0; k < n; k++) { const e = (k + 1) / n; p += d / n + Math.sin(pts.length * 2.3) * (wob || .012) * (k % 2 ? 1 : -1); pts.push(p); hi = Math.max(hi, p); lo = Math.min(lo, p); } };
+  const go = (n0, d, wob) => { const n = Math.round(n0 * 1.7); for (let k = 0; k < n; k++) { p += d / n + Math.sin(pts.length * 2.3) * (wob || .012) * (k % 2 ? 1 : -1); pts.push(p); hi = Math.max(hi, p); lo = Math.min(lo, p); } };
   (steps.length ? steps : ["trend", "entry"]).forEach(s => { const a = pts.length - 1;
     if (s === "trend") { go(6, .22); swingHi = hi; }
     else if (s === "retrace") { swingHi = hi; go(5, -.14); }
-    else if (s === "range") { const c = p; for (let k = 0; k < 7; k++) { p = c + (k % 2 ? .05 : -.05) + Math.sin(k) * .01; pts.push(p); } ev.push({t: "range", a, b: pts.length - 1, lo: c - .06, hi: c + .06}); }
+    else if (s === "range") { const c = p; for (let k = 0; k < 12; k++) { p = c + (k % 2 ? .05 : -.05) + Math.sin(k) * .01; pts.push(p); } ev.push({t: "range", a, b: pts.length - 1, lo: c - .06, hi: c + .06}); }
     else if (s === "liq") { const lvl = Math.min(...pts.slice(-8)); ev.push({t: "liq", a: Math.max(0, a - 6), b: a + 3, lvl}); pts.push(lvl - .06); pts.push(lvl + .03); pts.push(lvl + .05); p = lvl + .05; }
     else if (s === "zone") { const top = p - .06; go(4, -.1); ev.push({t: "zone", a, b: pts.length + 4, lo: p - .03, hi: top}); }
     else if (s === "rebound") { const lvl = p - .05; go(2, -.05, .004); go(3, .08); ev.push({t: "lvl", a: a - 2, b: pts.length, lvl}); }
@@ -4842,38 +4851,44 @@ const stratSeq = steps => { /* construit une courbe de prix (bougies) + des rep�
   const F = (C, s, b) => (b ? "600 " : "") + s + "px " + C.mono;
   const lab = (g, C, s, x, y, a, al) => { g.font = F(C, 9); g.fillStyle = A(C.mu, a == null ? .9 : a); g.textAlign = al || "left"; g.fillText(s, x, y); g.textAlign = "left"; };
   const V = {
-    hero(g, w, h, t, C){ const cx = w * .5, cy = h / 2, R = h * .62, ry = t * .3, rx = .55 + Math.sin(t * .17) * .25, N = 220, S2 = 14;
+    hero(g, w, h, t, C, cv){ const cx = w * .5, cy = h / 2, R = h * .62, ry = t * .3, rx = .55 + Math.sin(t * .17) * .25, N = 220, S2 = 14;
+      const tg = window.__heroHL ? (window.__heroHL * 5 + 2) % S2 : S2 / 2; cv._hl = cv._hl == null ? tg : cv._hl + (tg - cv._hl) * .12;
       const pr = (x, y, z) => { let X = x * Math.cos(ry) - z * Math.sin(ry), Z = x * Math.sin(ry) + z * Math.cos(ry), Y = y * Math.cos(rx) - Z * Math.sin(rx); Z = y * Math.sin(rx) + Z * Math.cos(rx); const k = 2.4 / (2.4 + Z); return [cx + X * R * k, cy + Y * R * k]; };
-      for (let L = 0; L < S2; L++) { const off = (L / S2 - .5) * .5; g.beginPath();
+      for (let L = 0; L < S2; L++) { const off = (L / S2 - .5) * .5, hl = Math.max(0, 1 - Math.abs(L - cv._hl)); g.beginPath();
         for (let i = 0; i <= N; i++) { const u = i / N * Math.PI * 2, r = .5 + .2 * Math.cos(3 * u + t * .25) + off * .35, [X, Y] = pr(r * Math.cos(2 * u), r * Math.sin(2 * u), .3 * Math.sin(3 * u + t * .25) + off * .25 * Math.cos(u + L * .4)); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }
-        const mid = L === S2 / 2; g.strokeStyle = A(L % 3 ? C.fg : C.mu, mid ? .9 : .1 + .22 * (1 - Math.abs(L / S2 - .5) * 2)); g.lineWidth = mid ? 1.3 : .6; g.stroke(); }
+        g.strokeStyle = A(L % 3 ? C.fg : C.mu, .1 + .22 * (1 - Math.abs(L / S2 - .5) * 2) + hl * .8); g.lineWidth = .6 + hl * .9; g.stroke(); }
       for (let i = 0; i < 50; i++) { const u = (i / 50 + t * .02) % 1 * Math.PI * 2, r = .5 + .2 * Math.cos(3 * u + t * .25), [X, Y] = pr(r * Math.cos(2 * u), r * Math.sin(2 * u), .3 * Math.sin(3 * u + t * .25)); g.fillStyle = A(C.fg, .3 + .7 * Math.max(0, Math.sin(t * 3 + i * 1.7))); g.fillRect(X - 1.2, Y - 1.2, 2.4, 2.4); }
       g.strokeStyle = A(C.mu, .22); g.lineWidth = 1; g.strokeRect(8.5, 8.5, w - 17, h - 17); g.beginPath(); for (let x = 12; x < w - 12; x += 6) { g.moveTo(x, h - 9); g.lineTo(x, h - (x % 30 ? 12 : 16)); } g.stroke();
       ["X", "Y", "Z", "T"].forEach((n, i) => lab(g, C, n + " " + (Math.sin(t * (i + 1) * .7) * 99).toFixed(2), i % 2 ? w - 16 : 16, i > 1 ? h - 22 : 22, .7, i % 2 ? "right" : "left")); },
-    tf(g, w, h, t, C, cv){ /* une boussole par unité de temps : flèche qui s'aligne ; l'unité d'exécution se désaligne puis se réaligne */
-      const tfs = (stratCfg().tfs.length ? stratCfg().tfs : [{tf: "H4", role: "bias"}]), n = tfs.length, cw = w / n, cy = h * .44, r = Math.min(cw * .3, h * .26);
-      const cyc = (t % 9) / 9, mis = cyc > .35 && cyc < .7, ex = tfs.map(x => x.role).lastIndexOf("exec") >= 0 ? tfs.map(x => x.role).lastIndexOf("exec") : n - 1;
-      g.strokeStyle = A(C.mu, .3); g.setLineDash([2, 4]); g.beginPath(); g.moveTo(cw / 2 + r, cy); g.lineTo(w - cw / 2 - r, cy); g.stroke(); g.setLineDash([]);
-      tfs.forEach((x, i) => { const cx = cw * (i + .5), bad = mis && i === ex, tgt = bad ? Math.PI / 2 : -Math.PI / 2, key = "a" + i; cv[key] = cv[key] == null ? tgt : cv[key] + (tgt - cv[key]) * .06; const a = cv[key];
-        g.beginPath(); g.arc(cx, cy, r, 0, 7); g.strokeStyle = A(bad ? C.ls : C.fg, bad ? .9 : .35); g.lineWidth = 1; g.stroke();
-        g.beginPath(); g.arc(cx, cy, r + 5, -Math.PI / 2 + t * .8 + i, -Math.PI / 2 + t * .8 + i + .9); g.strokeStyle = A(C.fg, .5); g.stroke();
-        for (let k = 0; k < 12; k++) { const b = k / 12 * Math.PI * 2; g.beginPath(); g.moveTo(cx + Math.cos(b) * (r - 3), cy + Math.sin(b) * (r - 3)); g.lineTo(cx + Math.cos(b) * (r - (k % 3 ? 5 : 8)), cy + Math.sin(b) * (r - (k % 3 ? 5 : 8))); g.strokeStyle = A(C.mu, .5); g.stroke(); }
-        const L = r * .62; g.strokeStyle = g.fillStyle = A(bad ? C.ls : C.fg, .95); g.lineWidth = 2; g.beginPath(); g.moveTo(cx - Math.cos(a) * L * .5, cy - Math.sin(a) * L * .5); g.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L); g.stroke();
-        g.beginPath(); g.moveTo(cx + Math.cos(a) * (L + 5), cy + Math.sin(a) * (L + 5)); g.lineTo(cx + Math.cos(a + 2.5) * 7 + Math.cos(a) * L, cy + Math.sin(a + 2.5) * 7 + Math.sin(a) * L); g.lineTo(cx + Math.cos(a - 2.5) * 7 + Math.cos(a) * L, cy + Math.sin(a - 2.5) * 7 + Math.sin(a) * L); g.fill(); g.lineWidth = 1;
-        g.font = F(C, 13, 1); g.fillStyle = A(C.fg, 1); g.textAlign = "center"; g.fillText(x.tf, cx, cy + r + 22); lab(g, C, (SC.roles[x.role] || "").toUpperCase(), cx, cy + r + 36, .8, "center"); });
-      g.font = F(C, 10, 1); g.fillStyle = mis ? A(C.ls, .6 + .4 * Math.sin(t * 8)) : A(C.fg, .9); g.textAlign = "right"; g.fillText(mis ? "DÉSALIGNÉ" : "ALIGNÉ ✓", w - 6, 12); g.textAlign = "left"; },
-    bias(g, w, h, t, C){ const b = stratCfg().bias, mono = C.mono;
+    tf(g, w, h, t, C, cv){ /* chaque UT = sa mini-structure en lignes droites + son sens ; l'UT d'exécution passe baissière (rouge) puis se réaligne */
+      const tfs = (stratCfg().tfs.length ? stratCfg().tfs : [{tf: "H4", role: "bias"}]), n = tfs.length, cw = w / n, rl = tfs.map(x => x.role), ex = rl.lastIndexOf("exec") >= 0 ? rl.lastIndexOf("exec") : n - 1;
+      const cyc = (t % 10) / 10, mis = cyc > .4 && cyc < .75, top = 30, bot = h - 52;
+      tfs.forEach((x, i) => { const bad = mis && i === ex, key = "d" + i, tgt = bad ? -1 : 1; cv[key] = cv[key] == null ? tgt : cv[key] + (tgt - cv[key]) * .07; const d = cv[key], x0 = i * cw + 14, x1 = (i + 1) * cw - 14, mid = (top + bot) / 2, H2 = (bot - top) / 2;
+        if (i) { g.strokeStyle = A(C.mu, .25); g.beginPath(); g.moveTo(i * cw, top); g.lineTo(i * cw, bot + 28); g.stroke(); }
+        const K = 7, pts = []; for (let k = 0; k <= K; k++) { const u = k / K, zz = (k % 2 ? -1 : 1) * .28 * H2 * (k && k < K ? 1 : 0); pts.push([x0 + u * (x1 - x0), mid + d * (H2 * .8 - u * H2 * 1.6) + zz * Math.sign(d || 1)]); }
+        const T = Math.min(1, ((t * .35 + i * .13) % 1) * 1.6), seg = T * K, cc = bad ? C.ls : C.fg;
+        g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k <= K; k++) { if (k - 1 > seg) break; const f = Math.min(1, seg - (k - 1)), [ax, ay] = pts[k - 1], [bx, by] = pts[k]; g.lineTo(ax + (bx - ax) * f, ay + (by - ay) * f); }
+        g.strokeStyle = A(cc, .95); g.lineWidth = 1.5; g.stroke(); g.lineWidth = 1;
+        const up = d > 0, ax = (x0 + x1) / 2; g.font = F(C, 13, 1); g.fillStyle = A(cc, 1); g.textAlign = "left"; g.fillText(x.tf, x0, 16);
+        g.textAlign = "right"; g.font = F(C, 12, 1); g.fillText(up ? "▲" : "▼", x1, 16); g.textAlign = "left";
+        lab(g, C, (up ? "HAUSSIER" : "BAISSIER"), ax, bot + 16, 1, "center"); lab(g, C, (SC.roles[x.role] || "").toUpperCase(), ax, bot + 27, .55, "center");
+        if (bad) { g.strokeStyle = A(C.ls, .5 + .4 * Math.sin(t * 8)); g.strokeRect(i * cw + 4.5, 2.5, cw - 9, h - 22); } });
+      g.font = F(C, 9, 1); g.fillStyle = mis ? A(C.ls, .6 + .4 * Math.sin(t * 8)) : A(C.mu, .9); g.textAlign = "center"; g.fillText(mis ? "DÉSALIGNÉ · ON ATTEND LE SHIFT" : "ALIGNÉ ✓", w / 2, h - 2); g.textAlign = "left"; },
+    bias(g, w, h, t, C){ const b = stratCfg().bias;
       if (b === "none") { lab(g, C, "SANS BIAIS · LES DEUX SENS", w / 2, h / 2, .9, "center"); g.strokeStyle = A(C.fg, .6); [[-1], [1]].forEach(([s]) => { g.beginPath(); g.moveTo(w / 2, h * .62); g.lineTo(w / 2 + s * 40, h * .62 + Math.sin(t * 2) * 6); g.stroke(); }); return; }
       if (b === "macro") { for (let i = 0; i < 5; i++) { const y = 14 + i * (h - 20) / 5, x = (w + 40 - ((t * 40 + i * 70) % (w + 80))); g.fillStyle = A(C.fg, .12); g.fillRect(x, y, 60, 10); lab(g, C, ["FED", "CPI", "NFP", "DXY", "PIB"][i], x + 4, y + 8, .9); }
         g.font = F(C, 22, 1); g.fillStyle = A(C.fg, .9); g.textAlign = "center"; g.fillText("↗ MACRO", w / 2, h / 2 + 8); g.textAlign = "left"; return; }
-      const N = 60, pts = []; for (let i = 0; i <= N; i++) { const u = i / N; pts.push(h * .82 - u * h * .6 + Math.sin(u * 14 + t * .6) * h * .1 * (1 - u * .3)); }
-      g.beginPath(); pts.forEach((y, i) => { const x = 8 + i / N * (w - 16); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.strokeStyle = A(C.fg, .9); g.lineWidth = 1.4; g.stroke(); g.lineWidth = 1;
-      if (b === "ma") { g.beginPath(); for (let i = 0; i <= N; i++) { const u = i / N, x = 8 + u * (w - 16), y = h * .86 - u * h * .58; i ? g.lineTo(x, y) : g.moveTo(x, y); } g.strokeStyle = A(C.mu, .8); g.setLineDash([4, 3]); g.stroke(); g.setLineDash([]); lab(g, C, "MM", w - 30, h * .3, .9); }
-      else { for (let i = 1; i < N; i++) { if ((pts[i] < pts[i - 1] && pts[i] < pts[i + 1]) || (pts[i] > pts[i - 1] && pts[i] > pts[i + 1])) { const x = 8 + i / N * (w - 16), top = pts[i] < pts[i - 1]; g.fillStyle = A(C.fg, .9); g.beginPath(); g.arc(x, pts[i], 2.5, 0, 7); g.fill(); lab(g, C, top ? "HH" : "HL", x, pts[i] + (top ? -7 : 14), .8, "center"); } } }
+      const P = [[0, .86], [.14, .58], [.22, .7], [.38, .42], [.47, .55], [.63, .26], [.72, .38], [.88, .12], [1, .2]], X = u => 14 + u * (w - 28), Y = v => 22 + v * (h - 34);
+      const T = Math.min(1, (t % 7) / 5.5) * (P.length - 1);
+      if (b === "ma") { g.setLineDash([5, 4]); g.strokeStyle = A(C.mu, .8); g.beginPath(); g.moveTo(X(0), Y(.95)); g.lineTo(X(1), Y(.3)); g.stroke(); g.setLineDash([]); lab(g, C, "MM", X(1) - 2, Y(.3) + 12, .9, "right"); }
+      g.beginPath(); g.moveTo(X(P[0][0]), Y(P[0][1])); for (let k = 1; k < P.length; k++) { if (k - 1 > T) break; const f = Math.min(1, T - (k - 1)); g.lineTo(X(P[k - 1][0] + (P[k][0] - P[k - 1][0]) * f), Y(P[k - 1][1] + (P[k][1] - P[k - 1][1]) * f)); }
+      g.strokeStyle = A(C.fg, .95); g.lineWidth = 1.6; g.lineJoin = "miter"; g.stroke(); g.lineWidth = 1;
+      if (b !== "ma") for (let k = 1; k < P.length - 1; k++) { if (k > T) break; const top = P[k][1] < P[k - 1][1]; g.fillStyle = A(C.fg, 1); g.fillRect(X(P[k][0]) - 2.5, Y(P[k][1]) - 2.5, 5, 5); lab(g, C, top ? "HH" : "HL", X(P[k][0]), Y(P[k][1]) + (top ? -8 : 15), .85, "center");
+        if (!top) { g.setLineDash([2, 3]); g.strokeStyle = A(C.mu, .4); g.beginPath(); g.moveTo(X(P[k][0]), Y(P[k][1])); g.lineTo(X(1), Y(P[k][1])); g.stroke(); g.setLineDash([]); } }
       const pulse = .5 + .5 * Math.sin(t * 3); g.font = F(C, 11, 1); g.fillStyle = A(C.fg, .6 + .4 * pulse); g.fillText("▲ HAUSSIER", 10, 14); },
     seq(g, w, h, t, C, cv){ const cfg = cv._cfg || stratCfg(), key = cfg.steps.join(",");
       if (cv._k !== key) { cv._k = key; cv._s = stratSeq(cfg.steps); cv._t0 = t; }
-      const S = cv._s, n = S.pts.length - 1, top = 22, bot = h - 18, Y = p => bot - (p - S.lo) / Math.max(.05, S.hi - S.lo) * (bot - top), bw = (w - 24) / n, X = i => 12 + i * bw;
+      const S = cv._s, n = S.pts.length - 1, top = 40, bot = h - 22, Y = p => bot - (p - S.lo) / Math.max(.05, S.hi - S.lo) * (bot - top), bw = Math.min(16, (w - 90) / n), x0 = (w - bw * n) / 2, X = i => x0 + i * bw;
       const T = ((t - cv._t0) % 9) / 7.5, show = Math.min(n, Math.floor(T * n));
       S.ev.forEach(e => { const vis = (e.at != null ? e.at : e.a) <= show; if (!vis) return; g.setLineDash([3, 3]);
         if (e.t === "zone" || e.t === "range") { g.fillStyle = A(C.fg, .07); const y0 = Y(e.hi), y1 = Y(e.lo); g.fillRect(X(e.a), y0, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.strokeStyle = A(C.fg, .3); g.strokeRect(X(e.a) + .5, y0 + .5, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.setLineDash([]); lab(g, C, e.t === "zone" ? (SC.zones[cfg.zones[0]] || "ZONE").toUpperCase() : "RANGE", X(e.a) + 3, y1 - 3, .9); }
@@ -4900,19 +4915,32 @@ const stratSeq = steps => { /* construit une courbe de prix (bougies) + des rep�
       else if (z === "liq") { g.setLineDash([3, 3]); g.strokeStyle = A(C.ls, .7); g.beginPath(); g.moveTo(0, h * .3); g.lineTo(w, h * .3); g.stroke(); g.setLineDash([]); path([[0, .75], [.2, .32], [.35, .55], [.5, .31], [.65, .5], [.75, .18], [.85, .4], [1, .8]], T); }
       else { g.setLineDash([]); g.beginPath(); for (let i = 0; i <= 40; i++) { const u = i / 40; g.lineTo(u * w, h * (.55 - u * .2) + Math.sin(u * 8) * 3); } g.strokeStyle = A(C.mu, .8); g.stroke(); path([[0, .7], [.2, .4], [.4, .6], [.6, .35], [.8, .5], [1, .3]], T); }
       g.setLineDash([]); },
-    risk(g, w, h, t, C){ const c = stratCfg(), rr = Math.max(1, parseFloat(c.rrTarget) || 3), ey = h * .62, sl = h * .82, tp = ey - (sl - ey) * rr, ty = Math.max(14, tp);
-      g.fillStyle = A(C.ls, .1); g.fillRect(10, ey, w * .62, sl - ey); g.fillStyle = A(C.fg, .07); g.fillRect(10, ty, w * .62, ey - ty);
-      [[sl, "SL -1R", C.ls], [ey, "ENTRÉE", C.fg], [ty, "TP +" + rr + "R", C.fg]].forEach(([y, l, cc]) => { g.strokeStyle = A(cc, .7); g.beginPath(); g.moveTo(10, y); g.lineTo(w * .62 + 10, y); g.stroke(); lab(g, C, l, w * .62 + 14, y + 3, .95); });
-      const T = (t % 5) / 5; g.beginPath(); g.moveTo(10, ey); for (let i = 1; i <= 50 * T; i++) { const u = i / 50; g.lineTo(10 + u * w * .62, ey - (ey - ty) * Math.pow(u, 1.3) + Math.sin(u * 30) * 5 * (1 - u)); } g.strokeStyle = A(C.fg, .95); g.lineWidth = 1.4; g.stroke(); g.lineWidth = 1;
-      g.font = F(C, 22, 1); g.fillStyle = A(C.fg, 1); g.fillText((c.risk || "—") + "%", 10, 26); lab(g, C, "RISQUE", 12, 38, .8); },
-    sess(g, w, h, t, C){ const c = stratCfg(), cx = w / 2, cy = h / 2 + 4, r = Math.min(w, h) * .38, now = new Date(), mn = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    risk(g, w, h, t, C){ const c = stratCfg(), rr = Math.max(1, parseFloat(c.rrTarget) || 3), x0 = Math.min(96, w * .26), x1 = w - 58, top = 18, bot = h - 14, Y = R => bot - (R + 1) / (rr + 1) * (bot - top);
+      g.font = F(C, 24, 1); g.fillStyle = A(C.fg, 1); g.fillText((c.risk || "—") + "%", 4, 28); lab(g, C, "RISQUE", 5, 42, .8); lab(g, C, "RR " + rr + "R", 5, 58, .8);
+      const P = [[0, 0], [.1, .55], [.17, .2], [.33, 1.25], [.42, .85], [.58, Math.min(rr, 2.1)], [.67, Math.min(rr, 1.7)], [.85, rr * .92], [.9, rr * .8], [1, rr]], Tt = (t % 7) / 6, T = Math.min(1, Tt) * (P.length - 1);
+      let cur = 0, mx = 0; const pts = [[0, 0]]; for (let k = 1; k < P.length; k++) { if (k - 1 > T) break; const f = Math.min(1, T - (k - 1)), u = P[k - 1][0] + (P[k][0] - P[k - 1][0]) * f, R = P[k - 1][1] + (P[k][1] - P[k - 1][1]) * f; pts.push([u, R]); cur = R; mx = Math.max(mx, R); }
+      const slT = mx >= 2 && rr >= 3 ? 1 : mx >= 1 ? 0 : -1; g._sl = g.canvas._sl = g.canvas._sl == null ? -1 : (Tt < .02 ? -1 : g.canvas._sl + (slT - g.canvas._sl) * .08); const sl = g.canvas._sl;
+      g.fillStyle = A(C.fg, .06); g.fillRect(x0, Y(rr), x1 - x0, Y(0) - Y(rr)); g.fillStyle = A(C.ls, .1); g.fillRect(x0, Y(0), x1 - x0, Y(-1) - Y(0));
+      const ln = (R, l, cc, a, dash) => { g.setLineDash(dash ? [3, 3] : []); g.strokeStyle = A(cc, a); g.beginPath(); g.moveTo(x0, Y(R)); g.lineTo(x1, Y(R)); g.stroke(); g.setLineDash([]); lab(g, C, l, x1 + 5, Y(R) + 3, .95); };
+      ln(rr, "TP +" + rr + "R", C.fg, .7); if (rr >= 2) ln(rr / 2, "TP1 50%", C.mu, .5, 1); ln(0, Math.abs(sl) > .2 ? "ENTRÉE" : "", C.fg, .5, 1);
+      const slLab = sl > .5 ? "SL +1R" : sl > -.5 ? "SL = BE" : "SL -1R"; ln(sl, slLab, C.ls, .95);
+      g.beginPath(); pts.forEach(([u, R], i) => { const x = x0 + u * (x1 - x0); i ? g.lineTo(x, Y(R)) : g.moveTo(x, Y(R)); }); g.strokeStyle = A(C.fg, .95); g.lineWidth = 1.5; g.stroke(); g.lineWidth = 1;
+      const [lu, lR] = pts[pts.length - 1]; g.fillStyle = A(C.fg, 1); g.fillRect(x0 + lu * (x1 - x0) - 2.5, Y(lR) - 2.5, 5, 5);
+      if (mx >= rr / 2 && rr >= 2) { lab(g, C, "✓ TP1", x0 + 4, Y(rr / 2) - 4, .9); } lab(g, C, (cur >= 0 ? "+" : "") + cur.toFixed(1) + "R", 5, 74, 1); },
+    sess(g, w, h, t, C, cv){ const c = stratCfg(), cx = w / 2, cy = h / 2 + 4, r = Math.min(w, h) * .36, now = new Date(), mn = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+      const m = cv._m, hov = m ? ((Math.atan2(m.y - cy, m.x - cx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2) * 1440 : null, hs = hov != null ? SESS.find(s => hov >= s.a && hov < s.b) : null;
       g.beginPath(); g.arc(cx, cy, r, 0, 7); g.strokeStyle = A(C.mu, .25); g.lineWidth = 8; g.stroke();
-      SESS.forEach(s => { const a0 = s.a / 1440 * Math.PI * 2 - Math.PI / 2, a1 = s.b / 1440 * Math.PI * 2 - Math.PI / 2, on = c.sessions.includes(s.n); g.beginPath(); g.arc(cx, cy, r, a0, a1); g.strokeStyle = on ? A(C.fg, .9) : A(C.mu, .35); g.lineWidth = 8; g.stroke();
-        const am = (a0 + a1) / 2; lab(g, C, s.n.toUpperCase(), cx + Math.cos(am) * (r + 18), cy + Math.sin(am) * (r + 18) + 3, on ? 1 : .5, "center"); });
+      SESS.forEach(s => { const a0 = s.a / 1440 * Math.PI * 2 - Math.PI / 2, a1 = s.b / 1440 * Math.PI * 2 - Math.PI / 2, on = c.sessions.includes(s.n), sel = hs === s; g.beginPath(); g.arc(cx, cy, r, a0, a1); g.strokeStyle = on ? A(C.fg, .9) : A(C.mu, .35); g.lineWidth = sel ? 13 : 8; g.stroke();
+        const am = (a0 + a1) / 2; lab(g, C, s.n.toUpperCase(), cx + Math.cos(am) * (r + 20), cy + Math.sin(am) * (r + 20) + 3, on || sel ? 1 : .5, "center"); });
       g.lineWidth = 1; for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2 - Math.PI / 2; g.beginPath(); g.moveTo(cx + Math.cos(a) * (r - 8), cy + Math.sin(a) * (r - 8)); g.lineTo(cx + Math.cos(a) * (r - (k % 6 ? 11 : 15)), cy + Math.sin(a) * (r - (k % 6 ? 11 : 15))); g.strokeStyle = A(C.mu, .5); g.stroke(); }
       const a = mn / 1440 * Math.PI * 2 - Math.PI / 2; g.strokeStyle = A(C.ls, .95); g.lineWidth = 1.5; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6)); g.stroke(); g.lineWidth = 1;
-      g.font = F(C, 15, 1); g.fillStyle = A(C.fg, 1); g.textAlign = "center"; g.fillText(String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0"), cx, cy + 3);
-      const inS = SESS.find(s => mn >= s.a && mn < s.b && c.sessions.includes(s.n)); lab(g, C, inS ? "EN SESSION" : "HORS SESSION", cx, cy + 16, inS ? 1 : .6, "center"); g.textAlign = "left"; },
+      const hh = x => String(Math.floor(x / 60) % 24).padStart(2, "0") + ":" + String(Math.floor(x % 60)).padStart(2, "0");
+      if (hov != null) { const b = hov / 1440 * Math.PI * 2 - Math.PI / 2; g.strokeStyle = g.fillStyle = A(C.fg, 1); g.lineWidth = 3.5; g.lineCap = "round"; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(b) * (r + 10), cy + Math.sin(b) * (r + 10)); g.stroke(); g.lineCap = "butt"; g.lineWidth = 1;
+        g.beginPath(); g.arc(cx + Math.cos(b) * (r + 10), cy + Math.sin(b) * (r + 10), 4, 0, 7); g.fill(); g.beginPath(); g.arc(cx, cy, 3.5, 0, 7); g.fill(); }
+      if (hov != null) { g.font = F(C, 17, 1); g.fillStyle = A(C.fg, 1); g.fillText(hh(Math.round(hov / 15) * 15), 6, 20); g.font = F(C, 10, 1); g.fillText(hs ? hs.n.toUpperCase() : "HORS SESSION", 6, 34); if (hs) lab(g, C, hs.lab.replace(/\s/g, ""), 6, 46, .9); }
+      g.font = F(C, 15, 1); g.fillStyle = A(C.fg, hov != null ? .35 : 1); g.textAlign = "center"; g.fillText(hh(mn), cx, cy - 2);
+      if (hov == null) { const inS = SESS.find(s => mn >= s.a && mn < s.b && c.sessions.includes(s.n)); lab(g, C, inS ? "EN SESSION" : "HORS SESSION", cx, cy + 12, inS ? 1 : .6, "center"); }
+      g.textAlign = "left"; },
     rules(g, w, h, t, C){ const c = stratCfg(), it = (c.rules.length ? c.rules : ["setup"]).map(k => (SC.rules[k] || k).toUpperCase()); it.push((c.maxTrades === "0" ? "∞" : c.maxTrades) + " / SESSION");
       const cw = w / it.length, R = Math.min(15, cw * .22); it.forEach((s, i) => { const x = i * cw + cw / 2, y = h * .4, on = Math.sin(t * 1.5 - i * .8) > .3;
         g.beginPath(); g.arc(x, y, R, 0, 7); g.strokeStyle = A(on ? C.ls : C.mu, .8); g.lineWidth = 1.2; g.stroke();
@@ -4924,9 +4952,9 @@ const stratSeq = steps => { /* construit une courbe de prix (bougies) + des rep�
       g.beginPath(); g.arc(cx, cy, r + 6, t + 0, t + .5); g.strokeStyle = A(C.fg, .4); g.stroke();
       g.font = F(C, 14, 1); g.fillStyle = A(C.fg, 1); g.textAlign = "center"; g.fillText(v < 0 ? "—" : Math.round(v * 100) + "%", cx, cy + 5); g.textAlign = "left"; }
   };
-  const loop = now => { requestAnimationFrame(loop); if (document.hidden) return; const sw = document.querySelector(".swz canvas.sviz"), vis = !host.hidden;
-    if (!vis && !sw) return; const t = (now - t0) / 1000, C = col(), CW = sw ? col(sw) : C;
-    [...(vis ? host.querySelectorAll("canvas.sviz") : []), ...(sw ? [sw] : [])].forEach(c => { if (!c.clientWidth) return; const [g, w, h] = fit(c), f = V[c.dataset.viz]; if (f) { g.save(); try { f(g, w, h, t, c === sw ? CW : C, c); } catch (e) { console.warn(e); } g.restore(); } }); };
+  const loop = now => { requestAnimationFrame(loop); if (document.hidden) return; const sw = document.querySelector(".swz canvas.sviz"), av = $("anaView"), vis = !host.hidden, va = !av.hidden;
+    if (!vis && !sw && !va) return; const t = (now - t0) / 1000, C = col(), CW = sw ? col(sw) : C;
+    [...(vis ? host.querySelectorAll("canvas.sviz") : []), ...(va ? av.querySelectorAll("canvas.sviz") : []), ...(sw ? [sw] : [])].forEach(c => { if (!c.clientWidth) return; const [g, w, h] = fit(c), f = V[c.dataset.viz]; if (f) { g.save(); try { f(g, w, h, t, c === sw ? CW : C, c); } catch (e) { console.warn(e); } g.restore(); } }); };
   requestAnimationFrame(loop); })();
 
 /* ===== Analytics ===== */
@@ -5038,6 +5066,7 @@ function renderAna(){
       <section class="tile c3"><div class="c3h"><span class="lab2">Tes jours</span></div>${(() => { const ws = weekdayStats(scope !== "month"); return ws.best ? weekdayHTML(ws, true) : `<span class="note">Pas encore assez de trades.</span>`; })()}</section>`;
   }
   $("anaView").innerHTML = head + body;
+  try { $("anaView").insertAdjacentHTML("beforeend", stratRespectHTML()); } catch (e) {}
   if (anaTab === "time" && L.length) { drawDial(); bindClock(); }
 }
 let anaSes = [], anaSel = 0, anaSelName = "", anaSlots = [];
@@ -5961,7 +5990,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-34";
+const APP_VERSION = "2026-10-29-36";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
