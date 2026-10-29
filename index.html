@@ -1095,7 +1095,7 @@ canvas[data-viz="sess"]{cursor:crosshair}
 .realk small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--muted)}.realk b{font-family:var(--mono);font-size:20px}
 .s-real .sviz{height:120px}.sgap{display:flex;flex-direction:column;gap:6px;margin-top:8px}.sgap p{margin:0;font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline}.sgap p i{width:6px;height:6px;border-radius:50%;background:var(--loss);flex:none;transform:translateY(-1px)}.sgap b{color:var(--fg)}
 .s-zoomc .sviz,canvas[data-viz="zoom"],canvas[data-viz="riskx"]{height:190px}
-.dsin{position:relative}.dsin .swi{padding-right:52px;white-space:pre-wrap!important;overflow-wrap:anywhere;min-height:110px}.swz button.dsmic{position:absolute;right:8px;top:8px}.swz button.dsmic.on{background:#ff4d4d!important;border-color:#ff4d4d!important;animation:sBlink 1s steps(2) infinite}
+.dsex{margin:-6px 0 0;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:#8b8b8b}.dsin{position:relative}.dsin .swi{padding-right:52px;white-space:pre-wrap!important;overflow-wrap:anywhere;min-height:110px}.swz button.dsmic{position:absolute;right:8px;top:8px}.swz button.dsmic.on{background:#ff4d4d!important;border-color:#ff4d4d!important;animation:sBlink 1s steps(2) infinite}
 .swk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:6px 9px;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);animation:swIn .25s ease}
 .swz .swbody>.swb{flex:none}
 @media (max-width:760px){.realk{grid-template-columns:repeat(2,minmax(0,1fr))}.sg2>section{grid-column:span 6!important}}
@@ -4976,13 +4976,13 @@ const stratUnderstood = (C, k) => { const o = [];
 
 /* ---------- Fenêtre « Décrire ma stratégie » : une question à la fois, texte ou voix ---------- */
 function openStratDescribe(){
-  const Q = [["mk", "Sur quel marché tradez-vous ?", "Ex. Uniquement l'or, et que des achats."],
-    ["tf", "Quelles unités de temps, et à quoi sert chacune ?", "Ex. Je trace mes OB en H4, je raffine et j'entre en M15."],
-    ["bias", "Avez-vous un biais ? Et si la petite unité part dans l'autre sens ?", "Ex. Pas de biais. / Biais H4 en structure ; si le M15 se désaligne, j'attends le shift."],
-    ["zones", "Sur quelles zones vous appuyez-vous ?", "Ex. Uniquement les order blocks."],
-    ["seq", "Décrivez votre entrée, étape par étape.", "Ex. Le prix arrive dans l'OB H4, je descends en M15, et dès qu'il touche l'OB M15 je prends un long."],
-    ["risk", "Votre gestion : risque, stop, objectif… et ce qui fait varier votre risque.", "Ex. 1 %, SL sous l'OB, TP 3R. Après 3 pertes je passe à 0,75 %. Laissez vide si rien n'est fixe."],
-    ["rules", "Vos sessions et vos règles.", "Ex. Londres et New York, 1 trade par jour, pas d'annonces."]];
+  const Q = [["mk", "Quel marché ?", "L'or, que des longs"],
+    ["tf", "Quelles unités de temps ?", "H4 pour le biais, M15 pour entrer"],
+    ["bias", "Un biais ?", "Pas de biais / biais H4"],
+    ["zones", "Quelles zones ?", "OB et FVG"],
+    ["seq", "Votre entrée, étape par étape ?", "Sweep, cassure M5, j'entre dans l'OB"],
+    ["risk", "Votre gestion ?", "1 %, SL sous la mèche, TP 3R"],
+    ["rules", "Sessions et règles ?", "Londres, 1 trade par jour"]];
   const prev = stratCfg().desc || {}, A = {}; Q.forEach(([k]) => A[k] = prev[k] || "");
   let i = -1, C = stratParse(A), rec = null;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -5001,7 +5001,7 @@ function openStratDescribe(){
     const [k, q, ph] = Q[i], v = viz(k);
     ov.innerHTML = `<div class="swin"><header><div><small>${i + 1} / ${Q.length}</small><h2>${esc(q)}</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
       <div class="swbar"><i style="width:${(i + 1) / Q.length * 100}%"></i></div>
-      <div class="swbody"><div class="dsin"><textarea class="swi" id="dsTxt" rows="4" placeholder="${esc(ph)}">${esc(A[k])}</textarea>${SR ? `<button type="button" class="swx dsmic" id="dsMic" aria-label="Dicter">🎙</button>` : ""}</div>
+      <div class="swbody"><p class="dsex">ex. ${esc(ph)}</p><div class="dsin"><textarea class="swi" id="dsTxt" rows="3" placeholder="Écrivez ou touchez le micro…">${esc(A[k])}</textarea>${SR ? `<button type="button" class="swx dsmic" id="dsMic" aria-label="Dicter">🎙</button>` : ""}</div>
         <div class="swrow"><small>Compris</small><div class="swg" id="dsChips">${chips(k)}</div></div>
         <div class="swprev"${v ? "" : " hidden"}><canvas class="sviz" data-viz="${v || "seq"}" id="dsPrev"${k === "zones" && C.zones[0] ? ` data-z="${C.zones[0]}"` : ""}></canvas></div></div>
       <footer><button type="button" class="swb" id="dsBack">Retour</button><button type="button" class="swb go" id="dsNext">${String(A[k]).trim() ? "Suivant" : "Passer"}</button></footer></div>`;
@@ -6338,7 +6338,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-40";
+const APP_VERSION = "2026-10-29-41";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
