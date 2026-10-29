@@ -4765,7 +4765,7 @@ const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graph
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
 let certFogOn = false;
 function setView(v, keepScroll){
-  if (v === "certs" && !document.body.classList.contains("incerts") && !certFogOn && !matchMedia("(prefers-reduced-motion: reduce)").matches) return certFogCover(() => setView0(v, keepScroll));
+  const inC = document.body.classList.contains("incerts"); if ((v === "certs") !== inC && VIEWS.includes(v) && v !== "macro" && !certFogOn && !document.querySelector(".cz") && !matchMedia("(prefers-reduced-motion: reduce)").matches) return certFogCover(() => setView0(v, keepScroll));
   return setView0(v, keepScroll); }
 function setView0(v, keepScroll){
   if (!VIEWS.includes(v)) v = "tableau";
@@ -7183,7 +7183,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-114";
+const APP_VERSION = "2026-10-29-115";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
