@@ -4751,13 +4751,13 @@ function stratCfg(){
 const sUp = x => String(x || "").replace(/\b(fvg|ifvg|ob|obs|bos|choch|mss|sl|tp|rr|ema|sma|poc|vwap|smt|orb|ny|be|eqh|eql|pdh|pdl|ote|hh|ll|hl|lh|rsi|macd|atr|ph|pb)\b/gi, m => m.toUpperCase()).replace(/\b([mhdw])(\d+)\b/gi, (_, a, n) => a.toUpperCase() + n).replace(/\bpoint ([a-dx])\b/gi, (m, a) => "point " + a.toUpperCase());
 const sCap = x => x ? (x.charAt(0).toUpperCase() + x.slice(1)).replace(/\bnew york\b/gi, "New York").replace(/\blondres\b/g, "Londres").replace(/\basie\b/g, "Asie") : x;
 function stratChecklist(C){ const o = [], ex = (C.tfs[C.tfs.length - 1] || {}).tf || "", bt = (C.tfs.find(x => x.role === "bias") || {}).tf || "", z0 = C.zones[0] ? zoneName(C, C.zones[0]) : "ma zone", nm = C.zoneKey === "ob" ? "OB" : "FVG";
-  C.steps.forEach((s, i) => { const L = stratStepLabel(C, s, i); if (S_DICT.some(d => d[2] === L) && s !== "bias") { const q2 = `${L} ?`; if (!o.includes(q2)) o.push(q2); return; } const q = {bias: `Biais ${bt} vérifié ?`, mark: C.markKind === "zones" ? `${C.zoneTxt || C.obTxt || "Zones"} repéré${C.zoneN > 1 ? "s" : ""}${bt ? " dans le sens du " + bt : ""} ?` : `${sCap(L.replace(/^Tracer /, ""))} tracé${/^(les |le plus haut et)/.test(L.replace(/^Tracer /, "")) ? "s" : /^la /.test(L.replace(/^Tracer /, "")) ? "e" : ""} ?`,
+  C.steps.forEach((s, i) => { const L = stratStepLabel(C, s, i); if (S_DICT.some(d => d[2] === L) && s !== "bias") { const q2 = `${L} ?`; if (!o.includes(q2)) o.push(q2); return; } const q = {bias: `Biais ${bt} vérifié ?`, mark: C.markKind === "zones" ? (C.zoneTxt || C.obTxt ? `${C.zoneTxt || C.obTxt} repéré${C.zoneN > 1 ? "s" : ""}${bt ? " dans le sens du " + bt : ""} ?` : `Zones ${(C.tfs.find(x => x.role === "zone") || {}).tf || ""} marquées ?`) : `${sCap(L.replace(/^Tracer /, ""))} tracé${/^(les |le plus haut et)/.test(L.replace(/^Tracer /, "")) ? "s" : /^la /.test(L.replace(/^Tracer /, "")) ? "e" : ""} ?`,
       wait: `${L} : respecté ?`, trend: "Tendance claire ?", retrace: "Retracement en cours ?", range: "Range bien identifié ?", liq: L === "Second sweep" ? "Second sweep fait ?" : "Liquidité prise ?",
       zone: C.zoneN > 1 ? `Prix revenu dans le ${C.zoneN}e ${nm} ?` : /^Retour /.test(L) ? `Prix revenu ${L.replace(/^Retour /, "")} ?` : `Prix revenu sur ${z0} ?`, refine: `Raffinement en ${ex} fait ?`,
       rebound: `Rejet ${ex}${C.zoneN > 1 ? " dans le " + C.zoneN + "e " + nm : C.isFibo ? " dans la zone" : C.lvlTxt ? " sur le niveau" : ""}, bougie clôturée ?`, break: /^(Shift|Cassure|Breakout|Bougie|Grosse|FVG|OB|Clôture|Casse)/.test(L) ? `${L.replace(/\s+$/, "")} ?` : `Cassure${ex ? " " + ex : ""} validée par une clôture de corps ?`,
       signal: `${L} ?`, retest: "Retest fait ?", pattern: `${L} identifié ?`, other: `${L} ?`}[s]; if (q && !o.includes(q)) o.push(q); });
   (C.noTrade || []).forEach(x => { const mm = x.match(/^(le prix )?(casse|perce|invalide|traverse)\w* (les|le|la|l') ?(.+)$/i); o.push(mm ? `${sCap(mm[3] === "l'" ? "l'" + mm[4] : mm[3] + " " + mm[4])} ${mm[3] === "les" ? "sont-ils intacts" : "est-il intact"} ?` : `${sCap(x)} ? (si oui, pas de trade)`); });
-  if (C.sl || C.tp.length || C.slTxt || C.tpTxt) o.push(`SL${C.slTxt ? " " + C.slTxt : C.sl ? " " + (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : SC.sl[C.sl].toLowerCase()) : ""} et TP${C.tpTxt ? " " + C.tpTxt : C.tp.length ? " " + SC.tp[C.tp[0]].charAt(0).toLowerCase() + SC.tp[C.tp[0]].slice(1) : ""} posés ?`);
+  if (C.sl || C.tp.length || C.slTxt || C.tpTxt) o.push(`SL${C.slTxt ? " " + C.slTxt : C.sl ? " " + (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : SC.sl[C.sl].toLowerCase()) : ""} et ${C.tpTxt ? (/^TP\d/.test(C.tpTxt) ? C.tpTxt : "TP " + C.tpTxt) : "TP"}${C.tpTxt ? "" : C.tp.length ? " " + SC.tp[C.tp[0]].charAt(0).toLowerCase() + SC.tp[C.tp[0]].slice(1) : ""} posés ?`);
   if (C.rrMin) o.push(`RR d'au moins ${String(C.rrMin).replace(".", ",")}R ?`);
   if (C.risk || C.ifs.length) o.push(C.ifs.length ? `Risque du jour ajusté (base ${String(C.risk || "—").replace(".", ",")} %) ?` : `Risque à ${String(C.risk).replace(".", ",")} % ?`);
   if (C.windows && C.windows.length) o.push(`Dans la fenêtre ${C.windows.join(" ou ")} ?`); else if (C.sessions.length) o.push(`Suis-je en session ${C.sessions.join(" ou ")} ?`);
@@ -4767,6 +4767,7 @@ function stratChecklist(C){ const o = [], ex = (C.tfs[C.tfs.length - 1] || {}).t
   return o.slice(0, 12); }
 /* la stratégie active pilote la checklist et la session du plan (Tableau) */
 function stratApplyPlan(){ try { const e = stratEntry(), C = stratCfg(), P = plan(); let ch = false;
+  if ((!Array.isArray(e.checklist) || !e.checklist.length) && !C.empty && C.steps && C.steps.length) e.checklist = stratChecklist(C);
   if (Array.isArray(e.checklist) && e.checklist.length && JSON.stringify(P.checklist) !== JSON.stringify(e.checklist)) { P.checklist = e.checklist.slice(); P.checks = {d: dkey(new Date()), on: []}; ch = true; }
   if (C.sessions && C.sessions.length) { const ss = C.sessions.length === 1 ? "Session " + (C.sessions[0] === "Londres" ? "de Londres" : C.sessions[0] === "Asie" ? "d'Asie" : "de " + C.sessions[0].replace("NY", "New York")) : C.sessions.join(" + "); if (P.session !== ss) { P.session = ss; ch = true; } }
   if (ch && typeof renderPlan === "function") renderPlan(); } catch (er) {} }
@@ -4811,7 +4812,16 @@ function stratReal(C){
     <canvas class="sviz" data-viz="real" data-s='${esc(JSON.stringify(ses))}'></canvas>
     ${gaps.length ? `<div class="sgap">${gaps.map(x => `<p><i></i>${x}</p>`).join("")}</div>` : ""}</section>`;
 }
-function renderStrat(){
+function stratKaelRestore(){ try {
+  if (!/kael/i.test((state.name || "") + " " + (state.handle || "")) || localStorage.getItem("bdm-s1-kael") === "1") return;
+  const D = {mk: "XAUUSD, dans les deux sens selon le biais H4", tf: "H4 pour le biais, H1 pour les zones, M15 pour l'entrée",
+    bias: "Biais H4 en structure. Si le M15 se désaligne contre le H4, j'attends le shift.", zones: "Order blocks, Fibo 50 % et liquidités H1",
+    seq: "Je définis le biais H4. Je marque mes zones H1. Le M15 se désaligne et revient dans une zone H1. J'attends le shift M15 validé par une clôture de corps. J'entre sur l'OB, ou au 50 % du Fibo de la jambe du shift sur le retest.",
+    risk: "1 % par trade, RR minimum 2R, RR visé 3R. SL au-delà de la mèche qui a pris la liquidité. TP1 sur la liquidité proche, TP2 sur le dernier plus haut ou plus bas.",
+    rules: "Londres et NY AM, 1 trade par session. Pas de trade pendant les annonces sauf décisions de taux. Pas de trade la nuit. Pas de trade sans setup clair. Je respecte le biais H4."};
+  const S = strat(), L = stratList(), e = L[0], C = stratParse(D); C.empty = false; C.comment = "Exception : après une grosse expansion, petit short autorisé contre un H4 haussier, vers une zone H1 cohérente et avec un shift M15 validé.";
+  e.cfg = C; e.name = e.name || "Stratégie 1"; e.checklist = stratChecklist(C); S.active = e.id; S.at = Date.now(); localStorage.setItem("bdm-s1-kael", "1"); stratSync(); save(); } catch (er) {} }
+function renderStrat(){ stratKaelRestore();
   const S = strat(), C = stratCfg(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
   const L = stratList(), act = strat().active;
   const head = `<header class="top vhead"><div><h1>Stratégie</h1></div>
@@ -4904,6 +4914,7 @@ const S_ST = [["trend", /\b((?<!ligne de )(?<!ligne de la )tendance|(?<!trend ?)
 /* ---------- Lexique trading : tout ce qu'un trader peut écrire (ICT / SMC, Wyckoff, figures, chandeliers, indicateurs, harmoniques, sessions…) ---------- */
 /* type : pattern | signal | liq | break | retrace | range | trend = étape du déroulé ; Z = zone seulement */
 const S_DICT = [
+  [/\bdesalign\w*\b/, "retrace", "Désalignement"],
   [/\bspring\b/, "liq", "Spring"], [/\b(utad|upthrust)\b/, "liq", "UTAD / Upthrust"], [/\bturtle soup\b/, "liq", "Turtle soup"], [/\bjudas( swing)?\b/, "liq", "Judas swing"], [/\b(power of 3|po3|amd)\b/, "pattern", "Power of 3 (AMD)"],
   /* figures chartistes */
   [/\bbart( simpson)?\b/, "pattern", "Bart Simpson"], [/\btasse( avec anse)?|cup (and|&) handle\b/, "pattern", "Tasse avec anse"], [/\b(fond|creux|sommet) arrondi|rounding (bottom|top)\b/, "pattern", "Formation arrondie"],
@@ -5018,6 +5029,7 @@ function stratParse(A){
     if (k === "break" && /^Casse /.test(lb)) lb = lb.replace(/^Casse (la |le |les |l')?/, (_, ar) => "Cassure " + ({"la ": "de la ", "le ": "du ", "les ": "des ", "l'": "de l'"}[ar] || ""));
     else if (k === "zone" && /^(dans (la |cette )?zone|pull ?back)/.test(txt)) lb = "Retour " + fix(ctx.replace(/^pull ?back /, ""));
     else if (k === "zone" && /bonne moitie/.test(txt)) lb = "Retour dans la bonne moitié";
+    else if (k === "zone" && /\bzone\b/.test(txt) && !/\b(ob|fvg|vwap|ema|gap|ote)\b/.test(txt)) lb = "Retour " + fix(ctx).replace(/^(revien\w*|retourn\w*|rentr\w*|arriv\w*|atteign\w*|atteint\w*|touch\w*)\s*/, "");
     else if (k === "zone") { const nn = (txt.match(/\b(ob|obs|fvg|vwap|ema|gap|ote|order|bloc|poi|support|resistance|offre|demande)\b/) || [])[1]; if (nn) lb = "Retour " + (/\bdans\b/.test(txt) ? "dans " : "sur ") + ({ob: "l'OB", obs: "les OB", fvg: "le FVG", vwap: "le VWAP", ema: "l'EMA", gap: "le gap", ote: "l'OTE", order: "l'OB", bloc: "l'OB", poi: "le POI", support: "le support", resistance: "la résistance", offre: "l'offre", demande: "la demande"})[nn]; }
     else if (k === "liq" && st.includes("liq")) lb = /dernier/.test(txt) ? "Dernier sweep" : "Second sweep";
     if (k === "wait" && /fenetre/.test(txt)) lb = "";
@@ -5071,8 +5083,11 @@ function stratParse(A){
   /* stop + cible : on garde la phrase de l'utilisateur */
   g += " . " + T("seq");
   { const slm = g.match(/\bsl\s*:?\s*([^,.;]{3,60})/); if (slm) { const v = slm[1].replace(/\s+(et|tp|puis)(\s.*)?$/, "").trim(); if (v && !/^\d/.test(v)) C.slTxt = fix(v); } }
-  { const tpm = g.match(/\b(?:tp|take ?profit|cible|objectif|je vise|vise)\b\s*(?:(?::|aux|au|sur|a)\s+)?([^,.;]{3,45})/) || g.match(/\bavec ([^,.;]{3,40}) comme (?:cible|objectif)/);
-    if (tpm) { const v = tpm[1].replace(/^(\s*(la |le |les |l'|un |une |du |de la |sur |a |au |: ))+/, "").replace(/\s+(et|sl|puis|car)(\s.*)?$/, "").trim(); if (v) C.tpTxt = fix(v); } }
+  { const cl = v => v.replace(/^(\s*(la |le |les |l'|un |une |du |de la |sur |a |au |: ))+/, "").replace(/\s+(et|sl|puis|car)(\s.*)?$/, "").trim();
+    const all = [...g.matchAll(/\b(tp\d?|take ?profit|cible|objectif|je vise|(?<!rr )vise)\b\s*(?:(?::|aux|au|sur|a)\s+)?([^,.;]{3,45})/g)].filter(m => !/^\d+(?:[.,]\d+)?\s*r?\b/.test(m[2]) || !/rr/.test(m[0]));
+    const parts = [...new Set(all.map(m => (/^tp\d$/.test(m[1]) ? m[1].toUpperCase() + " " : "") + fix(cl(m[2]))).filter(x => x.trim()))];
+    const av = g.match(/\bavec ([^,.;]{3,40}) comme (?:cible|objectif)/);
+    if (parts.length) C.tpTxt = parts.slice(0, 3).join(" · "); else if (av) C.tpTxt = fix(cl(av[1])); }
   C.sl = /\bmeches?\b/.test(g) ? "wick" : /\b(sous|derriere|au.?dessus|en.?dessous|en bas|en haut|de l'autre cote|dans)\b[^.]{0,14}\b(ob|zone|order|bloc|fvg|niveau|poi|range|vwap|compression)\b/.test(g) ? "zone" : /\b(structure|swing|dernier (plus )?(bas|haut|creux|sommet)|extreme|poussee)\b/.test(g) ? "struct" : /\batr\b/.test(g) ? "atr" : /\b\d+\s*(pips|points|pts)\b/.test(g) ? "fixed" : "";
   const tpTxt = (g.match(/\b(tp|take ?profit|cible|objectif|vise|target)\b[^.;\n]{0,70}/g) || []).join(" ");
   if (/\bliquidit\w* oppose\w*|\boppose\w* liquidit|\bliquidit\w* (de l'autre cote|en face)\b/.test(tpTxt + " " + g)) C.tp.push("opp");
@@ -5106,7 +5121,7 @@ const stratStepLabel = (C, s, i) => { const tx = C.stepTxt && i != null ? C.step
   if (s === "wait" && C.windows && C.windows.length) return "Fenêtre " + C.windows.join(" / ");
   if (s === "liq" && C.steps && i != null && C.steps.slice(0, i).includes("liq")) return "Second sweep";
   return s === "other" || s === "signal" ? (C.trigger ? sCap(C.trigger.toLowerCase()) : SC.steps[s]) : s === "bias" ? "Biais " + ((C.tfs.find(x => x.role === "bias") || {}).tf || "") : s === "pattern" && C.patTxt ? sCap(C.patTxt.toLowerCase())
-    : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" && C.markKind === "zones" ? "Repérer " + (C.zoneTxt || C.obTxt || "les zones") : s === "zone" && C.zoneN > 1 ? "Retour dans le " + C.zoneN + "e " + (C.zoneKey === "ob" ? "OB" : "FVG")
+    : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" && C.markKind === "zones" ? (C.zoneTxt || C.obTxt ? "Repérer " + (C.zoneTxt || C.obTxt) : "Marquer les zones " + ((C.tfs.find(x => x.role === "zone") || {}).tf || "")) : s === "zone" && C.zoneN > 1 ? "Retour dans le " + C.zoneN + "e " + (C.zoneKey === "ob" ? "OB" : "FVG")
     : s === "rebound" && C.zoneN > 1 ? "Rejet " + ex + " dedans" : s === "mark" ? (C.lvlPhrase ? "Tracer " + C.lvlPhrase : C.lvlTxt ? "Tracer " + C.lvlTxt.toLowerCase().replace("ph / pb", "le plus haut et le plus bas").replace(/^(plus|milieu|gap|fibo|ote)/, "le $1").replace(/^(ouverture)/, "l'$1").replace(/^(clôture)/, "la $1") : C.markKind === "liq" ? "Tracer les liquidités" : "Tracer le niveau")
     : s === "rebound" && (C.markKind === "level" || C.lvlTxt) ? "Rejet " + (ex ? ex + " " : "") + (C.isFibo ? "dans la zone" : "sur le niveau") : s === "zone" && C.isFibo ? "Retour dans la zone " + (C.fiboTxt || "").replace(/^(FIBO|OTE) /, "") : s === "zone" && (C.markKind === "level" || (C.lvlTxt && !C.zones.some(z => z === "ob" || z === "fvg"))) ? "Retour sur " + (C.lvlPhrase || "le niveau")
     : s === "zone" && C.zones[0] && C.zones[0] !== "lvl" ? "Retour sur " + zoneName(C, C.zones[0]) : SC.steps[s] || s; };
@@ -5119,7 +5134,7 @@ const stratUnderstood = (C, k) => { const o = [], lc = x => /^[A-Z]{2}/.test(x) 
   if (k === "seq") C.steps.forEach((s, i) => o.push((i + 1) + ". " + stratStepLabel(C, s, i)));
   if (k === "risk") { if (C.risk) o.push("Risque de base " + C.risk.replace(".", ",") + " %"); if (C.rrMin) o.push("RR min " + C.rrMin.replace(".", ",") + "R"); if (C.rrTarget) o.push("RR visé " + C.rrTarget.replace(".", ",") + "R");
     if (C.partial) o.push("Sécurisation à " + C.partial.replace(".", ",") + "R"); if (C.sl || C.slTxt) o.push("SL " + (C.slTxt || (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : lc(SC.sl[C.sl]))));
-    if (C.tpTxt) o.push("TP " + C.tpTxt); else C.tp.forEach(x => o.push("TP " + lc(SC.tp[x]))); if (C.be) o.push("Break-even" + (C.beAt ? " à " + C.beAt.replace(".", ",") + "R" : "")); C.ifs.forEach(r => o.push("Si " + ifLabel(r))); }
+    if (C.tpTxt) o.push(/^TP\d/.test(C.tpTxt) ? C.tpTxt : "TP " + C.tpTxt); else C.tp.forEach(x => o.push("TP " + lc(SC.tp[x]))); if (C.be) o.push("Break-even" + (C.beAt ? " à " + C.beAt.replace(".", ",") + "R" : "")); C.ifs.forEach(r => o.push("Si " + ifLabel(r))); }
   if (k === "rules") { C.sessions.forEach(x => o.push(x)); (C.sessCtx || []).forEach(x => o.push(x + " · pour le range")); (C.ruleTxt || []).forEach(x => o.push(x)); if (C.maxTrades) o.push(C.maxTrades === "0" ? "Trades illimités" : C.maxTrades + " trade" + (C.maxTrades > 1 ? "s" : "") + " max"); C.rules.forEach(x => o.push(SC.rules[x])); }
   return o; };
 
@@ -5406,7 +5421,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
         if (e.t === "zone" || e.t === "range") { g.fillStyle = A(C.fg, .07); const y0 = Math.min(Y(e.hi), Y(e.lo)), y1 = Math.max(Y(e.hi), Y(e.lo)); g.fillRect(X(e.a), y0, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.strokeStyle = A(C.fg, .3); g.strokeRect(X(e.a) + .5, y0 + .5, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.setLineDash([]); lab(g, C, e.t === "zone" ? (e.lab || SC.zones[cfg.zones[0]] || "ZONE").toUpperCase() : "RANGE", X(e.a) + 3, y1 - 3, .9); }
         if (e.t === "liq" || e.t === "lvl" || e.t === "break") { g.strokeStyle = A(e.t === "break" ? C.ls : C.mu, .8); g.beginPath(); g.moveTo(X(Math.max(0, e.a)), Y(e.lvl)); g.lineTo(X(Math.min(n, e.b)), Y(e.lvl)); g.stroke(); g.setLineDash([]); lab(g, C, e.t === "liq" ? "LIQUIDITÉ" : e.t === "lvl" ? "NIVEAU" : "CASSURE", X(Math.max(0, e.a)) + 2, Y(e.lvl) - 4, .9); }
         if (e.t === "entry") { g.setLineDash([]); g.strokeStyle = A(C.fg, .8); g.beginPath(); g.moveTo(X(e.at), Y(e.lvl)); g.lineTo(X(n), Y(e.lvl)); g.stroke(); g.strokeStyle = A(C.ls, .8); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(X(e.at), Y(e.sl)); g.lineTo(X(n), Y(e.sl)); g.stroke(); g.setLineDash([]); lab(g, C, "ENTRÉE", X(n) - 2, Y(e.lvl) + 11, .9, "right"); lab(g, C, "SL", X(n) - 2, Y(e.sl) + 11, .9, "right"); }
-        if (e.t === "tp") { g.setLineDash([]); g.strokeStyle = A(C.fg, .5); g.beginPath(); g.moveTo(X(e.at - 7), Y(e.lvl)); g.lineTo(X(n), Y(e.lvl)); g.stroke(); lab(g, C, cfg.tpTxt ? ("TP · " + cfg.tpTxt).toUpperCase().slice(0, 34) : e.lab || "TP", X(n) - 2, Y(e.lvl) - 4, .9, "right"); }
+        if (e.t === "tp") { g.setLineDash([]); g.strokeStyle = A(C.fg, .5); g.beginPath(); g.moveTo(X(e.at - 7), Y(e.lvl)); g.lineTo(X(n), Y(e.lvl)); g.stroke(); lab(g, C, cfg.tpTxt ? (/^TP\d/.test(cfg.tpTxt) ? cfg.tpTxt : "TP · " + cfg.tpTxt).toUpperCase().slice(0, 34) : e.lab || "TP", X(n) - 2, Y(e.lvl) - 4, .9, "right"); }
         if (e.t === "level") { g.setLineDash([5, 3]); g.strokeStyle = A(C.ls, .75); g.beginPath(); g.moveTo(X(e.a), Y(e.lvl)); g.lineTo(X(n), Y(e.lvl)); g.stroke(); g.setLineDash([]); lab(g, C, cfg.lvlTxt || "NIVEAU", X(n) + 4, Y(e.lvl) + 3, 1); }
         if (e.t === "reject") { const x = X(e.at) + bw / 2, y = Y(e.lvl); g.strokeStyle = A(C.fg, .9); g.beginPath(); g.arc(x, Y(e.lvl - .03), 6 + 2 * Math.sin(t * 6), 0, 7); g.stroke(); g.font = F(C, 10, 1); g.fillStyle = A(C.fg, 1); g.fillText("✓ REJET", x + 9, Y(e.lvl - .03) + (cfg.side === "short" ? -6 : 14)); }
         if (e.t === "marks") { const tf0 = ((cfg.tfs || [])[0] || {}).tf || ""; [e.hi, e.lo].forEach((v, k) => { g.setLineDash([4, 3]); g.strokeStyle = A(k ? C.ls : C.fg, .55); g.beginPath(); g.moveTo(X(e.a), Y(v)); g.lineTo(X(n), Y(v)); g.stroke(); g.setLineDash([]); lab(g, C, cfg.lvlTxt && /PH \/ PB/.test(cfg.lvlTxt) ? cfg.lvlTxt.replace("PH / PB", k ? "PLUS BAS" : "PLUS HAUT") : "LIQ. " + tf0 + (k ? " BASSE" : " HAUTE"), X(n) - 2, Y(v) + (k ? 11 : -4), .9, "right"); }); }
@@ -6523,7 +6538,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-52";
+const APP_VERSION = "2026-10-29-53";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
