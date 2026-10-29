@@ -1099,6 +1099,46 @@ canvas[data-viz="sess"]{cursor:crosshair}
 .swk{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:6px 9px;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);animation:swIn .25s ease}
 .swz .swbody>.swb{flex:none}
 @media (max-width:760px){.realk{grid-template-columns:repeat(2,minmax(0,1fr))}.sg2>section{grid-column:span 6!important}}
+/* ---------- Stratégie : habillage futuriste (toujours sombre, néon glacé) ---------- */
+body.instrat{background:#03050a!important}
+body.instrat::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:1!important;
+  background:radial-gradient(60% 45% at 70% 0%,rgba(40,170,255,.16),transparent 70%),radial-gradient(50% 40% at 0% 100%,rgba(120,80,255,.10),transparent 70%),
+  linear-gradient(rgba(80,190,255,.05) 1px,transparent 1px) 0 0/44px 44px,linear-gradient(90deg,rgba(80,190,255,.05) 1px,transparent 1px) 0 0/44px 44px,#03050a}
+body.instrat::after{content:"";position:fixed;left:0;right:0;top:-30%;height:30%;z-index:0;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(79,209,255,.05),transparent);animation:fScan 7s linear infinite}
+@keyframes fScan{to{transform:translateY(430%)}}
+body.instrat .scene{opacity:0}
+body.instrat .topnav{color:#eaf6ff}body.instrat .topnav .tn{color:rgba(200,230,255,.6)!important}
+body.instrat .topnav .tn.on{background:rgba(79,209,255,.12)!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(79,209,255,.45),0 0 18px rgba(79,209,255,.25)!important}
+html body.instrat .topnav .tn-act button{background:rgba(10,20,32,.7)!important;color:#cfe9ff!important;border-color:rgba(79,209,255,.25)!important}
+body.instrat .dash > .savebar{color:#7f93a8}
+html body section[data-view="strategie"]{--fg:#eaf6ff;--muted:#6f879c;--loss:#ff3d6e;--acc:#4fd1ff;color:var(--fg);position:relative;z-index:1}
+html body section[data-view="strategie"] .vhead h1{color:#fff;text-shadow:0 0 24px rgba(79,209,255,.45),0 0 2px rgba(255,255,255,.6);letter-spacing:-.02em}
+html body section[data-view="strategie"] .tile{background:linear-gradient(180deg,rgba(14,24,38,.82),rgba(6,11,19,.88))!important;border:1px solid rgba(79,209,255,.16)!important;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4),0 18px 40px -20px rgba(0,0,0,.9),inset 0 1px 0 rgba(160,225,255,.08)!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--fg)}
+html body section[data-view="strategie"] .scard::before,html body section[data-view="strategie"] .scard::after{border-color:rgba(79,209,255,.85)!important;filter:drop-shadow(0 0 4px rgba(79,209,255,.8))}
+html body section[data-view="strategie"] .scard{overflow:hidden}
+html body section[data-view="strategie"] .scard>.lab2{color:#8fdcff;text-shadow:0 0 8px rgba(79,209,255,.45)}
+html body section[data-view="strategie"] .scard>.lab2::after{content:"";flex:1;height:1px;margin-left:8px;background:linear-gradient(90deg,rgba(79,209,255,.5),transparent)}
+html body section[data-view="strategie"] .scard>.lab2 em{color:#6f879c;font-style:normal}
+html body section[data-view="strategie"] .tile:hover{border-color:rgba(79,209,255,.4)!important;box-shadow:0 0 0 1px rgba(79,209,255,.15),0 0 30px -6px rgba(79,209,255,.35),inset 0 1px 0 rgba(160,225,255,.1)!important}
+html body section[data-view="strategie"] .tile{transition:border-color .3s,box-shadow .3s}
+html body section[data-view="strategie"] .scard .sheen{position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(120,220,255,.9),transparent);transform:translateX(-100%);animation:fSweep 5s ease-in-out infinite}
+@keyframes fSweep{60%,100%{transform:translateX(100%)}}
+html body section[data-view="strategie"] .hero-word{color:#fff;text-shadow:0 0 28px rgba(79,209,255,.55)}
+html body section[data-view="strategie"] .hero-sub .hl{color:#8fdcff}
+html body section[data-view="strategie"] .hero-kpi div,html body section[data-view="strategie"] .realk div{background:rgba(79,209,255,.05);border:1px solid rgba(79,209,255,.22)!important;box-shadow:inset 0 0 18px rgba(79,209,255,.06)}
+html body section[data-view="strategie"] .hero-kpi b,html body section[data-view="strategie"] .realk b{color:#fff;text-shadow:0 0 12px rgba(79,209,255,.5)}
+html body section[data-view="strategie"] .hero-kpi small,html body section[data-view="strategie"] .realk small{color:#7fb6d6}
+html body section[data-view="strategie"] .zgrid>div{background:rgba(79,209,255,.03);border-color:rgba(79,209,255,.16)!important}
+html body section[data-view="strategie"] .zgrid small,html body section[data-view="strategie"] .sring small{color:#8fb3cc}
+html body section[data-view="strategie"] .stab{color:#7f9bb3;border-color:rgba(79,209,255,.22);background:rgba(8,16,26,.6)}
+html body section[data-view="strategie"] .stab.on{color:#fff;border-color:rgba(79,209,255,.7);box-shadow:0 0 14px rgba(79,209,255,.3),inset 0 0 10px rgba(79,209,255,.12)}
+html body section[data-view="strategie"] .tools button{background:rgba(8,16,26,.7)!important;color:#cfe9ff!important;border:1px solid rgba(79,209,255,.35)!important;border-radius:8px}
+html body section[data-view="strategie"] .tools button.go{background:linear-gradient(180deg,#5fd8ff,#1fa6e0)!important;color:#02121c!important;border-color:#7fe0ff!important;box-shadow:0 0 18px rgba(79,209,255,.45)}
+html body section[data-view="strategie"] .sgap p{color:#8fa6ba}html body section[data-view="strategie"] .sgap p i{box-shadow:0 0 8px var(--loss)}
+html body section[data-view="strategie"] .stxt{color:#9fb6c9}
+html body.instrat .dash{--bg:#03050a;--panel:rgba(10,18,28,.72);--panel-2:rgba(14,24,38,.82);--line:rgba(79,209,255,.14);--fg:#eaf6ff;--muted:#6f879c;--gain:#eaf6ff;--loss:#ff3d6e;--on-gain:#02121c;color-scheme:dark;color:var(--fg)}
+html body.instrat .dash > .savebar button{background:rgba(8,16,26,.7)!important;color:#cfe9ff!important;border-color:rgba(79,209,255,.3)!important}
 .rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sring .sviz{height:110px}
 .stxt{margin:6px 0 0;white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.5}
 @media (max-width:760px){.sg2 .s-tf2,.sg2 .s-bias,.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 6}.rings{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -4858,6 +4898,7 @@ function renderStrat(){ stratKaelRestore();
       ${C.comment ? `<section class="tile scard s-com"><span class="lab2">Note</span><p class="stxt">${esc(C.comment)}</p></section>` : ""}
     </div>`;
   }
+  $("stratView").querySelectorAll(".scard").forEach((c, i) => { if (!c.querySelector(".sheen")) { const e = document.createElement("i"); e.className = "sheen"; e.style.animationDelay = (i * .45) + "s"; c.prepend(e); } });
   $("stratEditB").onclick = () => openStratWizard();
   $("stratDescB").onclick = () => openStratDescribe();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
@@ -5300,7 +5341,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
   return {pts, ev, ends, lo: Math.min(...pts, ...ev.filter(x => x.sl != null).map(x => x.sl), ...(sweep != null ? [sweep] : [])), hi: Math.max(...pts, ...(liqHi != null ? [liqHi] : []))};
 };
 (() => { const host = $("stratView"), t0 = performance.now();
-  const col = el => { const cs = getComputedStyle(el || host); return {fg: cs.getPropertyValue("--fg").trim() || "#f4f4f4", mu: cs.getPropertyValue("--muted").trim() || "#8b8b8b", ls: cs.getPropertyValue("--loss").trim() || "#ff4d4d", mono: cs.getPropertyValue("--mono")}; };
+  const col = el => { const cs = getComputedStyle(el || host); return {fg: cs.getPropertyValue("--fg").trim() || "#f4f4f4", mu: cs.getPropertyValue("--muted").trim() || "#8b8b8b", ls: cs.getPropertyValue("--loss").trim() || "#ff4d4d", ac: cs.getPropertyValue("--acc").trim() || cs.getPropertyValue("--fg").trim() || "#4fd1ff", mono: cs.getPropertyValue("--mono")}; };
   const fit = c => { const d = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight; if (c.width !== Math.round(w * d) || c.height !== Math.round(h * d)) { c.width = Math.round(w * d); c.height = Math.round(h * d); } const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h); return [g, w, h]; };
   const A = (cc, a) => { if (cc[0] === "#") { let x = cc.slice(1); if (x.length === 3) x = x.split("").map(y => y + y).join(""); const n = parseInt(x, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } const m = cc.match(/\d+(\.\d+)?/g); return m ? `rgba(${m[0]},${m[1]},${m[2]},${a})` : cc; };
   const F = (C, s, b) => (b ? "600 " : "") + s + "px " + C.mono;
@@ -5369,7 +5410,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
     },
     real(g, w, h, t, C, cv){ let d = {}; try { d = JSON.parse(cv.dataset.s || "{}"); } catch (e) {} const keys = ["Asie", "Londres", "NY AM", "NY PM", "Hors session"], mx = Math.max(1, ...keys.map(k => d[k] || 0)), c = KC(cv);
       const bw = (w - 20) / keys.length; keys.forEach((k, i) => { const v = d[k] || 0, x = 10 + i * bw, hh = (h - 34) * v / mx * Math.min(1, (t % 8) / 1.2), on = c.sessions.includes(k);
-        g.fillStyle = A(on ? C.fg : C.mu, on ? .85 : .45); g.fillRect(x + bw * .25, h - 20 - hh, bw * .5, Math.max(1, hh)); lab(g, C, k.toUpperCase(), x + bw / 2, h - 6, on ? 1 : .6, "center"); if (v) lab(g, C, String(v), x + bw / 2, h - 24 - hh, 1, "center"); }); },
+        g.fillStyle = A(on ? (C.ac || C.fg) : C.mu, on ? .75 : .4); g.fillRect(x + bw * .25, h - 20 - hh, bw * .5, Math.max(1, hh)); lab(g, C, k.toUpperCase(), x + bw / 2, h - 6, on ? 1 : .6, "center"); if (v) lab(g, C, String(v), x + bw / 2, h - 24 - hh, 1, "center"); }); },
     hero(g, w, h, t, C, cv){ const cx = w * .5, cy = h / 2, R = h * .62, ry = t * .3, rx = .55 + Math.sin(t * .17) * .25, N = 220, S2 = 14;
       const tg = window.__heroHL ? (window.__heroHL * 5 + 2) % S2 : S2 / 2; cv._hl = cv._hl == null ? tg : cv._hl + (tg - cv._hl) * .12;
       const pr = (x, y, z) => { let X = x * Math.cos(ry) - z * Math.sin(ry), Z = x * Math.sin(ry) + z * Math.cos(ry), Y = y * Math.cos(rx) - Z * Math.sin(rx); Z = y * Math.sin(rx) + Z * Math.cos(rx); const k = 2.4 / (2.4 + Z); return [cx + X * R * k, cy + Y * R * k]; };
@@ -5427,12 +5468,12 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
         if (e.t === "marks") { const tf0 = ((cfg.tfs || [])[0] || {}).tf || ""; [e.hi, e.lo].forEach((v, k) => { g.setLineDash([4, 3]); g.strokeStyle = A(k ? C.ls : C.fg, .55); g.beginPath(); g.moveTo(X(e.a), Y(v)); g.lineTo(X(n), Y(v)); g.stroke(); g.setLineDash([]); lab(g, C, cfg.lvlTxt && /PH \/ PB/.test(cfg.lvlTxt) ? cfg.lvlTxt.replace("PH / PB", k ? "PLUS BAS" : "PLUS HAUT") : "LIQ. " + tf0 + (k ? " BASSE" : " HAUTE"), X(n) - 2, Y(v) + (k ? 11 : -4), .9, "right"); }); }
         if (e.t === "wait") { g.setLineDash([2, 3]); g.strokeStyle = A(C.mu, .6); g.beginPath(); g.moveTo(X(e.at), top - 6); g.lineTo(X(e.at), bot); g.stroke(); g.setLineDash([]); lab(g, C, cfg.waitTxt || "ATTENTE", X(e.at) + 4, top + 4, 1); }
         if (e.t === "fvgs") { e.list.forEach((f, k) => { const last = k === e.list.length - 1, y0 = Math.min(Y(f.lo), Y(f.hi)), y1 = Math.max(Y(f.lo), Y(f.hi)); g.setLineDash([3, 3]); g.fillStyle = A(C.fg, last ? .12 : .06); g.fillRect(X(f.a), y0, X(n) - X(f.a), y1 - y0); g.strokeStyle = A(last ? C.ls : C.fg, last ? .7 : .35); g.strokeRect(X(f.a) + .5, y0 + .5, X(n) - X(f.a), y1 - y0); g.setLineDash([]);
-          lab(g, C, (cfg.zoneKey === "ob" ? "OB " : "FVG ") + (cfg.zoneTf ? cfg.zoneTf + " " : "") + (k + 1), X(n) + 4, (y0 + y1) / 2 + 3, last ? 1 : .7); }); }
+          const zk = cfg.zoneKey || (cfg.zones || []).find(z => z === "ob" || z === "fvg"); lab(g, C, (zk === "ob" ? "OB " : zk === "fvg" ? "FVG " : "ZONE ") + (cfg.zoneTf || ((cfg.tfs || []).find(x => x.role === "zone") || {}).tf || "") + (e.list.length > 1 ? " " + (k + 1) : ""), X(n) + 4, (y0 + y1) / 2 + 3, last ? 1 : .7); }); }
         if (e.t === "pat") { g.setLineDash([3, 3]); g.strokeStyle = A(C.fg, .6); g.beginPath(); g.moveTo(X(e.at - 12), Y(e.lvl)); g.lineTo(X(e.at + 2), Y(e.lvl)); g.stroke(); g.setLineDash([]); lab(g, C, cfg.patTxt || "FIGURE", X(e.at - 12), Y(e.lvl) + (cfg.side === "short" ? -6 : 12), 1); }
         if (e.t === "sweep") { g.strokeStyle = A(C.ls, .9); g.beginPath(); g.arc(X(e.at) + bw / 2, Y(e.w), 6 + 2 * Math.sin(t * 6), 0, 7); g.stroke(); lab(g, C, "SWEEP", X(e.at) + bw / 2, Y(e.w) + (cfg.side === "short" ? -12 : 20), 1, "center"); }
         g.setLineDash([]); g.restore(); });
       for (let i = 0; i < show; i++) { const o = S.pts[i], c = S.pts[i + 1], up = c >= o, x = X(i), yo = Y(o), yc = Y(c), wk = 2 + Math.abs(Math.sin(i * 7.1)) * 4;
-        g.strokeStyle = g.fillStyle = up ? A(C.fg, .9) : A(C.mu, .75); g.beginPath(); g.moveTo(x + bw / 2, Math.min(yo, yc) - wk); g.lineTo(x + bw / 2, Math.max(yo, yc) + wk * .7); g.stroke(); g.fillRect(x + bw * .2, Math.min(yo, yc), bw * .6, Math.max(1.5, Math.abs(yc - yo))); }
+        g.strokeStyle = g.fillStyle = up ? A(C.ac || C.fg, .95) : A(C.mu, .8); g.beginPath(); g.moveTo(x + bw / 2, Math.min(yo, yc) - wk); g.lineTo(x + bw / 2, Math.max(yo, yc) + wk * .7); g.stroke(); g.fillRect(x + bw * .2, Math.min(yo, yc), bw * .6, Math.max(1.5, Math.abs(yc - yo))); }
       S.ev.forEach(e => { if (e.t === "signal" && e.at <= show) { const x = X(e.at), y = Y(S.pts[e.at]); g.beginPath(); g.arc(x, y, 6 + 3 * Math.sin(t * 6), 0, 7); g.strokeStyle = A(C.ls, .9); g.stroke(); lab(g, C, (cfg.trigger || "SIGNAL").toUpperCase(), x, y - 12, 1, "center"); }
         if (e.t === "break" && e.at <= show) { g.font = F(C, 10, 1); g.fillStyle = A(C.ls, .55 + .45 * Math.sin(t * 9)); g.fillText("✓", X(e.at) + 6, Y(e.lvl) - 6); }
         if (e.t === "retest" && e.at <= show) { const x = X(e.at), y = Y(S.pts[e.at]); g.beginPath(); g.arc(x, y, 4, 0, 7); g.strokeStyle = A(C.fg, .9); g.stroke(); } });
@@ -5502,7 +5543,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
   };
   const loop = now => { requestAnimationFrame(loop); if (document.hidden) return; const sw = document.querySelector(".swz canvas.sviz"), av = $("anaView"), vis = !host.hidden, va = !av.hidden;
     if (!vis && !sw && !va) return; const t = (now - t0) / 1000, C = col(), CW = sw ? col(sw) : C;
-    [...(vis ? host.querySelectorAll("canvas.sviz") : []), ...(va ? av.querySelectorAll("canvas.sviz") : []), ...(sw ? [sw] : [])].forEach(c => { if (!c.clientWidth) return; const [g, w, h] = fit(c), f = V[c.dataset.viz]; if (f) { g.save(); try { f(g, w, h, t, c === sw ? CW : C, c); } catch (e) { console.warn(e); } g.restore(); } }); };
+    [...(vis ? host.querySelectorAll("canvas.sviz") : []), ...(va ? av.querySelectorAll("canvas.sviz") : []), ...(sw ? [sw] : [])].forEach(c => { if (!c.clientWidth) return; const [g, w, h] = fit(c), f = V[c.dataset.viz]; if (f) { g.save(); const Cx = c === sw ? CW : C; g.shadowColor = A(Cx.ac || Cx.fg, .55); g.shadowBlur = 8; try { f(g, w, h, t, Cx, c); } catch (e) { console.warn(e); } g.restore(); } }); };
   requestAnimationFrame(loop); })();
 
 /* ===== Analytics ===== */
@@ -6538,7 +6579,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-53";
+const APP_VERSION = "2026-10-29-54";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
