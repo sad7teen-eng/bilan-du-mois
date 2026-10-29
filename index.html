@@ -5644,11 +5644,11 @@ let brain3 = null;
 /* le cerveau occupe tout l'écran, derrière l'en-tête de la page */
 function b3Container(){ let d = document.getElementById("b3fix"); if (!d) { d = document.createElement("div"); d.id = "b3fix"; d.className = "b3"; document.body.appendChild(d); } return d; }
 function b3Remove(){ const h0 = document.getElementById("b3fix"); if (h0 && h0._nv) removeEventListener("mousemove", h0._nv); if (brain3) { brain3.destroy(); brain3 = null; } const d = document.getElementById("b3fix"); if (d) d.remove(); }
-let b3Born = false, b3BirthT0 = null;
+let b3Born = false, b3BirthT0 = null, b3Tok = 0;
 async function mountBrain3(host, C){
-  if (brain3) { brain3.destroy(); brain3 = null; }
+  if (brain3) { brain3.destroy(); brain3 = null; } const myTok = ++b3Tok;
   let THREE; try { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); } catch (e) { THREE = null; }
-  if (!host.isConnected) return;
+  if (!host.isConnected || myTok !== b3Tok) return;
   const dark = !document.body.classList.contains("light"), cs = getComputedStyle(host), FG = cs.getPropertyValue("--fg").trim() || "#0b0b0c";
   const F = stratBrainData(C).slice(0, 7), nF = F.length; let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647, gs = () => (rnd() + rnd() + rnd() + rnd() - 2) / 2;
   const mkt = C.market === "_" ? (C.marketOther || "Stratégie") : C.market, sname = (stratEntry() || {}).name || mkt;
@@ -5661,7 +5661,7 @@ async function mountBrain3(host, C){
   { const nv = e => host.classList.toggle("navon", e.clientY > innerHeight - 170); addEventListener("mousemove", nv); host._nv = nv; }
   if (!THREE) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
-  const PR = Math.min(2, devicePixelRatio || 1), weak = (navigator.hardwareConcurrency || 8) <= 4; ren.setPixelRatio(PR); ren.setClearColor(0, 0);
+  const PR = Math.min(2, devicePixelRatio || 1), weak = (navigator.hardwareConcurrency || 8) <= 4; ren.setPixelRatio(PR); ren.setClearColor(0, 0); cv.addEventListener("webglcontextlost", e => { e.preventDefault(); if (run && document.body.classList.contains("instrat")) setTimeout(() => { if (document.body.classList.contains("instrat")) renderStrat(); }, 250); });
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 1, 1, 9000);
   /* couleurs : une teinte par nébuleuse ; plus profondes sur fond clair */
   const PAL = {ut: ["#4cc9ff", "#0a6fa8"], bias: ["#ffb648", "#b5650a"], zones: ["#9d8cff", "#4b36c9"], seq: ["#e9eeff", "#1d2333"], gest: ["#3fe0a8", "#0c8a5f"], rules: ["#ff6b8a", "#c0284e"], trades: ["#ffd98a", "#8a6510"]};
@@ -5915,7 +5915,7 @@ async function mountBrain3(host, C){
       if (n.kind !== "core" && op > 0) { const ww = d.offsetWidth || 60, hh = d.offsetHeight || 16, x0 = sp[0] - ww / 2, y0 = sp[1] + (n.kind === "hub" ? -30 : 10), hit = placed.some(q => x0 < q[2] && x0 + ww > q[0] && y0 < q[3] && y0 + hh > q[1]); if (hit && n !== hovN) op = n.kind === "hub" ? Math.min(op, .25) : 0; else placed.push([x0 - 3, y0 - 2, x0 + ww + 3, y0 + hh + 2]); }
       d.style.opacity = op; d.style.pointerEvents = op > .3 ? "auto" : "none"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "34px" : n.kind === "hub" ? "-30px" : "10px"})`; }); };
   requestAnimationFrame(loop);
-  const destroy = () => { if (eaten) eatUI(false, 0, 0); eatAnims.forEach(x => { try { x.cancel(); } catch (e) {} }); removeEventListener("keydown", onKey); removeEventListener("keyup", onKey); removeEventListener("mousemove", onLook); document.removeEventListener("pointerlockchange", onLock); try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
+  const destroy = () => { if (eaten) eatUI(false, 0, 0); eatAnims.forEach(x => { try { x.cancel(); } catch (e) {} }); removeEventListener("keydown", onKey); removeEventListener("keyup", onKey); removeEventListener("mousemove", onLook); document.removeEventListener("pointerlockchange", onLock); try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} run = false; ro.disconnect(); try { ren.forceContextLoss(); } catch (e) {} ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
   brain3 = {host, destroy};
 }
 /* ---------- Arrivée sur Certificats : la brume recouvre le fond, le titre se construit ---------- */
@@ -7207,7 +7207,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-121";
+const APP_VERSION = "2026-10-29-122";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
