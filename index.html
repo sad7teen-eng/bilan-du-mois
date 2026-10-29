@@ -2730,8 +2730,10 @@ async function openGlassRun(c0, forceLite){
   float dCl = dVn(vLoc * 1.5) * .6 + dVn(vLoc * 4.2) * .4; vec3 vd = normalize(vLoc - camL); float dn = dot(vd, certN), tt = dot(certC - vLoc, certN) / (abs(dn) < .05 ? (dn < 0. ? -.05 : .05) : dn);
   vec3 hp = vLoc + vd * tt - certC; vec2 cq = vec2(dot(hp, certU) / certS.x, dot(hp, certV) / certS.y); float cin = max(abs(cq.x), abs(cq.y)) + (dCl - .5) * .35;
   float vClear = max((1. - smoothstep(.85, 1.25, cin)) * smoothstep(.35, .7, abs(dn)), vHoleF), vMilk = (1. - vClear) * (.6 + .4 * dCl);
-  float mEdge = meltY + (dCl - .5) * .35; if (vLoc.y > mEdge) discard; vMilk *= 1. - smoothstep(.3, 0., mEdge - vLoc.y) * .6;`)
-      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim);")
+  float mTilt = sin(meltY * 1.7 + 1.2) * .45, mLobe = sin(vLoc.x * 2.3 + meltY * 1.1) * .22 + sin(vLoc.z * 3.1 - meltY * .8) * .14;
+  float mEdge = meltY + vLoc.x * mTilt + mLobe + (dVn(vLoc * .9 + vec3(0., meltY * .3, 0.)) - .5) * .75 + (dCl - .5) * .3 - length(vLoc.xz) * .28;
+  if (vLoc.y > mEdge) discard; float mWet = smoothstep(.35, 0., mEdge - vLoc.y); vMilk *= 1. - mWet * .65;`)
+      .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim); roughnessFactor = mix(roughnessFactor, .04, mWet);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
       .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .76);"))
       .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.21, .27, .37), vMilk * .7) * (1. - (1. - vClear) * .2); gl_FragColor.a = mix(.8, .16, vClear * (1. - vMilk)); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
@@ -2887,7 +2889,7 @@ async function openGlassRun(c0, forceLite){
     ov.querySelectorAll("[data-s]").forEach(scramble); LABS.forEach((Lb, i) => cycle(Lb, 10000 + i * 3300, hudGen)); };
   setLabels(list[ci]);
   let T1 = -18.42; const tempEl = ov.querySelector(".ig-temp"), bgs = [...ov.querySelectorAll(".ig-bg span")];
-  tmr = setInterval(() => { T1 = Math.max(-21, Math.min(-16, T1 + (rnd() - .5) * .22)); tempEl.textContent = (T1 < 0 ? "-" : "") + Math.abs(T1).toFixed(2).padStart(5, "0");
+  tmr = setInterval(() => { { const base = -18.4 + (ov._meltS || 0) * 19.5; T1 += (base - T1) * .08 + (rnd() - .5) * .22; T1 = Math.max(base - 2.6, Math.min(base + 2.2, T1)); } tempEl.textContent = (T1 < 0 ? "-" : "") + Math.abs(T1).toFixed(2).padStart(5, "0");
     if (rnd() < .25) { const s = bgs[Math.floor(rnd() * bgs.length)]; s.textContent = s.textContent.replace(/\d/g, d => rnd() < .3 ? String(Math.floor(rnd() * 10)) : d); } }, 110);
   /* ---- souris / glisser pour tourner / clic pour briser / molette ---- */
   const mouse = {x: 0, y: 0, sx: 0, sy: 0, cx: -9, cy: -9, in: false}; let prox = 0;
@@ -2960,7 +2962,7 @@ async function openGlassRun(c0, forceLite){
   const placeThaw = () => { const {PW, PH} = cert.userData; thawBits.forEach(m => { const u = m.userData; m.position.set(u.sx * (PW / 2 - u.ox), u.sy * (PH / 2 - u.oy), .05); m.scale.set(u.s, u.s * .7, u.s * .5); }); };
   cert.add(thaw); placeThaw();
   const stepMelt = dt => { MELT.s += (MELT.v - MELT.s) * Math.min(1, dt * 2); MELT.z += (MELT.zt - MELT.z) * Math.min(1, dt * 5);
-    densU.meltY.value = H / 2 + .25 - MELT.s * (H + .5); ice.scale.setScalar(MELT.z);
+    densU.meltY.value = H / 2 + .9 - MELT.s * (H + 1.6); ov._meltS = MELT.s; ice.scale.setScalar(MELT.z);
     thawM.opacity = Math.max(0, Math.min(.75, (MELT.s - .55) * 3));
     const pc = Math.round(MELT.s * 100); mFill.style.height = pc + "%"; mFill.style.background = mCol(MELT.s); mFill.style.color = mCol(MELT.s); mPct.textContent = pc + "%"; };
   /* ---- arrivée par le haut, départ par le bas ---- */
@@ -5536,7 +5538,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-05";
+const APP_VERSION = "2026-10-29-06";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
