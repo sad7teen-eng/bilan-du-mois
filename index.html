@@ -1051,6 +1051,32 @@ body:not(.light) .hnum .dec{color:#9a9a9a;text-shadow:0 0 18px rgba(255,255,255,
 .ctip .dot{left:calc(var(--sx,16px) - 5px)!important}
 
 /* ===== Stratégie ===== */
+/* ---------- Stratégie : style HUD animé ---------- */
+section[data-view="strategie"] .scard{position:relative;overflow:hidden;border-radius:6px!important;border:1px solid color-mix(in srgb,var(--fg) 14%,transparent)!important}
+section[data-view="strategie"] .scard::before,section[data-view="strategie"] .scard::after{content:"";position:absolute;width:10px;height:10px;border:1px solid color-mix(in srgb,var(--fg) 55%,transparent);pointer-events:none}
+section[data-view="strategie"] .scard::before{top:5px;left:5px;border-right:0;border-bottom:0}section[data-view="strategie"] .scard::after{bottom:5px;right:5px;border-left:0;border-top:0}
+section[data-view="strategie"] .lab2{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;display:flex;align-items:center;gap:8px}
+section[data-view="strategie"] .lab2::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.8;animation:sBlink 1.8s steps(2) infinite}
+@keyframes sBlink{50%{opacity:.15}}
+section[data-view="strategie"] .scard b,section[data-view="strategie"] .kvs b,section[data-view="strategie"] .rk b{font-family:var(--mono)}
+.sviz{display:block;width:100%;height:120px}.s-entry .sviz{height:170px}.s-tf .sviz{height:150px}
+.s-hero{grid-column:span 6}.hero-in{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:center;gap:16px}
+.s-hero .sviz{height:clamp(220px,28vw,320px)}
+.hero-txt{display:flex;flex-direction:column;gap:6px;min-width:0}.hero-txt>small{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--muted)}
+.hero-word{font-size:clamp(26px,3.4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1}
+.hero-sub{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.hero-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.hero-kpi div{border:1px solid color-mix(in srgb,var(--fg) 14%,transparent);border-radius:4px;padding:8px 10px}
+.hero-kpi small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.16em;color:var(--muted)}.hero-kpi b{font-family:var(--mono);font-size:22px}
+.s-liq{grid-column:span 4}.liq3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.liq3>div{border:1px solid color-mix(in srgb,var(--fg) 10%,transparent);border-radius:4px;padding:6px}
+.liq3 .sviz{height:96px}.liq3 small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.s-check .sv-g{height:110px}
+section[data-view="strategie"] .slist li{position:relative}
+section[data-view="strategie"] .s-rules .slist li::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--fg) 40%,transparent),transparent);transform:scaleX(0);animation:sScan 4s ease-in-out infinite}
+section[data-view="strategie"] .s-rules .slist li:nth-child(2)::after{animation-delay:.6s}section[data-view="strategie"] .s-rules .slist li:nth-child(3)::after{animation-delay:1.2s}section[data-view="strategie"] .s-rules .slist li:nth-child(4)::after{animation-delay:1.8s}section[data-view="strategie"] .s-rules .slist li:nth-child(5)::after{animation-delay:2.4s}
+@keyframes sScan{0%{transform:scaleX(0);transform-origin:left}40%{transform:scaleX(1);transform-origin:left}41%{transform-origin:right}80%,100%{transform:scaleX(0);transform-origin:right}}
+section[data-view="strategie"] .mt-b i{position:relative;overflow:hidden}section[data-view="strategie"] .mt-b i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:sSheen 2.6s linear infinite;transform:translateX(-100%)}
+@keyframes sSheen{to{transform:translateX(100%)}}
+@media (max-width:760px){.hero-in{grid-template-columns:1fr}.s-liq{grid-column:span 6}.liq3{grid-template-columns:1fr 1fr 1fr}}
 .sgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
 .scard{padding:18px!important;gap:12px!important}
 .s-id{grid-column:span 3}.s-risk{grid-column:span 3}.s-tf{grid-column:span 6}.s-entry{grid-column:span 3}.s-rules{grid-column:span 3}.s-check{grid-column:span 2}.s-resp{grid-column:span 4}.s-notes{grid-column:span 6}
@@ -4655,6 +4681,10 @@ function renderStrat(){
     <header class="top vhead"><div><h1>Stratégie</h1><div class="meta">Ta méthode écrite noir sur blanc. Chaque trade est jugé contre elle.</div></div>
       <div class="tools"><button type="button" class="${E ? "go" : ""}" id="stratEditB">${E ? "Terminé" : "Modifier la stratégie"}</button></div></header>
     <div class="sgrid">
+      <section class="tile scard s-hero"><span class="lab2">Structure fractale · XAU/USD</span>
+        <div class="hero-in"><canvas class="sviz" data-viz="hero"></canvas>
+          <div class="hero-txt"><small>MÉTHODE</small><b class="hero-word">H4 → H1 → M15</b><span class="hero-sub">Biais · Zone · Shift</span>
+            <div class="hero-kpi"><div><small>RISQUE</small><b>${S.risk ? esc(S.risk) + "%" : "—"}</b></div><div><small>RR VISÉ</small><b>${S.rrTarget ? esc(S.rrTarget) + "R" : "—"}</b></div><div><small>TRADES</small><b>${S.maxTrades ? "1/S" : "—"}</b></div></div></div></div></section>
       <section class="tile scard s-id">
         <span class="lab2">Stratégie</span>
         <div class="s-name">${E ? `<input class="sx big" data-sk="name" value="${esc(S.name)}">` : esc(S.name)}</div>
@@ -4666,6 +4696,7 @@ function renderStrat(){
       </section>
       <section class="tile scard s-risk">
         <span class="lab2">Gestion du risque</span>
+        <canvas class="sviz" data-viz="risk"></canvas>
         <div class="rk">
           <div><small>Risque / trade</small><b>${E ? `<input class="sx" data-sk="risk" value="${esc(S.risk)}" placeholder="1">` : (S.risk ? esc(S.risk) + " %" : "—")}</b></div>
           <div><small>RR minimum</small><b>${E ? `<input class="sx" data-sk="rrMin" value="${esc(S.rrMin)}">` : (S.rrMin ? esc(S.rrMin) + "R" : "—")}</b></div>
@@ -4677,6 +4708,7 @@ function renderStrat(){
       </section>
       <section class="tile scard s-tf">
         <span class="lab2">Unités de temps</span>
+        <canvas class="sviz" data-viz="tf"></canvas>
         <div class="tfs">
           <div class="tf"><span class="tfb">H4</span><div><small>Biais</small>${area("tfBias", "Rôle du H4")}</div></div>
           <div class="tf"><span class="tfb">H1</span><div><small>Zones</small>${area("tfZones", "Rôle du H1")}</div></div>
@@ -4685,16 +4717,20 @@ function renderStrat(){
       </section>
       <section class="tile scard s-entry">
         <span class="lab2">Déroulé de l'entrée</span>
+        <canvas class="sviz" data-viz="shift"></canvas>
         ${area("entry", "Une étape par ligne", true, true)}
         <div class="sblk"><small>Sessions autorisées</small><div class="chips">${SESS.map(x => `<button type="button" class="chip2${S.sessions.includes(x.n) ? " on" : ""}" data-sess="${x.n}" ${E ? "" : "disabled"}>${x.n}<em>${x.lab}</em></button>`).join("")}</div></div>
       </section>
       <section class="tile scard s-rules">
         <span class="lab2">Règles</span>
+        <canvas class="sviz" data-viz="rules"></canvas>
         ${area("rules", "Une règle par ligne", true)}
         <div class="sblk"><small>Exception autorisée</small>${area("exception", "Quand tu peux sortir du cadre")}</div>
       </section>
+      <section class="tile scard s-liq"><span class="lab2">Liquidité · cibles de la Smart Money</span>
+        <div class="liq3"><div><canvas class="sviz" data-viz="eq"></canvas><small>EQH / EQL</small></div><div><canvas class="sviz" data-viz="tl"></canvas><small>Trendline</small></div><div><canvas class="sviz" data-viz="sw"></canvas><small>Swing high / low</small></div></div></section>
       <section class="tile scard s-check">
-        <div class="c3h"><span class="lab2">Checklist avant d'entrer</span><button type="button" class="plink" id="stratCheck">Modifier dans le plan →</button></div>
+        <canvas class="sviz sv-g" data-viz="gauge"></canvas><div class="c3h"><span class="lab2">Checklist avant d'entrer</span><button type="button" class="plink" id="stratCheck">Modifier dans le plan →</button></div>
         <ul class="slist ck2">${p.checklist.filter(x => x.trim()).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
         <small class="muted">La même checklist s'affiche chaque jour dans le panneau du Tableau.</small>
       </section>
@@ -4721,6 +4757,79 @@ $("stratView").addEventListener("click", e => {
   save(); renderStrat();
 });
 
+/* ===== Stratégie : visuels animés en continu (canvas) ===== */
+(() => { const host = $("stratView"); let t0 = performance.now();
+  const col = () => { const cs = getComputedStyle(host); return {fg: cs.getPropertyValue("--fg").trim() || "#f4f4f4", mu: cs.getPropertyValue("--muted").trim() || "#8b8b8b", ls: cs.getPropertyValue("--loss").trim() || "#ff4d4d"}; };
+  const fit = c => { const d = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight; if (c.width !== Math.round(w * d) || c.height !== Math.round(h * d)) { c.width = Math.round(w * d); c.height = Math.round(h * d); } const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); g.clearRect(0, 0, w, h); return [g, w, h]; };
+  const A = (cc, a) => { const m = cc.match(/\d+(\.\d+)?/g); if (cc[0] === "#") { let x = cc.slice(1); if (x.length === 3) x = x.split("").map(y => y + y).join(""); const n = parseInt(x, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } return m ? `rgba(${m[0]},${m[1]},${m[2]},${a})` : cc; };
+  const nz = (x, s) => Math.sin(x * 1.3 + s) * .5 + Math.sin(x * 2.9 + s * 1.7) * .3 + Math.sin(x * 6.1 + s * .4) * .2;
+  const V = {
+    hero(g, w, h, t, C){ /* nœud 3D en fil de fer, nombreux brins qui tournent */
+      const cx = w * .5, cy = h / 2, R = h * .62, ry = t * .3, rx = .55 + Math.sin(t * .17) * .25, N = 260, S2 = 16;
+      const pr = (x, y, z) => { let X = x * Math.cos(ry) - z * Math.sin(ry), Z = x * Math.sin(ry) + z * Math.cos(ry), Y = y * Math.cos(rx) - Z * Math.sin(rx); Z = y * Math.sin(rx) + Z * Math.cos(rx); const k = 2.4 / (2.4 + Z); return [cx + X * R * k, cy + Y * R * k, Z]; };
+      for (let L = 0; L < S2; L++) { const off = (L / S2 - .5) * .5, ph = L * .4; g.beginPath();
+        for (let i = 0; i <= N; i++) { const u = i / N * Math.PI * 2, r = .5 + .2 * Math.cos(3 * u + t * .25) + off * .35;
+          const [X, Y] = pr(r * Math.cos(2 * u), r * Math.sin(2 * u), .3 * Math.sin(3 * u + t * .25) + off * .25 * Math.cos(u + ph)); i ? g.lineTo(X, Y) : g.moveTo(X, Y); }
+        const a2 = L === Math.floor(S2 / 2) ? .9 : .12 + .25 * (1 - Math.abs(L / S2 - .5) * 2); g.strokeStyle = A(L % 3 ? C.fg : C.mu, a2); g.lineWidth = L === Math.floor(S2 / 2) ? 1.3 : .6; g.stroke(); }
+      for (let i = 0; i < 60; i++) { const u = (i / 60 + t * .02) % 1 * Math.PI * 2, r = .5 + .2 * Math.cos(3 * u + t * .25), [X, Y] = pr(r * Math.cos(2 * u), r * Math.sin(2 * u), .3 * Math.sin(3 * u + t * .25));
+        g.fillStyle = A(C.fg, .4 + .6 * Math.max(0, Math.sin(t * 3 + i * 1.7))); g.fillRect(X - 1.2, Y - 1.2, 2.4, 2.4); }
+      const mono = getComputedStyle(host).getPropertyValue("--mono"); g.strokeStyle = A(C.mu, .25); g.lineWidth = 1; g.strokeRect(8.5, 8.5, w - 17, h - 17);
+      g.beginPath(); for (let x = 12; x < w - 12; x += 6) { g.moveTo(x, h - 9); g.lineTo(x, h - (x % 30 ? 12 : 16)); } g.stroke();
+      ["X", "Y", "Z", "T"].forEach((n, i) => { g.fillStyle = A(C.mu, .8); g.font = "9px " + mono; g.fillText(n + " " + (Math.sin(t * (i + 1) * .7) * 99).toFixed(2), i % 2 ? w - 70 : 14, i > 1 ? h - 22 : 22); }); },
+    tf(g, w, h, t, C){ /* 4 unités de temps : courbes qui défilent, s'alignent puis se désalignent */
+      const L = ["D1", "H4", "H1", "M15"], lh = h / 4, al = (Math.sin(t * .5) + 1) / 2;
+      L.forEach((n, i) => { const y0 = i * lh + lh / 2, sp = (i + 1) * .9, amp = lh * .3;
+        g.fillStyle = A(C.mu, .9); g.font = "10px " + getComputedStyle(host).getPropertyValue("--mono"); g.fillText(n, 4, y0 + 3);
+        g.beginPath(); for (let x = 40; x < w - 50; x += 3) { const u = x / w * 6, trend = (x - 40) / (w - 90) * (i < 3 || al > .5 ? -1 : 1) * amp * .9;
+          const y = y0 + nz(u * sp + t * sp * .4, i) * amp * .55 + trend * (.4 + al * .6); x > 40 ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.strokeStyle = A(C.fg, .75); g.lineWidth = 1; g.stroke();
+        const ok = i < 3 || al > .5; g.beginPath(); g.arc(w - 26, y0, 5, 0, 7); g.fillStyle = ok ? A(C.fg, .6 + .4 * Math.sin(t * 4 + i)) : A(C.ls, .9); g.fill();
+        g.strokeStyle = A(C.mu, .15); g.beginPath(); g.moveTo(0, (i + 1) * lh - .5); g.lineTo(w, (i + 1) * lh - .5); g.stroke(); });
+      g.fillStyle = A(C.fg, .9); g.font = "bold 10px " + getComputedStyle(host).getPropertyValue("--mono"); g.fillText(al > .5 ? "ALIGNÉ ✓" : "M15 DÉSALIGNÉ", w - 120, 12); },
+    shift(g, w, h, t, C){ /* désalignement M15 → zone H1 → cassure du niveau (shift) en clôture de corps */
+      const mono = getComputedStyle(host).getPropertyValue("--mono"), T = (t % 8) / 8, n = 34, x0 = 12, bw = (w - 24) / n;
+      const K = [[0, .45], [.12, .3], [.18, .34], [.3, .55], [.36, .5], [.48, .74], [.56, .8], [.62, .76], [.68, .78], [.78, .5], [.86, .38], [.92, .22], [1, .14]];
+      const P = u => { for (let i = 1; i < K.length; i++) if (u <= K[i][0]) { const [a0, b0] = K[i - 1], [a1, b1] = K[i], k = (u - a0) / (a1 - a0); return (b0 + (b1 - b0) * (k * k * (3 - 2 * k))) * h + Math.sin(u * 90) * 2.5; } return K[K.length - 1][1] * h; };
+      const lvl = .27 * h, z0 = .72 * h, z1 = .86 * h;
+      g.fillStyle = A(C.fg, .06); g.fillRect(x0, z0, w - 24, z1 - z0); g.setLineDash([3, 3]); g.strokeStyle = A(C.fg, .3); g.strokeRect(x0 + .5, z0 + .5, w - 25, z1 - z0);
+      g.strokeStyle = A(C.ls, .85); g.beginPath(); g.moveTo(x0, lvl); g.lineTo(w - 12, lvl); g.stroke(); g.setLineDash([]);
+      g.font = "9px " + mono; g.fillStyle = A(C.mu, .95); g.fillText("ZONE H1 / OB M15", x0 + 4, z1 - 4); g.fillText("NIVEAU DE SHIFT", x0 + 4, lvl - 5);
+      const show = Math.min(n, Math.floor(T * (n + 8))); let broke = false;
+      for (let i = 0; i < show; i++) { const o = P(i / n), c = P((i + 1) / n), x = x0 + i * bw, up = c < o, hi = Math.min(o, c) - 2 - Math.abs(Math.sin(i * 7)) * 4, lo = Math.max(o, c) + 2 + Math.abs(Math.cos(i * 5)) * 4;
+        g.strokeStyle = g.fillStyle = up ? A(C.fg, .9) : A(C.mu, .75); g.beginPath(); g.moveTo(x + bw * .35, hi); g.lineTo(x + bw * .35, lo); g.stroke();
+        g.fillRect(x + bw * .1, Math.min(o, c), bw * .5, Math.max(1.5, Math.abs(c - o))); if (c < lvl && i > n * .7) broke = true; }
+      if (broke) { g.fillStyle = A(C.ls, .55 + .45 * Math.sin(t * 9)); g.font = "bold 11px " + mono; g.fillText("SHIFT ✓  CLÔTURE DE CORPS", w - 190, 14); }
+      else if (show > n * .45) { g.fillStyle = A(C.mu, .9); g.font = "10px " + mono; g.fillText("M15 DÉSALIGNÉ · DANS LA ZONE", w - 210, 14); } },
+    risk(g, w, h, t, C){ /* SL / entrée / TP1 / TP2 et barres de R */
+      const ey = h * .55, sl = h * .82, tp1 = h * .32, tp2 = h * .12, mono = getComputedStyle(host).getPropertyValue("--mono");
+      [[sl, "SL  -1R", C.ls], [ey, "ENTRÉE", C.fg], [tp1, "TP1 liquidité", C.fg], [tp2, "TP2 dernier HH/LL", C.fg]].forEach(([y, lb, cc], i) => { g.strokeStyle = A(cc, i ? .5 : .8); g.setLineDash(i === 1 ? [] : [4, 4]); g.beginPath(); g.moveTo(10, y); g.lineTo(w * .6, y); g.stroke(); g.setLineDash([]);
+        g.fillStyle = A(cc, .9); g.font = "9px " + mono; g.fillText(lb, 12, y - 3); });
+      let px = 10, py = ey; g.beginPath(); g.moveTo(px, py); const T = (t % 6) / 6; for (let i = 1; i <= 60 * T; i++) { px = 10 + i / 60 * w * .58; py = ey - (tp2 - ey) * -1 * Math.min(1, i / 60) * .95 + nz(i * .3, 1) * 6; g.lineTo(px, py); }
+      g.strokeStyle = A(C.fg, .9); g.stroke();
+      const R = [1, 2, 3, 4], bx = w * .66, bw2 = (w - bx - 10) / 4 - 6; R.forEach((r, i) => { const hh = (h - 30) * r / 4 * (.7 + .3 * Math.sin(t * 1.4 + i)); g.fillStyle = A(C.fg, .12 + i * .12); g.fillRect(bx + i * (bw2 + 6), h - 14 - hh, bw2, hh);
+        g.fillStyle = A(C.mu, .9); g.font = "9px " + mono; g.fillText(r + "R", bx + i * (bw2 + 6), h - 3); }); },
+    rules(g, w, h, t, C){ /* voyants : ce qui interdit de trader, scanné en continu */
+      const it = ["ANNONCES", "NUIT", "SETUP", "1 / SESSION"], mono = getComputedStyle(host).getPropertyValue("--mono"), cw = w / it.length;
+      it.forEach((s, i) => { const x = i * cw + cw / 2, on = Math.sin(t * 1.5 - i * .8) > .2; g.beginPath(); g.arc(x, h * .42, 14, 0, 7); g.strokeStyle = A(on ? C.ls : C.mu, .8); g.lineWidth = 1.2; g.stroke();
+        g.beginPath(); g.arc(x, h * .42, 14, -Math.PI / 2, -Math.PI / 2 + ((t * .6 + i * .25) % 1) * Math.PI * 2); g.strokeStyle = A(C.fg, .9); g.stroke();
+        g.fillStyle = A(on ? C.ls : C.fg, on ? .9 : .4); g.beginPath(); g.arc(x, h * .42, 4, 0, 7); g.fill();
+        g.fillStyle = A(C.mu, .95); g.font = "9px " + mono; g.textAlign = "center"; g.fillText(s, x, h * .42 + 30); g.textAlign = "left"; }); },
+    gauge(g, w, h, t, C){ const cx = w / 2, cy = h * .62, r = Math.min(w, h * 1.6) * .36, v = (Math.sin(t * .7) + 1) / 2 * .85 + .1, mono = getComputedStyle(host).getPropertyValue("--mono");
+      g.lineWidth = 6; g.lineCap = "round"; g.strokeStyle = A(C.mu, .2); g.beginPath(); g.arc(cx, cy, r, Math.PI, 0); g.stroke();
+      g.strokeStyle = A(v > .8 ? C.fg : C.mu, .95); g.beginPath(); g.arc(cx, cy, r, Math.PI, Math.PI + v * Math.PI); g.stroke();
+      for (let i = 0; i <= 10; i++) { const a = Math.PI + i / 10 * Math.PI; g.strokeStyle = A(C.mu, .5); g.lineWidth = 1; g.beginPath(); g.moveTo(cx + Math.cos(a) * (r + 8), cy + Math.sin(a) * (r + 8)); g.lineTo(cx + Math.cos(a) * (r + 12), cy + Math.sin(a) * (r + 12)); g.stroke(); }
+      g.fillStyle = A(C.fg, 1); g.font = "bold 20px " + mono; g.textAlign = "center"; g.fillText(Math.round(v * 100) + "%", cx, cy - 2); g.font = "9px " + mono; g.fillStyle = A(C.mu, 1); g.fillText("PRÊT À TRADER", cx, cy + 14); g.textAlign = "left"; },
+    eq(g, w, h, t, C){ const y = h * .3; g.setLineDash([3, 3]); g.strokeStyle = A(C.ls, .7); g.beginPath(); g.moveTo(4, y); g.lineTo(w - 4, y); g.stroke(); g.setLineDash([]);
+      const T = (t % 4) / 4; g.beginPath(); for (let i = 0; i <= 40; i++) { const x = 4 + i / 40 * (w - 8); let yy = h * .75 - Math.abs(Math.sin(i / 40 * Math.PI * 2.5)) * (h * .45); if (i / 40 > .78) yy = y - 6 - (i / 40 - .78) * 40 * Math.min(1, T * 1.5); if (i / 40 > T + .2) break; i ? g.lineTo(x, yy) : g.moveTo(x, yy); } g.strokeStyle = A(C.fg, .9); g.stroke(); },
+    tl(g, w, h, t, C){ g.strokeStyle = A(C.ls, .7); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(4, h * .9); g.lineTo(w - 4, h * .25); g.stroke(); g.setLineDash([]);
+      const T = (t % 4) / 4; g.beginPath(); for (let i = 0; i <= 40; i++) { const u = i / 40, base = h * .9 - u * h * .65; let yy = base - 4 - Math.abs(Math.sin(u * 12)) * 12; if (u > .7) yy = base + (u - .7) * h * 1.2 * Math.sin(Math.min(1, T * 1.6) * 1.57); if (u > T + .25) break; i ? g.lineTo(4 + u * (w - 8), yy) : g.moveTo(4, yy); } g.strokeStyle = A(C.fg, .9); g.stroke(); },
+    sw(g, w, h, t, C){ const T = (t % 4) / 4; g.beginPath(); const P = [[0, .8], [.2, .4], [.35, .6], [.55, .2], [.7, .45], [.85, .12], [1, .5]]; let first = true;
+      P.forEach(([u, v], i) => { if (u > T + .2) return; const x = 4 + u * (w - 8), y = v * h; first ? (g.moveTo(x, y), first = false) : g.lineTo(x, y); }); g.strokeStyle = A(C.fg, .9); g.stroke();
+      const hy = .2 * h; g.setLineDash([3, 3]); g.strokeStyle = A(C.ls, .6 + .3 * Math.sin(t * 5)); g.beginPath(); g.moveTo(w * .5, hy); g.lineTo(w - 4, hy); g.stroke(); g.setLineDash([]); }
+  };
+  const loop = now => { requestAnimationFrame(loop); if (host.hidden || document.hidden) return; const t = (now - t0) / 1000, C = col();
+    host.querySelectorAll("canvas.sviz").forEach(c => { if (!c.clientWidth) return; const [g, w, h] = fit(c), f = V[c.dataset.viz]; if (f) { g.save(); try { f(g, w, h, t, C); } catch (e) {} g.restore(); } }); };
+  requestAnimationFrame(loop); })();
 /* ===== Analytics ===== */
 const SESS = [
   {n: "Asie", a: 60, b: 360, lab: "01:00 – 06:00", w: 3, o: .35},
@@ -5753,7 +5862,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-31";
+const APP_VERSION = "2026-10-29-33";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
