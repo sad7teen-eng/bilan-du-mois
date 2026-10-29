@@ -1133,7 +1133,7 @@ html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!impor
 body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
 body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}html:has(body.instrat){overflow:hidden!important;overscroll-behavior:none}
 body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
-body.instrat .shead{display:none!important}.tn-strat{display:flex;gap:6px;align-items:center;margin-left:4px}.tn-strat > button,.tn-strat .sdd-b{font-size:12px!important;padding:6px 11px!important;min-height:0!important;border-radius:999px!important;white-space:nowrap}.tn-strat .sdd-m{right:auto;left:0}
+body.instrat .shead{display:none!important}.tn-act{position:relative}.tn-strat{display:flex;gap:6px;align-items:center;position:absolute;right:0;top:calc(100% + 10px)}.sdd-h{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#777;padding:8px 10px 4px}.sdd-m .stab.act{color:#fff!important}.sdd-m .stab.act + .stab.add{border-top:1px solid rgba(255,255,255,.08)!important}.tn-strat > button,.tn-strat .sdd-b{font-size:12px!important;padding:6px 11px!important;min-height:0!important;border-radius:999px!important;white-space:nowrap}.tn-strat .sdd-m{right:0;left:auto}
 body.instrat .shead{margin-bottom:0}body.instrat .shead .tools{gap:8px;align-items:center}body.instrat .shead .tools > button{font-size:12px!important;padding:6px 12px!important;min-height:0!important}
 .sdd{position:relative}.sdd-b{display:flex;align-items:center;gap:6px;font-size:12px!important;padding:6px 12px!important}.sdd-b svg{opacity:.7}
 .sdd-m{position:absolute;right:0;top:calc(100% + 6px);min-width:200px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:12px;background:rgba(18,19,22,.92);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);z-index:30;box-shadow:0 20px 50px rgba(0,0,0,.5)}
@@ -1142,7 +1142,7 @@ body.instrat .shead{margin-bottom:0}body.instrat .shead .tools{gap:8px;align-ite
 .sdd .sren{font-size:12px;padding:6px 10px;width:170px}
 .b3nav,.b3help{transition:opacity .45s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
 @media (hover:hover){#b3fix:not(.navon) .b3nav,#b3fix:not(.navon) .b3help{opacity:0;transform:translateY(14px);pointer-events:none}}
-body.instrat .dash > .savebar,body.instrat #btnTheme{display:none!important}
+body.instrat .dash > .savebar{display:none!important}body.instrat #btnTheme{visibility:hidden!important;pointer-events:none}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
 .b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .b3lab{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--fg);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);padding:2px 6px;border-radius:5px;cursor:pointer;transition:opacity .25s;will-change:transform}
@@ -4953,9 +4953,8 @@ function renderStrat(){ stratKaelRestore();
   const L = stratList(), act = strat().active;
   const cur = L.find(x => x.id === act) || L[0];
   const head = `<header class="top vhead shead"><div></div>
-      <div class="tools"><div class="sdd">${stratRen ? `<input class="sren" id="sRen" value="${esc(cur.name)}" maxlength="28">` : `<button type="button" class="sdd-b" id="sddB" aria-haspopup="true">${esc(cur.name)}<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>`}
-        <div class="sdd-m" hidden>${L.map(x => `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}"><span>${esc(x.name)}</span>${x.id === act ? `<i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle stratégie</button></div></div>
-        <button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>`;
+      <div class="tools"><div class="sdd">${stratRen ? `<input class="sren" id="sRen" value="${esc(cur.name)}" maxlength="28">` : `<button type="button" class="sdd-b" id="sddB" aria-haspopup="true">Modif Stratégie<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>`}
+        <div class="sdd-m" hidden><small class="sdd-h">Mes stratégies</small>${L.map(x => `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}"><span>${esc(x.name)}</span>${x.id === act ? `<i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<small class="sdd-h">${esc(cur.name)}</small><button type="button" class="stab act" id="stratDescB">Décrire ma stratégie</button><button type="button" class="stab act" id="stratEditB">Ajuster</button><button type="button" class="stab add" id="sAdd">+ Nouvelle stratégie</button></div></div></div></header>`;
   if (C.empty || !C.steps.length) {
     b3Remove();
     $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
@@ -7207,7 +7206,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-122";
+const APP_VERSION = "2026-10-29-123";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
