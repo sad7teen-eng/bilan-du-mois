@@ -4873,13 +4873,13 @@ function renderStrat(){ stratKaelRestore();
   const S = strat(), C = stratCfg(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
   const L = stratList(), act = strat().active;
   const head = `<header class="top vhead"><div><h1>Stratégie</h1></div>
-      <div class="tools"><button type="button" id="stratDescB">${C.empty || !C.steps.length ? "Décrire ma stratégie" : "Modifier ma stratégie"}</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
+      <div class="tools"><button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
     <div class="sbar">${L.map(x => x.id === act && stratRen ? `<input class="sren" id="sRen" value="${esc(x.name)}" maxlength="28">` : `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}">${esc(x.name)}${x.id === act ? ` <i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle</button></div>`;
   if (C.empty || !C.steps.length) {
     b3Remove();
     $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
-      <p>7 écrans de choix rapides, environ 5 minutes. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
-    $("stratDescB2").onclick = () => openStratQuiz();
+      <p>Expliquez comment vous tradez, en quelques phrases ou à la voix. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
+    $("stratDescB2").onclick = () => openStratDescribe();
   } else if (window.__stratClassic !== true) {
     $("stratView").innerHTML = head;
     mountBrain3(b3Container(), C);
@@ -4913,7 +4913,7 @@ function renderStrat(){ stratKaelRestore();
   }
   if ($("brainOpen")) { $("brainOpen").onclick = () => openStratBrain(); $("brainPrev").onclick = () => openStratBrain(); }
   $("stratEditB").onclick = () => openStratWizard();
-  $("stratDescB").onclick = () => openStratQuiz();
+  $("stratDescB").onclick = () => openStratDescribe();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
     rn.onkeydown = e => { if (e.key === "Enter") done(true); if (e.key === "Escape") done(false); }; rn.onblur = () => done(true); }
 }
@@ -6964,7 +6964,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-68";
+const APP_VERSION = "2026-10-29-69";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
