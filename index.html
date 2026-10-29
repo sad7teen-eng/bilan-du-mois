@@ -855,7 +855,7 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .ig-bg{position:absolute;inset:0;pointer-events:none}
 .ig-bg span{position:absolute;white-space:pre;font-size:clamp(20px,2.4vw,38px);font-weight:700;letter-spacing:.08em;line-height:1.55;color:rgba(255,255,255,.42);filter:blur(5px)}
 .ig-bg span:nth-child(2n){filter:blur(8px);color:rgba(255,255,255,.3)}
-.ig-dots{position:absolute;inset:-40px;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.8) .9px,transparent 1.6px);background-size:68px 68px;opacity:.6}
+.ig-dots{display:none;position:absolute;inset:-40px;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.8) .9px,transparent 1.6px);background-size:68px 68px;opacity:.6}
 .ig-grain{position:absolute;inset:-50%;pointer-events:none;opacity:.05;background-size:220px 220px;mix-blend-mode:overlay;animation:lmGrain .9s steps(6) infinite}
 .ig-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;opacity:0;transition:opacity .6s}
 .ig-svg path{stroke:rgba(255,255,255,.9);stroke-width:1;fill:none;stroke-dasharray:1;stroke-dashoffset:0;transition:stroke-dashoffset .6s cubic-bezier(.7,0,.2,1)}.ig-svg path.off{stroke-dashoffset:1;transition-duration:.35s}
@@ -5512,7 +5512,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-03";
+const APP_VERSION = "2026-10-29-04";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
