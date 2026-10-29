@@ -5465,134 +5465,127 @@ async function mountBrain3(host, C){
   if (brain3) { brain3.destroy(); brain3 = null; }
   let THREE; try { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); } catch (e) { THREE = null; }
   if (!host.isConnected) return;
-  const cs = getComputedStyle(host), FG = cs.getPropertyValue("--fg").trim() || "#0b0b0c", MU = cs.getPropertyValue("--muted").trim() || "#8b8b8b", LS = cs.getPropertyValue("--loss").trim() || "#e5484d", MONO = cs.getPropertyValue("--mono");
-  const F = stratBrainData(C), nF = F.length; let sd = 3; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647, gs = () => { let u = 0; for (let k = 0; k < 4; k++) u += rnd(); return (u - 2) / 2; };
+  const cs = getComputedStyle(host), FG = cs.getPropertyValue("--fg").trim() || "#0b0b0c", LS = cs.getPropertyValue("--loss").trim() || "#e5484d", BGc = document.body.classList.contains("light") ? "#f3f4f6" : "#0b0b0c";
+  const F = stratBrainData(C), nF = F.length; let sd = 5; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
   host.innerHTML = `<canvas class="b3c"></canvas><div class="b3l"></div>
     <div class="b3hud"><div><b class="b3t">${esc(C.market === "_" ? (C.marketOther || "Stratégie") : C.market)}</b><span class="b3k">0 combinaisons testées</span></div></div>
-    <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
-    <aside class="b3info" hidden></aside>`;
+    <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div><aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k");
   { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".sbar"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
-  if (!THREE) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
-  let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  if (!THREE) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
+  let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); ren.setClearColor(0, 0);
-  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(42, 1, 1, 6000), root = new THREE.Group(); scene.add(root);
-  const BG = document.body.classList.contains("light") ? "#f3f4f6" : "#0b0b0c"; scene.fog = new THREE.Fog(BG, 900, 2300);
-  const col = c => new THREE.Color(c), cFG = col(FG), cMU = col(MU), cLS = col(LS);
-  const dotTex = (() => { const k = document.createElement("canvas"); k.width = k.height = 64; const x = k.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(.55, "rgba(255,255,255,1)"); gr.addColorStop(.7, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(k); })();
-  const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .15, sizeAttenuation: true, transparent: true, depthWrite: false, fog: true}, o));
-  /* ---- placement : familles sur une sphère, éléments autour, nuages de points ---- */
-  const R = 320, hubs = [], items = [], clouds = [];
-  F.forEach((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, hp = new THREE.Vector3(Math.cos(th) * rr * R, y * R * .62, Math.sin(th) * rr * R);
-    const hub = {f, i, p: hp, l: f.label, kind: "hub"}; hubs.push(hub); f.hub3 = hub; f.items3 = [];
-    const m = f.items.length, dense = m > 14;
-    f.items.forEach((it, k) => { let p; if (f.key === "seq") { const a = (k / Math.max(1, m - 1) - .5) * Math.PI * 1.4; p = hp.clone().add(new THREE.Vector3(Math.cos(a + th) * 105, (k / Math.max(1, m - 1) - .5) * 120, Math.sin(a + th) * 105)); }
-      else { const yy = 1 - (k + .5) / m * 2, r2 = Math.sqrt(1 - yy * yy), t2 = k * 2.39996, rad = dense ? 70 + rnd() * 30 : 95; p = hp.clone().add(new THREE.Vector3(Math.cos(t2) * r2 * rad, yy * rad * .8, Math.sin(t2) * r2 * rad)); }
-      const nd = Object.assign({f, i: k, p, kind: "item", hub}, it); items.push(nd); f.items3.push(nd); });
-    const n = f.key === "trades" ? 420 : 560 + m * 30, pts = []; for (let k = 0; k < n; k++) pts.push(new THREE.Vector3(hp.x + gs() * 70, hp.y + gs() * 60, hp.z + gs() * 70)); clouds.push({f, pts}); });
-  const core = {p: new THREE.Vector3(), l: C.market === "_" ? (C.marketOther || "Stratégie") : C.market, kind: "core"};
-  /* ---- liens (même logique que la carte 2D) ---- */
-  const links = [], L = (a, b, k) => links.push({a, b, k}); hubs.forEach(h => L(core, h, "core")); items.forEach(n => L(n.hub, n, "branch"));
-  const by = k => (F.find(f => f.key === k) || {items3: []}).items3, seq = by("seq"); seq.forEach((x, i) => { if (seq[i + 1]) L(x, seq[i + 1], "flow"); });
-  by("ut").forEach(u => seq.forEach(s => { if (s.l.includes(u.tf)) L(u, s, "cross"); })); by("zones").forEach(z => seq.forEach(s => { if (["zone", "mark", "rebound"].includes(s.step)) L(z, s, "cross"); }));
-  by("bias").forEach(b => seq.forEach(s => { if (s.step === "bias") L(b, s, "cross"); })); const tps = by("gest").filter(x => x.tp), sls = by("gest").filter(x => x.sl), ses = by("rules").filter(x => x.ses);
-  by("gest").forEach(gn => seq.forEach(s => { if ((gn.sl || gn.tp) && (s.step === "manage" || s.step === "entry")) L(gn, s, "cross"); }));
-  by("trades").forEach(tn => { const s = ses.find(x => x.ses === tn.ses); if (s) L(s, tn, "cross"); const o = tn.win ? tps[0] : sls[0]; if (o) L(o, tn, "cross"); });
-  /* ---- géométries ---- */
-  const curve = (a, b, off) => { const mid = a.clone().add(b).multiplyScalar(.5); mid.add(mid.clone().normalize().multiplyScalar(30 + off.length() * .3)).add(off); return new THREE.QuadraticBezierCurve3(a, mid, b); };
-  const strands = {core: [], branch: [], flow: [], cross: []}, curves = [];
-  links.forEach(l => { const n = l.k === "core" ? 14 : l.k === "flow" ? 8 : l.k === "branch" ? 3 : 4, bad = (l.a.bad || l.b.bad) && l.k !== "core"; l.cv = [];
-    for (let s = 0; s < n; s++) { const off = new THREE.Vector3(gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18), gs() * (l.k === "core" ? 40 : 18)), c = curve(l.a.p, l.b.p, off), P = c.getPoints(l.k === "branch" ? 8 : 22); l.cv.push(P); curves.push({P, bad, l}); strands[l.k].push({P, bad}); } });
-  const lineSeg = (list, op) => { const pos = [], colr = []; list.forEach(({P, bad}) => { const c = bad ? cLS : cFG; for (let k = 0; k < P.length - 1; k++) { pos.push(P[k].x, P[k].y, P[k].z, P[k + 1].x, P[k + 1].y, P[k + 1].z); colr.push(c.r, c.g, c.b, c.r, c.g, c.b); } });
-    const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3));
-    const o = new THREE.LineSegments(g, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: op, depthWrite: false})); root.add(o); return o; };
-  const lCore = lineSeg(strands.core, .15), lBr = lineSeg(strands.branch, .22), lFlow = lineSeg(strands.flow, .42), lCross = lineSeg(strands.cross, .08);
-  /* nuages : points + réseau interne */
-  const cloudPos = [], cloudBase = [], cloudPh = []; clouds.forEach(c => c.pts.forEach(p => { cloudBase.push(p.clone()); cloudPos.push(p.x, p.y, p.z); cloudPh.push(rnd() * 6.28); }));
-  const cg = new THREE.BufferGeometry(); cg.setAttribute("position", new THREE.Float32BufferAttribute(cloudPos, 3));
-  const cloudPts = new THREE.Points(cg, PM({color: cFG, size: 2.8, opacity: .65})); root.add(cloudPts);
-  const edges = []; let off0 = 0; clouds.forEach(c => { const n = c.pts.length; for (let k = 0; k < n; k++) { if (rnd() > .55) continue; let b1 = -1, b2 = -1, d1 = 1e9, d2 = 1e9; for (let j = 0; j < 40; j++) { const q = Math.floor(rnd() * n); if (q === k) continue; const d = c.pts[k].distanceToSquared(c.pts[q]); if (d < d1) { d2 = d1; b2 = b1; d1 = d; b1 = q; } else if (d < d2) { d2 = d; b2 = q; } } if (b1 >= 0) edges.push([off0 + k, off0 + b1]); if (b2 >= 0) edges.push([off0 + k, off0 + b2]); } off0 += n; });
-  const eg = new THREE.BufferGeometry(), ePos = new Float32Array(edges.length * 6); eg.setAttribute("position", new THREE.BufferAttribute(ePos, 3));
-  const edgeLines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .11, depthWrite: false})); root.add(edgeLines);
-  const AE = 700, ag = new THREE.BufferGeometry(), aPos = new Float32Array(AE * 6); ag.setAttribute("position", new THREE.BufferAttribute(aPos, 3));
-  const activeLines = new THREE.LineSegments(ag, new THREE.LineBasicMaterial({color: cFG, transparent: true, opacity: .55, depthWrite: false})); root.add(activeLines);
-  /* noeuds : centre, familles, éléments, satellites de calcul */
-  const mkPts = (arr, size, op) => { const g = new THREE.BufferGeometry(), pos = [], colr = []; arr.forEach(n => { pos.push(n.p.x, n.p.y, n.p.z); const c = n.bad ? cLS : n.fam === "trades" || (n.f && n.f.key === "trades" && !n.win) ? (n.win ? cFG : cMU) : cFG; colr.push(c.r, c.g, c.b); });
-    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.Float32BufferAttribute(colr, 3)); const o = new THREE.Points(g, PM({vertexColors: true, size: size * 1.4, opacity: op})); root.add(o); return o; };
-  mkPts([core], 22, 1); mkPts(hubs, 15, 1); mkPts(items, 9, .95);
-  const SAT = 14, sg = new THREE.BufferGeometry(), sPos = new Float32Array(items.length * SAT * 3); sg.setAttribute("position", new THREE.BufferAttribute(sPos, 3));
-  const sats = new THREE.Points(sg, PM({color: cFG, size: 2.2, opacity: .6})); root.add(sats);
-  const coreN = 900, cgc = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 10 + Math.pow(rnd(), .6) * 46, .2 + rnd() * .8]);
-  cgc.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); const corePts = new THREE.Points(cgc, PM({color: cFG, size: 1.8, opacity: .7})); root.add(corePts);
-  /* impulsions + trades testés */
-  const PN = 700, pg = new THREE.BufferGeometry(), pPos = new Float32Array(PN * 3), pCol = new Float32Array(PN * 3); pg.setAttribute("position", new THREE.BufferAttribute(pPos, 3)); pg.setAttribute("color", new THREE.BufferAttribute(pCol, 3));
-  const pulsePts = new THREE.Points(pg, PM({vertexColors: true, size: 4, opacity: .9})); root.add(pulsePts);
-  const pulses = Array.from({length: PN}, () => ({c: curves[Math.floor(rnd() * curves.length)], u: rnd(), v: .004 + rnd() * .012}));
-  const TN = 900, tg = new THREE.BufferGeometry(), tPos = new Float32Array(TN * 6), tCol = new Float32Array(TN * 6); tg.setAttribute("position", new THREE.BufferAttribute(tPos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tCol, 3));
-  const testLines = new THREE.LineSegments(tg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: .9, depthWrite: false})); root.add(testLines);
-  const tests = []; let nextTest = 0, combos = 0;
-  /* ---- étiquettes HTML ---- */
-  const labs = []; const addLab = (n, cls) => { const d = document.createElement("div"); d.className = "b3lab " + cls + (n.bad ? " r" : ""); d.textContent = n.kind === "hub" ? n.l.toUpperCase() : n.l; labL.appendChild(d); labs.push({n, d}); n.el = d; return d; };
-  addLab(core, "core"); hubs.forEach(h => { addLab(h, "hub").onclick = () => focus(h.i); }); items.forEach(n => { const d = addLab(n, "item" + (n.f.key === "trades" ? " tr" : "")); d.onclick = () => show(n); });
-  const READ = 9, reads = Array.from({length: READ}, () => { const d = document.createElement("div"); d.className = "b3read"; labL.appendChild(d); return {d, p: new THREE.Vector3()}; });
-  /* ---- caméra orbitale maison ---- */
-  const st = {th: .6, ph: 1.15, dist: 1050, tgt: new THREE.Vector3(), th0: .6, ph0: 1.15, dist0: 1050, tgt0: new THREE.Vector3()}; let focusI = -1, idle = 0, drag = null; const ptrs = new Map();
-  const focus = i => { focusI = i; host.querySelectorAll(".b3nav button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.tgt0.set(0, 0, 0); st.dist0 = 1050; info.hidden = true; } else { st.tgt0.copy(hubs[i].p); st.dist0 = 290; } };
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, 1, 1, 8000); scene.fog = new THREE.Fog(BGc, 1400, 3600);
+  const cFG = new THREE.Color(FG), cLS = new THREE.Color(LS), cBG = new THREE.Color(BGc);
+  const dotTex = (() => { const k = document.createElement("canvas"); k.width = k.height = 64; const x = k.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "#fff"); gr.addColorStop(.6, "#fff"); gr.addColorStop(.72, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(k); })();
+  const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .2, sizeAttenuation: true, transparent: true, depthWrite: false, vertexColors: true, fog: true}, o));
+  /* ---- cellules : une sphère de points rangés en couches par famille, taille selon le contenu ---- */
+  const caps = F.map(f => f.key === "trades" ? 220 + f.items.length * 26 : 320 + f.items.length * 60), rads = caps.map(c => 30 + Math.sqrt(c) * 2.6), RH = 150 + Math.max(...rads) * 1.9;
+  const cells = F.map((f, i) => { const m = f.items.length, cap = caps[i], r = rads[i];
+    const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, home = new THREE.Vector3(Math.cos(th) * rr, y * .75, Math.sin(th) * rr).multiplyScalar(RH);
+    const rel = [], S = 4; const per = [.08, .14, .26, .52];
+    per.forEach((w, s) => { const n = Math.max(8, Math.round(cap * w)), rad = r * (s + 1) / S; for (let k = 0; k < n; k++) { const yy = 1 - (k + .5) / n * 2, q = Math.sqrt(1 - yy * yy), a = k * 2.39996 + s; rel.push(new THREE.Vector3(Math.cos(a) * q * rad, yy * rad, Math.sin(a) * q * rad)); } });
+    const life = rel.map(() => rnd() < .85 ? 1 : 0), vel = rel.map(() => 0);
+    return {f, i, r, home, c: home.clone(), v: new THREE.Vector3(), rel, life, vel, ph: rnd() * 6.28}; });
+  /* éléments nommés : au coeur de chaque cellule */
+  const items = []; cells.forEach(cl => { const m = cl.f.items.length; cl.items = cl.f.items.map((it, k) => { const yy = 1 - (k + .5) / Math.max(1, m) * 2, q = Math.sqrt(Math.max(0, 1 - yy * yy)), a = k * 2.39996, rad = m > 1 ? cl.r * .45 : 0;
+    const nd = Object.assign({cell: cl, kind: "item", rel: new THREE.Vector3(Math.cos(a) * q * rad, yy * rad * .8, Math.sin(a) * q * rad), p: new THREE.Vector3()}, it); items.push(nd); return nd; }); });
+  const core = {kind: "core", l: C.market === "_" ? (C.marketOther || "Stratégie") : C.market, p: new THREE.Vector3()};
+  /* ---- buffers ---- */
+  const nDots = cells.reduce((a, c) => a + c.rel.length, 0), dg = new THREE.BufferGeometry(), dPos = new Float32Array(nDots * 3), dCol = new Float32Array(nDots * 3);
+  dg.setAttribute("position", new THREE.BufferAttribute(dPos, 3)); dg.setAttribute("color", new THREE.BufferAttribute(dCol, 3)); scene.add(new THREE.Points(dg, PM({size: 7})));
+  const ig = new THREE.BufferGeometry(), iPos = new Float32Array((items.length + cells.length + 1) * 3), iCol = new Float32Array((items.length + cells.length + 1) * 3);
+  ig.setAttribute("position", new THREE.BufferAttribute(iPos, 3)); ig.setAttribute("color", new THREE.BufferAttribute(iCol, 3)); scene.add(new THREE.Points(ig, PM({size: 11})));
+  /* bourgeons : petites cellules qui naissent, voyagent d'une cellule à l'autre et disparaissent */
+  const BUD = 40, BN = 26, bg = new THREE.BufferGeometry(), bPos = new Float32Array(BUD * BN * 3), bCol = new Float32Array(BUD * BN * 3); bg.setAttribute("position", new THREE.BufferAttribute(bPos, 3)); bg.setAttribute("color", new THREE.BufferAttribute(bCol, 3));
+  scene.add(new THREE.Points(bg, PM({size: 3.2}))); const buds = []; const budRel = Array.from({length: BN}, (_, k) => { const yy = 1 - (k + .5) / BN * 2, q = Math.sqrt(1 - yy * yy), a = k * 2.39996; return new THREE.Vector3(Math.cos(a) * q, yy, Math.sin(a) * q); });
+  /* liens : noyau ↔ cellules, cellules ↔ cellules, trades testés */
+  const LN = 2400, lg = new THREE.BufferGeometry(), lPos = new Float32Array(LN * 6), lCol = new Float32Array(LN * 6); lg.setAttribute("position", new THREE.BufferAttribute(lPos, 3)); lg.setAttribute("color", new THREE.BufferAttribute(lCol, 3));
+  scene.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: 1, depthWrite: false, fog: true})));
+  const coreN = 700, cg = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cCol = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 8 + Math.pow(rnd(), .6) * 40, .2 + rnd() * .8]);
+  cg.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); cg.setAttribute("color", new THREE.BufferAttribute(cCol, 3)); for (let k = 0; k < coreN; k++) { cCol[k * 3] = cFG.r; cCol[k * 3 + 1] = cFG.g; cCol[k * 3 + 2] = cFG.b; } scene.add(new THREE.Points(cg, PM({size: 2.6})));
+  const mix = (c, a) => [cBG.r + (c.r - cBG.r) * a, cBG.g + (c.g - cBG.g) * a, cBG.b + (c.b - cBG.b) * a];
+  const seqC = cells.find(c => c.f.key === "seq"), gestC = cells.find(c => c.f.key === "gest"), tests = []; let nextTest = 0, nextBud = 0, combos = 0;
+  /* ---- étiquettes ---- */
+  const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls + (n.bad ? " r" : ""); d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
+  addLab(core, "core", core.l); cells.forEach(cl => { cl.kind = "hub"; cl.p = cl.c; addLab(cl, "hub", cl.f.label.toUpperCase()).onclick = () => focus(cl.i); });
+  items.forEach(n => { addLab(n, "item" + (n.cell.f.key === "trades" ? " tr" : ""), n.l).onclick = () => show(n); });
+  const READ = 9, reads = Array.from({length: READ}, () => { const d = document.createElement("div"); d.className = "b3read"; labL.appendChild(d); return {d, cl: null, k: 0}; });
+  /* ---- caméra ---- */
+  const D0 = RH * 3.4 + 300, st = {th: .6, ph: 1.15, dist: D0, tgt: new THREE.Vector3(), th0: .6, ph0: 1.15, dist0: D0, tgt0: new THREE.Vector3()}; let focusI = -1, idle = 0, drag = null; const ptrs = new Map();
+  const focus = i => { focusI = i; host.querySelectorAll(".b3nav button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.dist0 = D0; info.hidden = true; } else st.dist0 = cells[i].r * 5.4 + 280; };
   host.querySelector(".b3nav").onclick = e => { const b = e.target.closest("button"); if (b) focus(+b.dataset.f); };
   const size = () => { const w = host.clientWidth, h = host.clientHeight; ren.setSize(w, h, false); cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }; size(); const ro = new ResizeObserver(size); ro.observe(host);
   cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); drag = {x: e.clientX, y: e.clientY, moved: false}; idle = 0; });
   cv.addEventListener("pointermove", e => { if (!ptrs.has(e.pointerId)) return; const pr = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
-    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(120, Math.min(2200, st.dist0 * d1 / d2)); drag.moved = true; return; }
+    if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(90, Math.min(2600, st.dist0 * d1 / d2)); drag.moved = true; return; }
     st.th0 += (e.clientX - pr[0]) * .006; st.ph0 = Math.max(.25, Math.min(2.9, st.ph0 + (e.clientY - pr[1]) * .006)); if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true; });
-  cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); if (drag && !drag.moved) { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; let best = null, bd = 18; [...hubs, ...items].forEach(n => { if (!n.sp || n.sp[2] > 1) return; const d = Math.hypot(n.sp[0] - x, n.sp[1] - y); if (d < bd) { bd = d; best = n; } }); if (best) best.kind === "hub" ? focus(best.i) : show(best); } drag = null; });
-  cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0; st.dist0 = Math.max(120, Math.min(2200, st.dist0 * (e.deltaY > 0 ? 1.12 : 1 / 1.12))); }, {passive: false});
+  cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); if (drag && !drag.moved) { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; let best = null, bd = 20; [...cells, ...items].forEach(n => { if (!n.sp || n.sp[2] > 1) return; const d = Math.hypot(n.sp[0] - x, n.sp[1] - y); if (d < bd) { bd = d; best = n; } }); if (best) best.kind === "hub" ? focus(best.i) : show(best); } drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0; st.dist0 = Math.max(90, Math.min(2600, st.dist0 * (e.deltaY > 0 ? 1.12 : 1 / 1.12))); }, {passive: false});
   cv.addEventListener("dblclick", () => focus(-1));
   const show = n => { const all = allTrades(); let extra = ""; if (n.ses) { const ts = all.filter(t => t.time && sessionOf(t) === n.ses), wn = ts.filter(t => t.pnl > 0).length; extra = `<p><b>${ts.length}</b> trade${pl(ts.length)} · <b>${ts.length ? Math.round(wn / ts.length * 100) : 0} %</b> de réussite</p>`; }
     if (n.t) extra = `<p>${esc(n.t.time || "")} · ${esc(n.ses || "")}</p><p><b class="${n.win ? "" : "r"}">${n.win ? "Gagnant" : "Perdant"}</b> · ${esc(money(n.t.pnl))}</p>${n.v && n.v.length ? `<p class="r">Hors stratégie : ${esc(n.v.join(", "))}</p>` : "<p>Conforme à la stratégie</p>"}`;
-    const lk = [...new Set(links.filter(l => l.a === n || l.b === n).map(l => l.a === n ? l.b : l.a))].filter(x => x !== core && x.kind !== "hub");
-    info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.f ? n.f.label : "")}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}${lk.length ? `<small>RELIÉ À</small><ul>${lk.slice(0, 12).map(x => `<li class="${x.bad ? "r" : ""}">${esc(x.l)}</li>`).join("")}</ul>` : ""}`;
-    info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; if (n.f) focus(n.f.hub3.i); };
+    info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.cell.f.label)}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}`; info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; focus(n.cell.i); };
+  const RDF = {ut: ["H4 ▲", "H1 ▲", "M15 ▼", "align", "Δ UT"], bias: ["HH", "HL", "p(▲)", "structure", "BOS ✓"], zones: ["OB", "Fibo 50 %", "FVG", "liq ×3", "zone ✓"], seq: ["shift ✓", "corps ✓", "retest", "étape", "délai"], gest: ["RR", "SL 1R", "TP1 ✓", "BE", "risque"], rules: ["session ✓", "news ✗", "max 1", "nuit ✗", "OK"], trades: ["R", "réussite", "n", "Δ", "série"]};
   /* ---- boucle ---- */
-  const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0;
-  const RDF = {ut: ["H4 ▲", "H1 ▲", "M15 ▼", "align 0.82", "Δ UT 2"], bias: ["HH", "HL", "p(▲) 0.71", "structure +1", "BOS ✓"], zones: ["OB 0.62", "Fibo 50 %", "FVG", "liq ×3", "zone ✓"], seq: ["shift ✓", "corps ✓", "retest", "étape 4/7", "délai 12 min"],
-    gest: ["RR 2.8", "SL 1R", "TP1 ✓", "BE", "risque 1 %"], rules: ["session ✓", "news ✗", "max 1", "nuit ✗", "OK"], trades: ["+2.4R", "−1R", "+3.1R", "réussite 74 %", "n 13"]};
+  const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0, lastT = 0;
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
-    const t = (now - t0) / 1000; fr++; idle += 1 / 60; if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
-    st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * .07; st.tgt.lerp(st.tgt0, .07);
+    const t = (now - t0) / 1000, dt = Math.min(.05, t - lastT); lastT = t; fr++; idle += dt;
+    if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
+    /* les cellules se déplacent : ressort vers leur place, répulsion entre elles, petite dérive */
+    cells.forEach(a => { const f = a.home.clone().add(new THREE.Vector3(Math.sin(t * .23 + a.ph) * 40, Math.cos(t * .19 + a.ph * 1.3) * 30, Math.sin(t * .17 + a.ph * .7) * 40)).sub(a.c).multiplyScalar(.6);
+      cells.forEach(b => { if (a === b) return; const d = a.c.clone().sub(b.c), L = d.length() || 1, m = a.r + b.r + 50; if (L < m) f.add(d.multiplyScalar((m - L) / L * 8)); });
+      const dc = a.c.length(), mc = a.r + 70; if (dc < mc) f.add(a.c.clone().multiplyScalar((mc - dc) / (dc || 1) * 3));
+      a.v.add(f.multiplyScalar(dt)).multiplyScalar(.92); a.c.add(a.v.clone().multiplyScalar(dt * 1.8)); });
+    st.tgt0.copy(focusI >= 0 ? cells[focusI].c : core.p);
+    st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * .07; st.tgt.lerp(st.tgt0, .08);
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt);
-    /* nuages qui respirent */
-    const cp = cg.attributes.position.array; for (let k = 0; k < cloudBase.length; k++) { const b = cloudBase[k], ph = cloudPh[k]; cp[k * 3] = b.x + Math.sin(t * .8 + ph) * 3; cp[k * 3 + 1] = b.y + Math.cos(t * .7 + ph * 1.3) * 3; cp[k * 3 + 2] = b.z + Math.sin(t * .6 + ph * .7) * 3; } cg.attributes.position.needsUpdate = true;
-    for (let k = 0; k < edges.length; k++) { const [a, b] = edges[k]; ePos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } eg.attributes.position.needsUpdate = true;
-    /* calcul en direct : des liaisons s'allument dans les nuages */
-    if (fr % 4 === 0) { for (let k = 0; k < AE; k++) { const e = edges[Math.floor(Math.random() * edges.length)], [a, b] = e; aPos.set([cp[a * 3], cp[a * 3 + 1], cp[a * 3 + 2], cp[b * 3], cp[b * 3 + 1], cp[b * 3 + 2]], k * 6); } ag.attributes.position.needsUpdate = true; combos += 40 + Math.floor(Math.random() * 60); }
-    activeLines.material.opacity = .18 + .22 * Math.abs(Math.sin(t * 3));
-    /* noyau en orbite */
-    for (let k = 0; k < coreN; k++) { const [a, b, r, s] = cSeed[k], aa = a + t * s * (k % 2 ? 1 : -1) * .6, rr = r * (1 + .08 * Math.sin(t * 2 + k)); cPos[k * 3] = Math.sin(b) * Math.cos(aa) * rr; cPos[k * 3 + 1] = Math.cos(b) * rr * .9; cPos[k * 3 + 2] = Math.sin(b) * Math.sin(aa) * rr; } cgc.attributes.position.needsUpdate = true;
-    /* satellites autour de chaque élément */
-    items.forEach((n, i) => { for (let s = 0; s < SAT; s++) { const a = t * (.8 + s * .09) + s * 1.7 + i, b = s * .9 + t * .3, r = 9 + (s % 4) * 4; const o = (i * SAT + s) * 3; sPos[o] = n.p.x + Math.cos(a) * Math.sin(b) * r; sPos[o + 1] = n.p.y + Math.cos(b) * r; sPos[o + 2] = n.p.z + Math.sin(a) * Math.sin(b) * r; } }); sg.attributes.position.needsUpdate = true;
-    /* impulsions */
-    pulses.forEach((pu, k) => { pu.u += pu.v; if (pu.u >= 1) { pu.c = curves[Math.floor(Math.random() * curves.length)]; pu.u = 0; } const P = pu.c.P, f = pu.u * (P.length - 1), i0 = Math.floor(f), e = f - i0, a = P[i0], b = P[Math.min(P.length - 1, i0 + 1)];
-      pPos[k * 3] = a.x + (b.x - a.x) * e; pPos[k * 3 + 1] = a.y + (b.y - a.y) * e; pPos[k * 3 + 2] = a.z + (b.z - a.z) * e; const c = pu.c.bad ? cLS : cFG; pCol[k * 3] = c.r; pCol[k * 3 + 1] = c.g; pCol[k * 3 + 2] = c.b; });
-    pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
-    /* trades testés : un trait parcourt le déroulé jusqu'au TP… ou s'arrête en rouge */
-    if (seq.length && t > nextTest) { nextTest = t + .45 + Math.random() * .5; const win = Math.random() < .68, stop = win ? seq.length : 1 + Math.floor(Math.random() * Math.max(1, seq.length - 1)), path = [core.p, ...seq.slice(0, stop).map(x => x.p)], end = (win ? tps[0] : sls[0]); if (end) path.push(end.p); tests.push({t0: t, path, win: win && stop >= seq.length}); combos += 1; }
-    while (tests.length && t - tests[0].t0 > 5) tests.shift(); let ti = 0;
-    tests.forEach(ts => { const prog = (t - ts.t0) * 3; for (let k = 0; k < ts.path.length - 1 && ti < TN; k++) { const u = prog - k; if (u <= 0) break; const a = ts.path[k], b = ts.path[k + 1], e = Math.min(1, u), fade = Math.max(0, 1 - (prog - k - 1) / 4), last = k === ts.path.length - 2, c = last && !ts.win ? cLS : cFG;
-      tPos.set([a.x, a.y, a.z, a.x + (b.x - a.x) * e, a.y + (b.y - a.y) * e, a.z + (b.z - a.z) * e], ti * 6); tCol.set([c.r * fade + (1 - fade), c.g * fade + (1 - fade), c.b * fade + (1 - fade), c.r, c.g, c.b], ti * 6); ti++; } });
-    for (let k = ti; k < TN; k++) tPos.fill(0, k * 6, k * 6 + 6); tg.attributes.position.needsUpdate = true; tg.attributes.color.needsUpdate = true; tg.setDrawRange(0, ti * 2);
+    /* points : naissent, vivent, meurent */
+    let o = 0; cells.forEach(cl => { const n = cl.rel.length, rot = t * .08 + cl.ph, cr = Math.cos(rot), sr = Math.sin(rot), breathe = 1 + Math.sin(t * 1.1 + cl.ph) * .03;
+      for (let b = 0; b < 3; b++) { const k = Math.floor(Math.random() * n); if (cl.life[k] <= 0 && cl.vel[k] === 0) cl.vel[k] = .9; else if (cl.life[k] >= 1 && cl.vel[k] === 0 && Math.random() < .5) cl.vel[k] = -.7; }
+      for (let k = 0; k < n; k++) { if (cl.vel[k]) { cl.life[k] = Math.max(0, Math.min(1, cl.life[k] + cl.vel[k] * dt)); if (cl.life[k] === 0 || cl.life[k] === 1) cl.vel[k] = 0; }
+        const q = cl.rel[k], l = cl.life[k], s = (.4 + .6 * l) * breathe, x = (q.x * cr - q.z * sr) * s, z = (q.x * sr + q.z * cr) * s;
+        dPos[o * 3] = cl.c.x + x; dPos[o * 3 + 1] = cl.c.y + q.y * s; dPos[o * 3 + 2] = cl.c.z + z; const m = mix(cFG, l * (.5 + .45 * ((k * 13) % 7) / 6)); dCol[o * 3] = m[0]; dCol[o * 3 + 1] = m[1]; dCol[o * 3 + 2] = m[2]; o++; } });
+    dg.attributes.position.needsUpdate = true; dg.attributes.color.needsUpdate = true;
+    /* éléments nommés + centres */
+    let j = 0; const setI = (p, c) => { iPos[j * 3] = p.x; iPos[j * 3 + 1] = p.y; iPos[j * 3 + 2] = p.z; iCol[j * 3] = c.r; iCol[j * 3 + 1] = c.g; iCol[j * 3 + 2] = c.b; j++; };
+    setI(core.p, cFG); cells.forEach(cl => setI(cl.c, cFG)); items.forEach(n => { n.p.copy(n.cell.c).add(n.rel); setI(n.p, n.bad ? cLS : cFG); }); ig.attributes.position.needsUpdate = true; ig.attributes.color.needsUpdate = true;
+    /* noyau */
+    for (let k = 0; k < coreN; k++) { const [a, b, r, s] = cSeed[k], aa = a + t * s * (k % 2 ? 1 : -1) * .6; cPos[k * 3] = Math.sin(b) * Math.cos(aa) * r; cPos[k * 3 + 1] = Math.cos(b) * r * .9; cPos[k * 3 + 2] = Math.sin(b) * Math.sin(aa) * r; } cg.attributes.position.needsUpdate = true;
+    /* bourgeons : une petite cellule se détache, traverse et va se fondre dans une autre */
+    if (t > nextBud && buds.length < BUD) { nextBud = t + .25 + Math.random() * .35; const a = cells[Math.floor(Math.random() * cells.length)], b = cells[Math.floor(Math.random() * cells.length)]; if (a !== b) buds.push({a, b, t0: t, d: 2.5 + Math.random() * 2, s: 6 + Math.random() * 8, red: Math.random() < .15}); combos += 3; }
+    for (let k = buds.length - 1; k >= 0; k--) if (t - buds[k].t0 > buds[k].d) buds.splice(k, 1);
+    bPos.fill(0); bCol.fill(0); buds.forEach((bd, k) => { const u = (t - bd.t0) / bd.d, e = u * u * (3 - 2 * u), from = bd.a.c.clone().add(bd.b.c.clone().sub(bd.a.c).normalize().multiplyScalar(bd.a.r)), to = bd.b.c.clone().add(bd.a.c.clone().sub(bd.b.c).normalize().multiplyScalar(bd.b.r));
+      const mid = from.clone().lerp(to, .5).add(new THREE.Vector3(0, 60, 0)), p = from.clone().multiplyScalar((1 - e) ** 2).add(mid.multiplyScalar(2 * (1 - e) * e)).add(to.clone().multiplyScalar(e * e)), grow = Math.sin(Math.PI * u), c = bd.red ? cLS : cFG;
+      budRel.forEach((q, i) => { const idx = (k * BN + i) * 3, s = bd.s * grow; bPos[idx] = p.x + q.x * s; bPos[idx + 1] = p.y + q.y * s; bPos[idx + 2] = p.z + q.z * s; const m = mix(c, .9 * grow); bCol[idx] = m[0]; bCol[idx + 1] = m[1]; bCol[idx + 2] = m[2]; }); });
+    bg.attributes.position.needsUpdate = true; bg.attributes.color.needsUpdate = true;
+    /* liens */
+    let li = 0; const seg = (a, b, c, al) => { if (li >= LN) return; lPos.set([a.x, a.y, a.z, b.x, b.y, b.z], li * 6); const m = mix(c, al); lCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
+    const curve = (a, b, c, al, n, lift) => { const mid = a.clone().lerp(b, .5).add(new THREE.Vector3(0, lift, 0)); let prev = a; for (let k = 1; k <= n; k++) { const u = k / n, p = a.clone().multiplyScalar((1 - u) ** 2).add(mid.clone().multiplyScalar(2 * (1 - u) * u)).add(b.clone().multiplyScalar(u * u)); seg(prev, p, c, al); prev = p; } };
+    cells.forEach((cl, i) => { for (let s = 0; s < 6; s++) curve(core.p, cl.c, cFG, .16, 14, (s - 2.5) * 14 + Math.sin(t + s + i) * 10); });
+    for (let a = 0; a < cells.length; a++) for (let b = a + 1; b < cells.length; b++) curve(cells[a].c, cells[b].c, cFG, .05 + .05 * Math.max(0, Math.sin(t * .8 + a * 2 + b)), 12, 40 + 20 * Math.sin(t * .5 + a + b));
+    items.forEach(n => seg(n.cell.c, n.p, n.bad ? cLS : cFG, .35));
+    /* trades testés : le trait parcourt le déroulé jusqu'au TP… ou s'arrête en rouge */
+    if (seqC && t > nextTest) { nextTest = t + .45 + Math.random() * .45; const win = Math.random() < .68, stop = win ? seqC.items.length : 1 + Math.floor(Math.random() * Math.max(1, seqC.items.length - 1)); tests.push({t0: t, stop, win: win && stop >= seqC.items.length}); combos += 7 + Math.floor(Math.random() * 30); }
+    while (tests.length && t - tests[0].t0 > 4) tests.shift();
+    tests.forEach(ts => { const path = [core.p, ...seqC.items.slice(0, ts.stop).map(x => x.p)], end = gestC && gestC.items.find(x => ts.win ? x.tp : x.sl); if (end) path.push(end.p); const prog = (t - ts.t0) * 3;
+      for (let k = 0; k < path.length - 1; k++) { const u = prog - k; if (u <= 0) break; const e = Math.min(1, u), fade = Math.max(0, 1 - (prog - k - 1) / 3), last = k === path.length - 2; seg(path[k], path[k].clone().lerp(path[k + 1], e), last && !ts.win ? cLS : cFG, .85 * fade); } });
+    lg.setDrawRange(0, li * 2); lg.attributes.position.needsUpdate = true; lg.attributes.color.needsUpdate = true;
     ren.render(scene, cam);
-    /* étiquettes projetées */
-    const w = host.clientWidth, h = host.clientHeight;
-    const proj = p => { v3.copy(p).applyMatrix4(root.matrixWorld).project(cam); return [(v3.x + 1) / 2 * w, (1 - v3.y) / 2 * h, v3.z]; };
-    labs.forEach(({n, d}) => { const sp = proj(n.p); n.sp = sp; const dc = cam.position.distanceTo(n.p), near = n.kind !== "item" || (focusI >= 0 && n.f && n.f.hub3.i === focusI) || dc < 380;
-      if (sp[2] > 1 || !near || (n.f && n.f.key === "trades" && dc > 300)) { d.style.opacity = 0; d.style.pointerEvents = "none"; return; }
-      d.style.opacity = n.kind === "item" ? Math.min(1, (520 - dc) / 200) : 1; d.style.pointerEvents = "auto"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "-50%" : "8px"})`; });
-    hubs.forEach(hb => { if (hb.sp) hb.el.style.fontSize = (10 + Math.max(0, (900 - cam.position.distanceTo(hb.p)) / 90)) + "px"; });
-    if (focusI >= 0 && t - lastRead > .35) { lastRead = t; const f = F[focusI], pool = RDF[f.key] || ["calc"], cl = clouds[focusI].pts; reads.forEach(r => { r.p.copy(cl[Math.floor(Math.random() * cl.length)]); const base = pool[Math.floor(Math.random() * pool.length)]; r.d.textContent = base + "  " + (Math.random() * 9.99).toFixed(2); r.on = 1; }); }
-    reads.forEach(r => { if (focusI < 0) { r.d.style.opacity = 0; return; } const sp = proj(r.p); r.d.style.opacity = sp[2] > 1 ? 0 : .75; r.d.style.transform = `translate(${sp[0]}px,${sp[1]}px)`; });
+    /* étiquettes */
+    const w = host.clientWidth, h = host.clientHeight, proj = p => { v3.copy(p).project(cam); return [(v3.x + 1) / 2 * w, (1 - v3.y) / 2 * h, v3.z]; };
+    const placed = []; labs.forEach(({n, d}) => { const pp = n.kind === "hub" ? n.c.clone().add(new THREE.Vector3(0, -n.r - 14, 0)) : n.p, sp = proj(pp); if (n.kind !== "core") n.sp = proj(n.kind === "hub" ? n.c : n.p);
+      const dc = cam.position.distanceTo(n.kind === "hub" ? n.c : n.p), near = n.kind !== "item" || (focusI >= 0 ? n.cell.i === focusI : dc < 420);
+      if (sp[2] > 1 || !near || (n.kind === "item" && n.cell.f.key === "trades" && dc > 330)) { d.style.opacity = 0; d.style.pointerEvents = "none"; return; }
+      let op = n.kind === "item" ? (focusI >= 0 ? .95 : Math.min(1, (620 - dc) / 220)) : 1;
+      if (n.kind !== "core") { const w = d.offsetWidth || 60, h = d.offsetHeight || 16, x0 = sp[0] - w / 2, y0 = sp[1] + (n.kind === "hub" ? 0 : 8), hit = placed.some(q => x0 < q[2] && x0 + w > q[0] && y0 < q[3] && y0 + h > q[1]);
+        if (n.kind === "hub" && focusI >= 0 && n.i !== focusI) op = .3; if (hit) op = n.kind === "hub" ? Math.min(op, .18) : 0; else if (op > .3) placed.push([x0 - 4, y0 - 3, x0 + w + 4, y0 + h + 3]); }
+      d.style.opacity = op; d.style.pointerEvents = op > .3 ? "auto" : "none"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "-50%" : n.kind === "hub" ? "0" : "8px"})`; });
+    if (focusI >= 0 && t - lastRead > .35) { lastRead = t; const cl = cells[focusI], pool = RDF[cl.f.key] || ["calc"]; reads.forEach(r => { r.cl = cl; r.k = Math.floor(Math.random() * cl.rel.length); r.d.textContent = pool[Math.floor(Math.random() * pool.length)] + "  " + (Math.random() * 9.99).toFixed(2); }); }
+    reads.forEach(r => { if (focusI < 0 || !r.cl) { r.d.style.opacity = 0; return; } const sp = proj(r.cl.c.clone().add(r.cl.rel[r.k])); r.d.style.opacity = sp[2] > 1 ? 0 : .75; r.d.style.transform = `translate(${sp[0]}px,${sp[1]}px)`; });
     if (fr % 6 === 0) kTxt.textContent = combos.toLocaleString("fr-FR") + " combinaisons testées"; };
   requestAnimationFrame(loop);
-  const destroy = () => { run = false; ro.disconnect(); ren.dispose(); scene.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); }); if (brain3 && brain3.host === host) brain3 = null; };
+  const destroy = () => { run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
   brain3 = {host, destroy};
 }
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
@@ -6872,7 +6865,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-61";
+const APP_VERSION = "2026-10-29-62";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
