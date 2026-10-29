@@ -1121,7 +1121,7 @@ html body .tile.s-b3,html body.light .tile.s-b3{grid-column:span 6;padding:0!imp
 html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!important;box-shadow:none!important}
 #b3fix{position:fixed;inset:0;z-index:0;overflow:hidden;user-select:none;--mono:var(--display);color:var(--fg)}
 body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
-body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}
+body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}html:has(body.instrat){overflow:hidden!important;overscroll-behavior:none}
 body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
 body.instrat .dash > .savebar,body.instrat #btnTheme{display:none!important}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
@@ -5589,10 +5589,14 @@ async function mountBrain3(host, C){
   const RH = 580, secs = F.map((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, home = new THREE.Vector3(Math.cos(th) * rr, y * .62, Math.sin(th) * rr).multiplyScalar(RH);
     const r = f.key === "trades" ? 120 : 95 + Math.min(60, f.items.length * 7); return {f, i, home, c: home.clone(), v: new THREE.Vector3(), r, col: colOf(f.key), ph: rnd() * 6.28, br: 1}; });
   const U = {uT: {value: 0}, uBirth: {value: 1}, uScale: {value: 600}, uFD: {value: 1500}, uHot: {value: -1}, uDark: {value: dark ? 1 : 0},
-    uCen: {value: Array.from({length: 8}, () => new THREE.Vector3())}, uCol: {value: Array.from({length: 8}, (_, k) => secs[k] ? secs[k].col : new THREE.Color(dark ? "#ffffff" : FG))}, uBr: {value: new Array(8).fill(1)}, uGlow: {value: new Array(8).fill(1)}, uHC: {value: new THREE.Vector3()}, uHCol: {value: new THREE.Color()}, uHW: {value: 0}, uHI: {value: -1}};
-  const GLC = `uniform float uT, uBirth, uScale, uFD, uHot, uDark; uniform vec3 uCen[8]; uniform vec3 uCol[8]; uniform float uBr[8]; uniform float uGlow[8]; uniform vec3 uHC, uHCol; uniform float uHW, uHI;
+    uCen: {value: Array.from({length: 8}, () => new THREE.Vector3())}, uCol: {value: Array.from({length: 8}, (_, k) => secs[k] ? secs[k].col : new THREE.Color(dark ? "#ffffff" : FG))}, uBr: {value: new Array(8).fill(1)}, uGlow: {value: new Array(8).fill(1)}, uGal: {value: new Array(8).fill(0)}, uHC: {value: new THREE.Vector3()}, uHCol: {value: new THREE.Color()}, uHW: {value: 0}, uHI: {value: -1}};
+  const GLC = `uniform float uT, uBirth, uScale, uFD, uHot, uDark; uniform vec3 uCen[8]; uniform vec3 uCol[8]; uniform float uBr[8]; uniform float uGlow[8]; uniform float uGal[8]; uniform vec3 uHC, uHCol; uniform float uHW, uHI;
+    vec3 galx(int s, vec3 off, float sd){ float g = uGal[s]; if (g < .001) return off; g = g * g * (3. - 2. * g);
+      float bulge = step(fract(sd * 3.7), .22), rg = (length(off) * (1.25 + .7 * g) + 6.) * mix(1., .22, bulge), arm = floor(fract(sd * 7.) * 3.) * 2.0944, w = .9 / (.25 + rg / 150.), a = arm + rg * .032 + (fract(sd * 31.) - .5) * mix(.55, 6.28, bulge) + uT * w * .3;
+      vec3 gp = vec3(cos(a) * rg, (fract(sd * 53.) - .5) * rg * .07, sin(a) * rg); float c = cos(.75), sn = sin(.75); gp = vec3(gp.x, gp.y * c - gp.z * sn, gp.y * sn + gp.z * c);
+      return mix(off * (1. + .6 * g), gp, g); }
     vec3 place(int s, vec3 off, float sd){ vec3 n = vec3(sin(uT * .31 + off.y * .021 + sd * 6.), sin(uT * .27 + off.z * .019 + sd * 4.), sin(uT * .23 + off.x * .023 + sd * 5.)) * (7. + 6. * fract(sd * 13.));
-      float b = clamp((uBirth - .12 - sd * .3) / .5, 0., 1.); b = 1. - pow(1. - b, 3.); return mix(vec3(0.), uCen[s] + off * uBr[s] + n, b); }
+      float b = clamp((uBirth - .12 - sd * .3) / .5, 0., 1.); b = 1. - pow(1. - b, 3.); return mix(vec3(0.), uCen[s] + galx(s, off, sd) * uBr[s] + n * (1. - uGal[s] * .7), b); }
     float hotK(int s){ return uGlow[s]; }`;
   const blend = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
   /* ---- nébuleuses : des milliers de particules rangées en filaments ---- */
@@ -5726,13 +5730,13 @@ async function mountBrain3(host, C){
     const bu = 1; U.uBirth.value = 1;
     /* forces : les sections respirent, dérivent, se repoussent */
     if (!coreN.drag) { coreN.vel.addScaledVector(coreN.p, -dt * 9).multiplyScalar(.9); coreN.p.addScaledVector(coreN.vel, dt * 3); } U.uCen.value[7].copy(coreN.p);
-    secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(a.home).add(coreN.p).sub(a.c).multiplyScalar(coreN.drag || coreN.p.lengthSq() > 4 ? 6 + (a.ph % 1) * 4 : .5);
+    secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(v3.clone().copy(a.home).multiplyScalar(1 + .5 * U.uGal.value[a.i])).add(coreN.p).sub(a.c).multiplyScalar(coreN.drag || coreN.p.lengthSq() > 4 ? 6 + (a.ph % 1) * 4 : .5);
       secs.forEach(b => { if (a === b) return; const d = a.c.clone().sub(b.c), Ld = d.length() || 1, m = a.r + b.r + 140; if (Ld < m) f.add(d.multiplyScalar((m - Ld) / Ld * 6)); });
       a.v.add(f.multiplyScalar(dt)).multiplyScalar(coreN.drag ? .82 : .93); a.c.add(a.v.clone().multiplyScalar(dt * 1.5)); a.br = 1 + .08 * Math.sin(t * .55 + a.ph * 3); U.uCen.value[a.i].copy(a.c); U.uBr.value[a.i] = a.br; });
     U.uHot.value = hovN ? hovN.sec.i : focusI >= 0 ? focusI : hovS; { const h = U.uHot.value, k = Math.min(1, dt * 3.2);
-      for (let i = 0; i < 8; i++) { const tg = h < 0 ? 1 : i === h ? 2.3 : i === 7 ? .7 : .35, tl = h < 0 ? 1 : i === h ? 1.8 : .1; G[i] += (tg - G[i]) * k; LM[i] += (tl - LM[i]) * k; } U.uGlow.value = G; if (h >= 0 && h < nF) { hotLast = h; U.uHI.value = h; } U.uHW.value += ((h >= 0 && h < nF ? 1 : 0) - U.uHW.value) * k; if (hotLast >= 0) { U.uHC.value.copy(secs[hotLast].c); U.uHCol.value.copy(secs[hotLast].col); } }
+      for (let i = 0; i < 8; i++) { const tg = h < 0 ? 1 : i === h ? 2.3 : i === 7 ? .7 : .35, tl = h < 0 ? 1 : i === h ? 1.8 : .1; G[i] += (tg - G[i]) * k; LM[i] += (tl - LM[i]) * k; } for (let i = 0; i < nF; i++) { const gv = U.uGal.value; gv[i] = Math.max(0, Math.min(1, gv[i] + (i === h ? dt / 10 : -dt / 2.5))); } U.uGlow.value = G; if (h >= 0 && h < nF) { hotLast = h; U.uHI.value = h; } U.uHW.value += ((h >= 0 && h < nF ? 1 : 0) - U.uHW.value) * k; if (hotLast >= 0) { U.uHC.value.copy(secs[hotLast].c); U.uHCol.value.copy(secs[hotLast].col); } }
     /* nœuds : ressort vers leur place, liens élastiques */
-    nodes.forEach(n => { if (n.drag) return; const target = v3.copy(n.sec.c).addScaledVector(n.anc, n.sec.br).add(A1.set(Math.sin(t * .4 + n.sd * 20) * 6, Math.cos(t * .35 + n.sd * 17) * 6, 0)); const f = target.sub(n.p).multiplyScalar(4);
+    nodes.forEach(n => { if (n.drag) return; const target = v3.copy(n.sec.c).addScaledVector(n.anc, n.sec.br * (1 + .8 * U.uGal.value[n.sec.i])).add(A1.set(Math.sin(t * .4 + n.sd * 20) * 6, Math.cos(t * .35 + n.sd * 17) * 6, 0)); const f = target.sub(n.p).multiplyScalar(4);
       links.forEach(l => { if (l.a === n || l.b === n) { const o = l.a === n ? l.b : l.a, d = A2.copy(o.p).sub(n.p), Ld = d.length(); if (Ld > 140) f.addScaledVector(d, (Ld - 140) / Ld * (o.drag ? 3 : .6)); } });
       n.vel.addScaledVector(f, dt).multiplyScalar(.86); n.p.addScaledVector(n.vel, dt * 4); });
     /* caméra */
@@ -7066,7 +7070,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-87";
+const APP_VERSION = "2026-10-29-88";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
