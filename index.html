@@ -931,7 +931,10 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .cz-dd.open .cz-panel{grid-template-rows:1fr;margin-top:10px}.cz-pin{min-height:0;overflow:hidden;display:flex;flex-direction:column}
 .cz-prev{position:relative;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.18)}
 .cz-prev{overflow:hidden;width:100%}.cz-prev img{display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;border-radius:11px;background:rgba(255,255,255,.05)}
-.pv-rip{position:absolute;width:0;height:0;pointer-events:none;z-index:2}.pv-rip i{position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;border:1.6px solid rgba(255,255,255,.95);box-shadow:0 0 0 1px rgba(10,20,40,.35),0 0 12px rgba(255,255,255,.5);opacity:0;animation:rip 1.2s cubic-bezier(.2,.7,.3,1) forwards}.pv-rip i:nth-child(2){animation-delay:.12s}.pv-rip i:nth-child(3){animation-delay:.24s}
+.cz-pin{position:relative}.cz-dd.open .cz-pin,.cz-dd.open .cz-panel{overflow:visible!important}.cz-prev{z-index:1}
+.pv-wave{position:absolute;border-radius:12px;border:1.4px solid rgba(245,245,247,.75);pointer-events:none;z-index:0;animation:pvWave 1.8s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes pvWave{0%{transform:scale(1);opacity:.85}100%{transform:scale(1.18,1.1);opacity:0}}
+.pv-fog{position:absolute;inset:0;width:100%;height:100%;border-radius:11px;pointer-events:none;z-index:2}
 .cz-prev small{z-index:3;position:absolute;left:10px;top:8px;font-size:9px;letter-spacing:.16em;background:rgba(0,0,0,.45);padding:3px 7px;border-radius:6px}
 .cz-get{margin-top:8px;padding:10px 14px!important;border-radius:10px!important;background:#f2f2f2!important;color:#0b0b0d!important;border:0!important;font:inherit;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}.cz-get.busy{opacity:.5}
 .cz-x{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:18px;width:42px;height:42px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;background:rgba(255,255,255,.1)!important;color:#fff!important;border:1px solid rgba(255,255,255,.35)!important;cursor:pointer}
@@ -2801,10 +2804,22 @@ function openCertZoom(c){
     const tick = () => { if (!live || !ov.isConnected) return; T.x += (T.tx - T.x) * .06; T.y += (T.ty - T.y) * .06; const t = performance.now() / 1000, bx = Math.sin(t * .6) * .25, by = Math.cos(t * .5) * .2;
       img.style.transform = `perspective(1400px) rotateX(${(-T.y * 4 + by).toFixed(3)}deg) rotateY(${(T.x * 5 + bx).toFixed(3)}deg) scale(${(1 + .012 * Math.min(1, Math.hypot(T.x, T.y))).toFixed(4)})`; requestAnimationFrame(tick); };
     requestAnimationFrame(tick); }
-  /* petites vagues sur l'aperçu, seulement au survol */
-  { const pv = ov.querySelector(".cz-prev"); let lastW = 0;
-    pv.addEventListener("pointermove", e => { const now = performance.now(); if (now - lastW < 380) return; lastW = now; const r = pv.getBoundingClientRect(), w = document.createElement("span"); w.className = "pv-rip";
-      w.style.left = (e.clientX - r.left) + "px"; w.style.top = (e.clientY - r.top) + "px"; w.innerHTML = "<i></i><i></i><i></i>"; pv.appendChild(w); setTimeout(() => w.remove(), 1300); }); }
+  /* petites vagues derrière l'aperçu (au survol) + buée à essuyer à la souris */
+  { const pv = ov.querySelector(".cz-prev"), pin = ov.querySelector(".cz-pin"), pimg = pv.querySelector("img"); let wv = null;
+    const wave = () => { const r = pv.getBoundingClientRect(), q = pin.getBoundingClientRect(), w = document.createElement("span"); w.className = "pv-wave";
+      Object.assign(w.style, {left: (r.left - q.left) + "px", top: (r.top - q.top) + "px", width: r.width + "px", height: r.height + "px"}); pin.insertBefore(w, pin.firstChild); setTimeout(() => w.remove(), 1800); };
+    pv.addEventListener("pointerenter", () => { if (wv) return; wave(); wv = setInterval(wave, 700); });
+    pv.addEventListener("pointerleave", () => { clearInterval(wv); wv = null; });
+    const fog = document.createElement("canvas"); fog.className = "pv-fog"; pv.appendChild(fog); const g = fog.getContext("2d"); let fogged = false, last = null;
+    const paint = () => { const r = pv.getBoundingClientRect(); if (!r.width || !pimg.naturalWidth) return; fog.width = r.width * 2; fog.height = r.height * 2;
+      g.filter = "blur(14px)"; g.drawImage(pimg, -20, -20, fog.width + 40, fog.height + 40); g.filter = "none"; g.fillStyle = "rgba(225,232,240,.55)"; g.fillRect(0, 0, fog.width, fog.height);
+      for (let k = 0; k < 260; k++) { g.fillStyle = `rgba(255,255,255,${(Math.random() * .25).toFixed(3)})`; g.beginPath(); g.arc(Math.random() * fog.width, Math.random() * fog.height, 1 + Math.random() * 5, 0, 7); g.fill(); } fogged = true; };
+    pimg.complete && pimg.naturalWidth ? requestAnimationFrame(paint) : pimg.addEventListener("load", paint, {once: true});
+    pv.addEventListener("pointermove", e => { if (!fogged) return; const r = fog.getBoundingClientRect(), x = (e.clientX - r.left) * 2, y = (e.clientY - r.top) * 2; g.globalCompositeOperation = "destination-out";
+      const brush = (bx, by) => { const gr = g.createRadialGradient(bx, by, 0, bx, by, 46); gr.addColorStop(0, "rgba(0,0,0,.9)"); gr.addColorStop(.6, "rgba(0,0,0,.45)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.beginPath(); g.arc(bx, by, 46, 0, 7); g.fill(); };
+      if (last) { const d = Math.hypot(x - last[0], y - last[1]), n = Math.max(1, Math.ceil(d / 12)); for (let k = 1; k <= n; k++) brush(last[0] + (x - last[0]) * k / n, last[1] + (y - last[1]) * k / n); } else brush(x, y);
+      last = [x, y]; g.globalCompositeOperation = "source-over"; });
+    pv.addEventListener("pointerleave", () => { last = null; }); }
   const close = () => { removeEventListener("keydown", onKey); ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => { ov.remove(); if (!document.querySelector(".ig")) document.body.style.overflow = ""; }, 380); };
   const onKey = e => { if (e.key === "Escape") { e.preventDefault(); close(); } }; addEventListener("keydown", onKey);
   ov.querySelector(".cz-x").onclick = close; ov.addEventListener("click", e => { if (e.target === ov || e.target.classList.contains("cz-row")) close(); });
@@ -7143,7 +7158,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-110";
+const APP_VERSION = "2026-10-29-111";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
