@@ -5644,7 +5644,7 @@ let brain3 = null;
 /* le cerveau occupe tout l'écran, derrière l'en-tête de la page */
 function b3Container(){ let d = document.getElementById("b3fix"); if (!d) { d = document.createElement("div"); d.id = "b3fix"; d.className = "b3"; document.body.appendChild(d); } return d; }
 function b3Remove(){ const h0 = document.getElementById("b3fix"); if (h0 && h0._nv) removeEventListener("mousemove", h0._nv); if (brain3) { brain3.destroy(); brain3 = null; } const d = document.getElementById("b3fix"); if (d) d.remove(); }
-let b3Born = false;
+let b3Born = false, b3BirthT0 = null;
 async function mountBrain3(host, C){
   if (brain3) { brain3.destroy(); brain3 = null; }
   let THREE; try { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); } catch (e) { THREE = null; }
@@ -5838,7 +5838,7 @@ async function mountBrain3(host, C){
     const lk = links.filter(l => l.a === n || l.b === n).map(l => (l.a === n ? l.b : l.a).l);
     info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.cell.f.label)}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}${lk.length ? `<small>RELIÉ À</small><ul>${lk.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}`; info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; };
   /* ---- boucle ---- */
-  const syn = []; const t0 = performance.now(); let run = true, fr = 0, lastT = 0, combos = 0, nextPath = 3, pathT = -9, birthT0 = b3Born ? -99 : 0; b3Born = true;
+  const syn = []; const t0 = performance.now(); let run = true, fr = 0, lastT = 0, combos = 0, nextPath = 3, pathT = -9, birthT0 = 0; if (b3BirthT0 == null) b3BirthT0 = performance.now(); b3Born = true;
   const BGL = new THREE.Color(getComputedStyle(document.body).backgroundColor || "#f3f4f6"), lcol = (c, a) => { a = Math.min(1, dark ? a : a * 1.9); return dark ? [c.r * a, c.g * a, c.b * a] : [BGL.r + (c.r - BGL.r) * a, BGL.g + (c.g - BGL.g) * a, BGL.b + (c.b - BGL.b) * a]; }; let li = 0;
   let curMul = 1, curA = null, curB = null, hotLast = -1; const G = new Array(8).fill(1), LM = new Array(8).fill(1), CC = new THREE.Color();
   const colI = i => i >= 0 && i < nF ? secs[i].col : white;
@@ -5850,7 +5850,7 @@ async function mountBrain3(host, C){
   const A1 = new THREE.Vector3(), A2 = new THREE.Vector3(), white = new THREE.Color(dark ? "#ffffff" : FG);
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
     const t = window.__b3T != null ? window.__b3T : (now - t0) / 1000, dt = Math.min(.05, Math.max(0, t - lastT)); lastT = t; fr++; idle += dt; U.uT.value = t;
-    const tb = t, bu = Math.max(0, Math.min(1, (tb - 9) / 3)); U.uBirth.value = Math.min(1, tb / 9); U.uBT.value = tb; for (let i = 0; i < 8; i++) U.uSB.value[i] = Math.max(0, Math.min(1, (tb - 8 - i * .6) / 10));
+    const tb = window.__b3T != null ? t : (now - b3BirthT0) / 1000, bu = Math.max(0, Math.min(1, (tb - 9) / 3)); U.uBirth.value = Math.min(1, tb / 9); U.uBT.value = tb; for (let i = 0; i < 8; i++) U.uSB.value[i] = Math.max(0, Math.min(1, (tb - 8 - i * .6) / 10));
     /* forces : les sections respirent, dérivent, se repoussent */
     if (!coreN.drag) { coreN.vel.addScaledVector(coreN.p, -dt * 9).multiplyScalar(.9); coreN.p.addScaledVector(coreN.vel, dt * 3); } U.uCen.value[7].copy(coreN.p);
     secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(v3.clone().copy(a.home).multiplyScalar((1 + .5 * U.uGal.value[a.i]) * (1 - .82 * U.uBH.value))).add(coreN.p).sub(a.c).multiplyScalar(coreN.drag || coreN.p.lengthSq() > 4 ? 6 + (a.ph % 1) * 4 : .5);
@@ -7207,7 +7207,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-120";
+const APP_VERSION = "2026-10-29-121";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
