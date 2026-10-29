@@ -1123,7 +1123,7 @@ html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!impor
 body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
 body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}
 body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
-body.instrat .dash > .savebar{display:none!important}
+body.instrat .dash > .savebar,body.instrat #btnTheme{display:none!important}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
 .b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .b3lab{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--fg);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);padding:2px 6px;border-radius:5px;cursor:pointer;transition:opacity .25s;will-change:transform}
@@ -4267,7 +4267,7 @@ function applyTheme(light){
 }
 let startLight = true; try { startLight = localStorage.getItem(THEME_KEY) !== "dark"; } catch(e) {}
 applyTheme(startLight);
-$("btnTheme").onclick = () => { applyTheme(!document.body.classList.contains("light")); if (document.body.classList.contains("instrat") && document.getElementById("b3fix")) renderStrat(); };
+$("btnTheme").onclick = () => applyTheme(!document.body.classList.contains("light"));
 
 /* ---------- Menu ordinateur ---------- */
 document.querySelector(".side").addEventListener("click", e => {
@@ -4719,6 +4719,7 @@ function setView(v, keepScroll){
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
   document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") b3Remove();
+  { let lt = true; try { lt = localStorage.getItem(THEME_KEY) !== "dark"; } catch (e) {} document.body.classList.toggle("light", v === "strategie" ? false : lt); }
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 250);
@@ -5592,7 +5593,7 @@ async function mountBrain3(host, C){
   const GLC = `uniform float uT, uBirth, uScale, uFD, uHot, uDark; uniform vec3 uCen[8]; uniform vec3 uCol[8]; uniform float uBr[8];
     vec3 place(int s, vec3 off, float sd){ vec3 n = vec3(sin(uT * .31 + off.y * .021 + sd * 6.), sin(uT * .27 + off.z * .019 + sd * 4.), sin(uT * .23 + off.x * .023 + sd * 5.)) * (7. + 6. * fract(sd * 13.));
       float b = clamp((uBirth - .12 - sd * .3) / .5, 0., 1.); b = 1. - pow(1. - b, 3.); return mix(vec3(0.), uCen[s] + off * uBr[s] + n, b); }
-    float hotK(int s){ return uHot < -.5 ? 1. : (abs(float(s) - uHot) < .5 ? 1.7 : .35); }`;
+    float hotK(int s){ return uHot < -.5 ? 1. : (abs(float(s) - uHot) < .5 ? 2.3 : .4); }`;
   const blend = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
   /* ---- nébuleuses : des milliers de particules rangées en filaments ---- */
   const P = [], LS = []; const curves = [];
@@ -7025,7 +7026,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-75";
+const APP_VERSION = "2026-10-29-76";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
