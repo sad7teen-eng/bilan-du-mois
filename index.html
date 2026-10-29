@@ -2816,7 +2816,7 @@ function openCertZoom(c){
       for (let k = 0; k < 260; k++) { g.fillStyle = `rgba(255,255,255,${(Math.random() * .25).toFixed(3)})`; g.beginPath(); g.arc(Math.random() * fog.width, Math.random() * fog.height, 1 + Math.random() * 5, 0, 7); g.fill(); } fogged = true; };
     pimg.complete && pimg.naturalWidth ? requestAnimationFrame(paint) : pimg.addEventListener("load", paint, {once: true});
     pv.addEventListener("pointermove", e => { if (!fogged) return; const r = fog.getBoundingClientRect(), x = (e.clientX - r.left) * 2, y = (e.clientY - r.top) * 2; g.globalCompositeOperation = "destination-out";
-      const brush = (bx, by) => { const gr = g.createRadialGradient(bx, by, 0, bx, by, 46); gr.addColorStop(0, "rgba(0,0,0,.9)"); gr.addColorStop(.6, "rgba(0,0,0,.45)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.beginPath(); g.arc(bx, by, 46, 0, 7); g.fill(); };
+      const brush = (bx, by) => { const gr = g.createRadialGradient(bx, by, 0, bx, by, 55); gr.addColorStop(0, "rgba(0,0,0,.9)"); gr.addColorStop(.6, "rgba(0,0,0,.45)"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.beginPath(); g.arc(bx, by, 55, 0, 7); g.fill(); };
       if (last) { const d = Math.hypot(x - last[0], y - last[1]), n = Math.max(1, Math.ceil(d / 12)); for (let k = 1; k <= n; k++) brush(last[0] + (x - last[0]) * k / n, last[1] + (y - last[1]) * k / n); } else brush(x, y);
       last = [x, y]; g.globalCompositeOperation = "source-over"; });
     pv.addEventListener("pointerleave", () => { last = null; }); }
@@ -7158,7 +7158,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-111";
+const APP_VERSION = "2026-10-29-112";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
