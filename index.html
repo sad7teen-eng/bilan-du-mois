@@ -5691,12 +5691,14 @@ async function mountBrain3(host, C){
       boxes.forEach(box => { const tw = document.createTreeWalker(box, NodeFilter.SHOW_TEXT, {acceptNode: n => n.nodeValue.trim() && !n.parentElement.closest("input,textarea,script,style") ? 1 : 2}), list = []; while (tw.nextNode()) list.push(tw.currentNode);
         list.forEach(tn => { const w = document.createElement("span"); w.className = "bhw"; [...tn.nodeValue].forEach(ch => { const c = document.createElement("span"); c.className = "bhc"; c.textContent = ch; w.appendChild(c); if (ch.trim()) chars.push(c); }); tn.parentNode.replaceChild(w, tn); eatWraps.push([w, tn]); }); });
       const pos = chars.map(c => { const r = c.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }), maxD = Math.max(1, ...pos.map(([x, y]) => Math.hypot(hx - x, hy - y)));
-      chars.forEach((c, k) => { const [x, y] = pos[k], dx = hx - x, dy = hy - y, d = Math.hypot(dx, dy), nx = -dy / (d || 1), ny = dx / (d || 1), sw = (k % 2 ? 1 : -1) * Math.min(160, d * .35), delay = (d / maxD) * 1600 + Math.random() * 900, dur = 900 + d * .9 + Math.random() * 500, rot = (Math.random() - .5) * 900;
-        eatAnims.push(c.animate([{transform: "none", opacity: 1, filter: "blur(0)"}, {transform: `translate(${dx * .35 + nx * sw}px,${dy * .35 + ny * sw}px) rotate(${rot * .3}deg) scale(.85)`, opacity: 1, offset: .45},
-          {transform: `translate(${dx * .8 + nx * sw * .4}px,${dy * .8 + ny * sw * .4}px) rotate(${rot * .7}deg) scale(.35)`, opacity: .8, filter: "blur(.5px)", offset: .8}, {transform: `translate(${dx}px,${dy}px) rotate(${rot}deg) scale(0)`, opacity: 0, filter: "blur(2px)"}],
-          {duration: dur, delay, easing: "cubic-bezier(.5,0,.9,.6)", fill: "forwards"})); });
-      boxes.forEach((b, k) => { const r = b.getBoundingClientRect(), d = Math.hypot(hx - (r.left + r.width / 2), hy - (r.top + r.height / 2));
-        b.querySelectorAll("button, .tn, .stab, input, i, svg, img").forEach(x => eatAnims.push(x.animate([{opacity: 1}, {opacity: 0}], {duration: 700, delay: (d / maxD) * 1600 + 1400, fill: "forwards"})));
+      const pull = (el, x, y, delay, dur) => { const dx = hx - x, dy = hy - y, a = Math.atan2(dy, dx) * 180 / Math.PI, S = (u, sx, sy) => `translate(${dx * u}px,${dy * u}px) rotate(${a}deg) scale(${sx},${sy}) rotate(${-a}deg)`;
+        return el.animate([{transform: S(0, 1, 1), opacity: 1, filter: "blur(0) brightness(1)"}, {transform: S(.06, 1.35, .9), opacity: 1, filter: "blur(.3px) brightness(1.6)", offset: .4},
+          {transform: S(.32, 2.6, .55), opacity: .95, filter: "blur(.8px) brightness(2.2)", offset: .72}, {transform: S(.75, 5, .2), opacity: .7, filter: "blur(1.6px) brightness(2.6)", offset: .9},
+          {transform: S(1, 7, .04), opacity: 0, filter: "blur(3px) brightness(3)"}], {duration: dur, delay, easing: "cubic-bezier(.55,0,.75,.35)", fill: "forwards"}); };
+      chars.forEach((c, k) => { const [x, y] = pos[k], d = Math.hypot(hx - x, hy - y); eatAnims.push(pull(c, x, y, (d / maxD) * 2400 + (k % 7) * 30, 2200 + d * .8)); });
+      boxes.forEach(b => b.querySelectorAll("button, .tn, .stab, input, i, svg, img").forEach(x => { const r = x.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, d = Math.hypot(hx - cx, hy - cy);
+        eatAnims.push(x.animate([{opacity: 1, filter: "blur(0)"}, {opacity: 0, filter: "blur(4px)"}], {duration: 1400, delay: (d / maxD) * 2400 + 600, easing: "ease-in", fill: "forwards"})); }));
+      boxes.forEach(b => {
         b.style.pointerEvents = "none"; }); }
     else { eatWraps.forEach(([w, tn]) => { if (w.parentNode) w.parentNode.replaceChild(tn, w); }); eatWraps = [];
       document.querySelectorAll(EAT_SEL).forEach(b => { b.style.pointerEvents = ""; eatAnims.push(b.animate([{opacity: 0, filter: "blur(4px)", transform: "scale(.97)"}, {opacity: 1, filter: "blur(0)", transform: "none"}], {duration: 900, easing: "cubic-bezier(.2,.8,.2,1)"})); }); } };
@@ -7103,7 +7105,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-98";
+const APP_VERSION = "2026-10-29-100";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
