@@ -5507,6 +5507,9 @@ async function mountBrain3(host, C){
   const seqC = cells.find(c => c.f.key === "seq"), gestC = cells.find(c => c.f.key === "gest"), tests = []; let nextTest = 0, combos = 0;
   const syn = Array.from({length: 260}, () => ({a: null, b: null, t0: -9, d: 1}));
   const RH = R * .6;
+  /* éclairs de réflexion : une zone de poussière s'allume quand l'amas réfléchit, chacune à son rythme */
+  const FL = 14, FP = 120, fg2 = new THREE.BufferGeometry(), fPos = new Float32Array(FL * FP * 3), fCol = new Float32Array(FL * FP * 3), fDir = Array.from({length: FP}, () => { const a = rnd() * 6.28, b = Math.acos(2 * rnd() - 1); return new THREE.Vector3(Math.sin(b) * Math.cos(a), Math.cos(b), Math.sin(b) * Math.sin(a)).multiplyScalar(.4 + rnd() * .6); });
+  fg2.setAttribute("position", new THREE.BufferAttribute(fPos, 3)); fg2.setAttribute("color", new THREE.BufferAttribute(fCol, 3)); scene.add(new THREE.Points(fg2, PM({size: 7.5}))); const flares = []; let nextFl = 0; const dBase = new Float32Array(ND);
   /* ---- étiquettes ---- */
   const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls + (n.bad ? " r" : ""); d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
   addLab(core, "core", core.l); cells.forEach(cl => { cl.kind = "hub"; cl.p = cl.c; addLab(cl, "hub", cl.f.label.toUpperCase()).onclick = () => focus(cl.i); });
@@ -5552,8 +5555,17 @@ async function mountBrain3(host, C){
       if (k % 7 === 0 && sq > .25) { const u2 = Math.max(0, e - .05), x0 = (1 - u2) * (1 - u2), x1 = 2 * (1 - u2) * u2, x2 = u2 * u2; v3.set(A.x * x0 + M.x * x1 + B.x * x2 + ox * spread, A.y * x0 + M.y * x1 + B.y * x2 + q.off.y * spread, A.z * x0 + M.z * x1 + B.z * x2 + oz * spread); seg(v3, P, c, .35 * sq * q.sh); } }
     tg.attributes.position.needsUpdate = true; tg.attributes.color.needsUpdate = true;
     /* poussière */
-    for (let k = 0; k < ND; k++) { const [u, th, ph, s] = dust[k], a = th + t * s; dPos[k * 3] = Math.sin(ph) * Math.cos(a) * u; dPos[k * 3 + 1] = Math.cos(ph) * u * .8; dPos[k * 3 + 2] = Math.sin(ph) * Math.sin(a) * u; if (fr === 1) { const m = mix(cFG, .3 + .45 * (1 - u / (R * 1.15))); dCol.set(m, k * 3); } }
-    dg.attributes.position.needsUpdate = true; if (fr === 1) dg.attributes.color.needsUpdate = true;
+    if (t > nextFl && flares.length < FL) { nextFl = t + .12 + Math.random() * .35; const an = Math.random() < .6 ? anchors[Math.floor(Math.random() * anchors.length)] : null, c = an ? an.p.clone().add(v3.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(80)) : v3.set(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(R * 1.4).clone();
+      flares.push({c, an, t0: t, d: .5 + Math.random() * .6, rad: 120 + Math.random() * 130, red: an ? !!an.bad || Math.random() < .08 : Math.random() < .08, slot: [...Array(FL).keys()].find(i => !flares.some(f => f.slot === i))}); combos += 2 + Math.floor(Math.random() * 6); }
+    for (let k = flares.length - 1; k >= 0; k--) if (t - flares[k].t0 > flares[k].d) flares.splice(k, 1);
+    flares.forEach(f => { const u = (t - f.t0) / f.d; f.pow = u < .15 ? u / .15 : Math.pow(1 - (u - .15) / .85, 2); f.wave = f.rad * (.3 + u * .9); });
+    for (let k = 0; k < ND; k++) { const [u, th, ph, s] = dust[k], a = th + t * s; let x = Math.sin(ph) * Math.cos(a) * u, y = Math.cos(ph) * u * .8, z = Math.sin(ph) * Math.sin(a) * u;
+      if (fr === 1) dBase[k] = .3 + .45 * (1 - u / (R * 1.15)); let g = 0, red = false;
+      for (let i = 0; i < flares.length; i++) { const f = flares[i], dx = x - f.c.x, dy = y - f.c.y, dz = z - f.c.z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < f.rad * f.rad) { const d = Math.sqrt(d2), w = (1 - d / f.rad) * f.pow, push = w * 40 / (d || 1); x += dx * push; y += dy * push; z += dz * push; if (w > g) { g = w; red = f.red; } } }
+      dPos[k * 3] = x; dPos[k * 3 + 1] = y; dPos[k * 3 + 2] = z; const m = mix(red && g > .15 ? cLS : cFG, Math.min(1, dBase[k] + g * 3)); dCol[k * 3] = m[0]; dCol[k * 3 + 1] = m[1]; dCol[k * 3 + 2] = m[2]; }
+    dg.attributes.position.needsUpdate = true; dg.attributes.color.needsUpdate = true;
+    fPos.fill(0); fCol.fill(0); flares.forEach(f => { if (f.slot == null) return; const u = (t - f.t0) / f.d, c = f.red ? cLS : cFG; fDir.forEach((dd, i) => { const idx = (f.slot * FP + i) * 3, r = f.rad * .75 * (1 - Math.pow(1 - u, 3)); fPos[idx] = f.c.x + dd.x * r; fPos[idx + 1] = f.c.y + dd.y * r; fPos[idx + 2] = f.c.z + dd.z * r; const m = mix(c, f.pow); fCol[idx] = m[0]; fCol[idx + 1] = m[1]; fCol[idx + 2] = m[2]; }); });
+    fg2.attributes.position.needsUpdate = true; fg2.attributes.color.needsUpdate = true;
     /* étoiles nommées + centres */
     let j = 0; const setI = (p, c) => { iPos[j * 3] = p.x; iPos[j * 3 + 1] = p.y; iPos[j * 3 + 2] = p.z; iCol[j * 3] = c.r; iCol[j * 3 + 1] = c.g; iCol[j * 3 + 2] = c.b; j++; };
     setI(core.p, cFG); cells.forEach(cl => setI(cl.c, cFG)); items.forEach(n => setI(n.p, n.bad ? cLS : cFG)); ig.attributes.position.needsUpdate = true; ig.attributes.color.needsUpdate = true;
@@ -5561,6 +5573,7 @@ async function mountBrain3(host, C){
     /* constellation : des liens entre connaissances qui s'allument et s'éteignent */
     syn.forEach(sy => { let u = (t - sy.t0) / sy.d; if (u > 1 || !sy.a) { sy.a = anchors[Math.floor(Math.random() * anchors.length)]; sy.b = pick(sy.a); sy.t0 = t; sy.d = .8 + Math.random() * 2.5; u = 0; } const al = Math.sin(Math.PI * u) * .3; if (al > .02 && sy.a !== sy.b) seg(sy.a.p, sy.b.p, sy.b.bad ? cLS : cFG, al); });
     items.forEach(n => seg(n.cell.c, n.p, n.bad ? cLS : cFG, .22));
+    flares.forEach(f => { if (f.pow < .1) return; let n = 0; for (const an of anchors) { if (n > 5) break; if (an.p.distanceTo(f.c) < f.rad * 2.2) { seg(f.c, an.p, f.red ? cLS : cFG, .55 * f.pow); n++; } } });
     /* trades testés */
     if (seqC && seqC.items.length && t > nextTest) { nextTest = t + .45 + Math.random() * .45; const win = Math.random() < .68, stop = win ? seqC.items.length : 1 + Math.floor(Math.random() * Math.max(1, seqC.items.length - 1)); tests.push({t0: t, stop, win: win && stop >= seqC.items.length}); combos += 7 + Math.floor(Math.random() * 30); }
     while (tests.length && t - tests[0].t0 > 4) tests.shift();
@@ -6861,7 +6874,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-64";
+const APP_VERSION = "2026-10-29-65";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
