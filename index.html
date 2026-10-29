@@ -1119,7 +1119,11 @@ html body .brbtn{background:#0b0b0c!important;color:#fff!important;border-color:
 /* ---------- Cerveau 3D ---------- */
 html body .tile.s-b3,html body.light .tile.s-b3{grid-column:span 6;padding:0!important;overflow:visible;position:relative;background:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!important;box-shadow:none!important}
-.b3{position:relative;height:max(600px,calc(100vh - 200px));width:100%;overflow:hidden;user-select:none;-webkit-mask-image:radial-gradient(120% 100% at 50% 50%,#000 70%,transparent 100%);mask-image:radial-gradient(120% 100% at 50% 50%,#000 70%,transparent 100%)}
+#b3fix{position:fixed;inset:0;z-index:0;overflow:hidden;user-select:none;--mono:var(--display);color:var(--fg)}
+body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
+body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}
+body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
+body.instrat .dash > .savebar{display:none!important}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
 .b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .b3lab{position:absolute;left:0;top:0;white-space:nowrap;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--fg);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);padding:2px 6px;border-radius:5px;cursor:pointer;transition:opacity .25s;will-change:transform}
@@ -1128,20 +1132,20 @@ html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!impor
 .b3lab.core{font-size:15px;font-weight:700;letter-spacing:.02em;background:none;pointer-events:none}
 .b3lab.r{color:var(--loss)}.b3lab.tr{font-size:9px}
 .b3read{position:absolute;left:0;top:0;font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;transition:opacity .3s;pointer-events:none}
-.b3hud{position:absolute;left:4px;top:4px;pointer-events:none}.b3hud small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted)}
+.b3hud{position:absolute;left:max(36px,calc((100vw - 1180px) / 2 + 22px));top:calc(190px + env(safe-area-inset-top,0px));pointer-events:none}.b3hud small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:var(--muted)}
 .b3hud small::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--loss);margin-right:7px;animation:sBlink 1s steps(2) infinite}
 .b3t{display:block;font-size:30px;letter-spacing:-.02em}.b3k{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}.b3k::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--loss);animation:sBlink 1s steps(2) infinite}
-.b3nav{position:absolute;left:12px;right:12px;bottom:14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.b3nav{position:absolute;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .b3nav button{font:inherit;font-size:12px;padding:7px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--fg) 18%,transparent);background:color-mix(in srgb,var(--bg,#fff) 70%,transparent);color:var(--fg);cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .b3nav button.on{background:var(--fg)!important;color:var(--bg,#fff)!important;border-color:var(--fg)!important}
-.b3info{position:absolute;top:16px;right:16px;width:min(280px,calc(100% - 32px));max-height:calc(100% - 90px);overflow:auto;padding:14px 16px;border-radius:16px;border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);background:color-mix(in srgb,var(--bg,#fff) 85%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(16,18,24,.12)}
+.b3info{position:absolute;top:calc(190px + env(safe-area-inset-top,0px));right:max(16px,calc((100vw - 1180px) / 2 + 20px));width:min(280px,calc(100% - 32px));max-height:calc(100% - 90px);overflow:auto;padding:14px 16px;border-radius:16px;border:1px solid color-mix(in srgb,var(--fg) 12%,transparent);background:color-mix(in srgb,var(--bg,#fff) 85%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(16,18,24,.12)}
 .b3info small{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;color:var(--muted);margin-top:8px}.b3info h3{margin:4px 0 8px;font-size:16px}.b3info p{margin:4px 0;font-size:13px}
 .b3info ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.b3info li{font-size:12px;padding:5px 8px;border-radius:7px;background:color-mix(in srgb,var(--fg) 5%,transparent)}
 .b3info .r{color:var(--loss)}.b3x{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:var(--fg);cursor:pointer;font:inherit}
 .b3tip{position:absolute;right:16px;top:70px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);pointer-events:none;max-width:220px;text-align:right}
 .s-none{grid-column:span 6;align-items:center;text-align:center;padding:60px 20px!important;gap:14px!important}
 .s-none h2{margin:0;font-size:24px;letter-spacing:-.02em}.s-none p{margin:0;color:var(--muted);max-width:440px}
-@media (max-width:760px){.b3{height:max(480px,calc(100vh - 260px))}.b3tip{display:none}.b3t{font-size:20px}}
+@media (max-width:760px){.b3hud{left:20px;top:calc(170px + env(safe-area-inset-top,0px))}.b3nav{bottom:calc(84px + env(safe-area-inset-bottom,0px))}.b3t{font-size:22px}.b3info{top:auto;bottom:calc(140px + env(safe-area-inset-bottom,0px))}}
 .rings{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.sring .sviz{height:110px}
 .stxt{margin:6px 0 0;white-space:pre-wrap;color:var(--muted);font-size:13px;line-height:1.5}
 @media (max-width:760px){.sg2 .s-tf2,.sg2 .s-bias,.sg2 .s-risk2,.sg2 .s-sess,.sg2 .s-rules2{grid-column:span 6}.rings{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -4711,7 +4715,7 @@ function setView(v, keepScroll){
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
-  document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie");
+  document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") b3Remove();
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 250);
@@ -4871,12 +4875,13 @@ function renderStrat(){ stratKaelRestore();
       <div class="tools"><button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
     <div class="sbar">${L.map(x => x.id === act && stratRen ? `<input class="sren" id="sRen" value="${esc(x.name)}" maxlength="28">` : `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}">${esc(x.name)}${x.id === act ? ` <i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle</button></div>`;
   if (C.empty || !C.steps.length) {
+    b3Remove();
     $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
       <p>Expliquez comment vous tradez, en quelques phrases ou à la voix. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
     $("stratDescB2").onclick = () => openStratDescribe();
   } else if (window.__stratClassic !== true) {
-    $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-b3"><div class="b3" id="b3"></div></section></div>`;
-    mountBrain3($("b3"), C);
+    $("stratView").innerHTML = head;
+    mountBrain3(b3Container(), C);
   } else {
     const tfs = C.tfs, ex = tfs.length ? tfs[tfs.length - 1].tf : "";
     const tfMode = tfs.length < 2 ? "" : (C.bias === "none" || C.misalign === "none") ? "zoom" : "align";
@@ -5453,6 +5458,9 @@ function openStratBrain(){
 }
 /* ===== Cerveau 3D de la stratégie : mindmap vivante, on tourne, on zoome dans chaque famille ===== */
 let brain3 = null;
+/* le cerveau occupe tout l'écran, derrière l'en-tête de la page */
+function b3Container(){ let d = document.getElementById("b3fix"); if (!d) { d = document.createElement("div"); d.id = "b3fix"; d.className = "b3"; document.body.appendChild(d); } return d; }
+function b3Remove(){ if (brain3) { brain3.destroy(); brain3 = null; } const d = document.getElementById("b3fix"); if (d) d.remove(); }
 async function mountBrain3(host, C){
   if (brain3) { brain3.destroy(); brain3 = null; }
   let THREE; try { THREE = await import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"); } catch (e) { THREE = null; }
@@ -5464,6 +5472,7 @@ async function mountBrain3(host, C){
     <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
     <aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k");
+  { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".sbar"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
   if (!THREE) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { host.querySelector(".b3k").textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   ren.setPixelRatio(Math.min(2, devicePixelRatio || 1)); ren.setClearColor(0, 0);
@@ -5547,7 +5556,7 @@ async function mountBrain3(host, C){
   const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0;
   const RDF = {ut: ["H4 ▲", "H1 ▲", "M15 ▼", "align 0.82", "Δ UT 2"], bias: ["HH", "HL", "p(▲) 0.71", "structure +1", "BOS ✓"], zones: ["OB 0.62", "Fibo 50 %", "FVG", "liq ×3", "zone ✓"], seq: ["shift ✓", "corps ✓", "retest", "étape 4/7", "délai 12 min"],
     gest: ["RR 2.8", "SL 1R", "TP1 ✓", "BE", "risque 1 %"], rules: ["session ✓", "news ✗", "max 1", "nuit ✗", "OK"], trades: ["+2.4R", "−1R", "+3.1R", "réussite 74 %", "n 13"]};
-  const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected) { destroy(); return; } if (document.hidden || host.closest("[hidden]")) return;
+  const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
     const t = (now - t0) / 1000; fr++; idle += 1 / 60; if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
     st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * .07; st.tgt.lerp(st.tgt0, .07);
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt);
@@ -6863,7 +6872,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-60";
+const APP_VERSION = "2026-10-29-61";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
