@@ -5648,8 +5648,10 @@ async function mountBrain3(host, C){
       float a = core + halo + ring; gl_FragColor = uDark > .5 ? vec4(mix(vC, vec3(1.), core * .7) * a, 1.) : vec4(vC, clamp(a, 0., 1.)); }`});
   scene.add(new THREE.Points(ng, glowMat));
   /* liens (JS) + impulsions */
-  const LKN = 7000, kg = new THREE.BufferGeometry(), kPos = new Float32Array(LKN * 6), kCol = new Float32Array(LKN * 6); kg.setAttribute("position", new THREE.BufferAttribute(kPos, 3)); kg.setAttribute("color", new THREE.BufferAttribute(kCol, 3)); kg.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 9000);
-  scene.add(new THREE.LineSegments(kg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, depthWrite: false, blending: blend, opacity: 1})));
+  const LKN = 7000, kg = new THREE.BufferGeometry(), kPos = new Float32Array(LKN * 6), kCol = new Float32Array(LKN * 6); kg.setAttribute("position", new THREE.BufferAttribute(kPos, 3)); kg.setAttribute("color", new THREE.BufferAttribute(kCol, 3)); const kAl = new Float32Array(LKN * 2); kg.setAttribute("aA", new THREE.BufferAttribute(kAl, 1)); kg.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 9000);
+  scene.add(new THREE.LineSegments(kg, new THREE.ShaderMaterial({uniforms: U, transparent: true, depthWrite: false, blending: blend, vertexColors: true,
+    vertexShader: `attribute float aA; varying vec3 vC; varying float vA; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); vC = color; vA = aA; }`,
+    fragmentShader: `uniform float uDark; varying vec3 vC; varying float vA; void main(){ gl_FragColor = uDark > .5 ? vec4(vC * vA, 1.) : vec4(vC, vA); }`})));
   const PU = 420, ug = new THREE.BufferGeometry(), uPos = new Float32Array(PU * 3), uCol = new Float32Array(PU * 3), uSz = new Float32Array(PU); ug.setAttribute("position", new THREE.BufferAttribute(uPos, 3)); ug.setAttribute("color", new THREE.BufferAttribute(uCol, 3)); ug.setAttribute("aZ", new THREE.BufferAttribute(uSz, 1)); ug.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 9000);
   scene.add(new THREE.Points(ug, glowMat)); const pulses = [];
   /* ---- étiquettes ---- */
@@ -5687,7 +5689,7 @@ async function mountBrain3(host, C){
   /* ---- boucle ---- */
   const syn = []; const t0 = performance.now(); let run = true, fr = 0, lastT = 0, combos = 0, nextPath = 3, pathT = -9, birthT0 = b3Born ? -99 : 0; b3Born = true;
   const BGL = new THREE.Color(getComputedStyle(document.body).backgroundColor || "#f3f4f6"), lcol = (c, a) => { a = Math.min(1, dark ? a : a * 1.9); return dark ? [c.r * a, c.g * a, c.b * a] : [BGL.r + (c.r - BGL.r) * a, BGL.g + (c.g - BGL.g) * a, BGL.b + (c.b - BGL.b) * a]; }; let li = 0;
-  const seg = (a, b, c, al) => { if (li >= LKN || al < .012) return; kPos[li * 6] = a.x; kPos[li * 6 + 1] = a.y; kPos[li * 6 + 2] = a.z; kPos[li * 6 + 3] = b.x; kPos[li * 6 + 4] = b.y; kPos[li * 6 + 5] = b.z; const m = lcol(c, al); kCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
+  const seg = (a, b, c, al) => { if (li >= LKN || al < .012) return; kPos[li * 6] = a.x; kPos[li * 6 + 1] = a.y; kPos[li * 6 + 2] = a.z; kPos[li * 6 + 3] = b.x; kPos[li * 6 + 4] = b.y; kPos[li * 6 + 5] = b.z; kCol.set([c.r, c.g, c.b, c.r, c.g, c.b], li * 6); const aa = Math.min(1, dark ? al : al * 1.5); kAl[li * 2] = kAl[li * 2 + 1] = aa; li++; };
   const bez = (a, b, bend, u, out) => { const m = v3.copy(a).lerp(b, .5).add(bend); const w = 1 - u; return out.set(a.x * w * w + 2 * m.x * w * u + b.x * u * u, a.y * w * w + 2 * m.y * w * u + b.y * u * u, a.z * w * w + 2 * m.z * w * u + b.z * u * u); };
   const A1 = new THREE.Vector3(), A2 = new THREE.Vector3(), white = new THREE.Color(dark ? "#ffffff" : FG);
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
@@ -5703,7 +5705,7 @@ async function mountBrain3(host, C){
       links.forEach(l => { if (l.a === n || l.b === n) { const o = l.a === n ? l.b : l.a, d = A2.copy(o.p).sub(n.p), Ld = d.length(); if (Ld > 140) f.addScaledVector(d, (Ld - 140) / Ld * (o.drag ? 3 : .6)); } });
       n.vel.addScaledVector(f, dt).multiplyScalar(.86); n.p.addScaledVector(n.vel, dt * 4); });
     /* caméra */
-    if (focusI < 0 && idle > 4 && !ptrs.size) st.th0 += .0007; st.tgt0.copy(focusI >= 0 ? secs[focusI].c : coreN.p);
+    if (focusI < 0 && idle > 4 && !ptrs.size) st.th0 += .00056; st.tgt0.copy(focusI >= 0 ? secs[focusI].c : coreN.p);
     st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * (bu < 1 ? .025 : .06); st.tgt.lerp(st.tgt0, .06);
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt); U.uFD.value = st.dist;
     /* liens qui travaillent */
@@ -5722,7 +5724,7 @@ async function mountBrain3(host, C){
       const a = PP(y.a, A1).clone(), b = PP(y.b, A2).clone(); let u0 = 0, u1 = 1; if (age < y.g) u1 = age / y.g; else if (age > y.g + y.h) { const q = (age - y.g - y.h) / y.r; if (y.out) u0 = q; else u1 = 1 - q; }
       const al = y.w * (nb ? .35 : 1); let prev = bez(a, b, y.bend, u0, new THREE.Vector3()); for (let q = 1; q <= 10; q++) { const p = bez(a, b, y.bend, u0 + (u1 - u0) * q / 10, new THREE.Vector3()); seg(prev, p, white, al); prev = p; } }
     nodes.forEach(n => seg(n.sec.c, n.p, white, .14 * grow * (nb ? (nb.has(n) ? 2 : .3) : 1)));
-    kg.setDrawRange(0, li * 2); kg.attributes.position.needsUpdate = true; kg.attributes.color.needsUpdate = true;
+    kg.setDrawRange(0, li * 2); kg.attributes.position.needsUpdate = true; kg.attributes.color.needsUpdate = true; kg.attributes.aA.needsUpdate = true;
     /* impulsions de lumière le long des liens */
     if (bu >= 1) for (let k = 0; k < 4 && pulses.length < PU; k++) { const l = links.length && Math.random() < .6 ? links[Math.floor(Math.random() * links.length)] : null; if (l) pulses.push({a: l.a.p, b: l.b.p, bend: new THREE.Vector3(0, 30, 0), u: 0, v: .25 + Math.random() * .5, c: l.a.sec.col}); else { const S = secs[Math.floor(Math.random() * nF)]; pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40), u: 0, v: .2 + Math.random() * .35, c: S.col}); } }
     for (let k = pulses.length - 1; k >= 0; k--) { pulses[k].u += pulses[k].v * dt; if (pulses[k].u >= 1) pulses.splice(k, 1); }
@@ -7023,7 +7025,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-72";
+const APP_VERSION = "2026-10-29-73";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
