@@ -2694,9 +2694,9 @@ async function openGlassRun(c0, forceLite){
       P.setXYZ(i, v.x, v.y, v.z); uv[i * 2] = (ang / (Math.PI * 2) + .5) * 2; uv[i * 2 + 1] = Math.max(.002, Math.min(.998, y0 / H + .5)); }
     g.setAttribute("uv", new THREE.BufferAttribute(uv, 2)); g.computeVertexNormals(); return g; })();
   const iceM = new THREE.MeshPhysicalMaterial(lite ? {color: 0xe8eef5, roughness: .03, metalness: 0, transparent: true, opacity: .07, clearcoat: 1, clearcoatRoughness: .02, specularIntensity: .6, envMapIntensity: .9, depthWrite: false} : low ? {color: 0xdfe7ef, map: streak.col, roughness: .08, metalness: 0, transparent: true, opacity: .4, normalMap: streak.normal, normalScale: new THREE.Vector2(.8, .8), clearcoat: 1, envMapIntensity: 1.4, depthWrite: false}
-    : {color: 0xffffff, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transmission: 1, thickness: .9, ior: 1.31, dispersion: 0,
+    : {color: 0x3a4757, map: streak.col, roughness: 1, roughnessMap: streak.rough, metalness: 0, transparent: true, depthWrite: false, ior: 1.31,
        normalMap: streak.normal, normalScale: new THREE.Vector2(.2, .2), clearcoat: .25, clearcoatRoughness: .08,
-       specularIntensity: 1, envMapIntensity: 1.25, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
+       specularIntensity: 1, envMapIntensity: .75, attenuationColor: new THREE.Color(0xa9acb1), attenuationDistance: 3.2});
   const iceMesh = new THREE.Mesh(iceGeo, iceM); if (lite) iceMesh.visible = false; /* mode léger : seulement le certificat, le bloc reste invisible (sert au survol) */
   /* relief de glace fissurée (texture photo) : en couche de base ; les stries/cuvettes passent dans le vernis */
   let nsBase = .2, iceTexL = null, applyWireTex = null;
@@ -2707,7 +2707,7 @@ async function openGlassRun(c0, forceLite){
   /* « trou » dans la glace : là où on casse, la glace devient claire et laisse voir le certificat */
   /* ---- taille de la glace : chaque clic creuse (attribut « carve » par sommet), on peut tout enlever, puis la glace se reconstruit par plaques ---- */
   const PC = iceGeo.attributes.position, carve = new Float32Array(PC.count), cDelay = new Float32Array(PC.count), carveA = new THREE.BufferAttribute(carve, 1);
-  carveA.setUsage(THREE.DynamicDrawUsage); iceGeo.setAttribute("carve", carveA); if (!lite) iceM.side = THREE.DoubleSide;
+  carveA.setUsage(THREE.DynamicDrawUsage); iceGeo.setAttribute("carve", carveA); /* glace opaque sans réfraction (bien plus léger) : face avant seulement */
   const carved = new Set(); let lastDig = -9, rebuilding = false, rebT = 0;
   const densU = {certC: {value: new V3(0, 0, 0)}, certS: {value: new THREE.Vector2(1, 1)}, certU: {value: new V3(1, 0, 0)}, certV: {value: new V3(0, 1, 0)}, certN: {value: new V3(0, 0, 1)}, camL: {value: new V3(0, 0, 10)}};
   if (!lite) iceM.onBeforeCompile = sh => {
@@ -2725,7 +2725,7 @@ async function openGlassRun(c0, forceLite){
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
       .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .76);"))
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.21, .27, .37), vMilk * .7) * (1. - (1. - vClear) * .2); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.21, .27, .37), vMilk * .7) * (1. - (1. - vClear) * .2); gl_FragColor.a = mix(.8, .16, vClear * (1. - vMilk)); float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
   const dig = (hl, dl) => { const r = .8;
     for (let i = 0; i < PC.count; i++) { vT.fromBufferAttribute(PC, i).sub(hl); const tt = vT.dot(dl); if (tt < -r * .6) continue; const d2 = vT.lengthSq() - tt * tt; if (d2 > r * r) continue;
       const f = Math.pow(1 - Math.sqrt(Math.max(0, d2)) / r, 1.2) * (tt > D * .5 ? .8 : 1); if (f <= 0) continue; carve[i] = Math.min(1, carve[i] + .48 * f); carved.add(i); }
@@ -2947,8 +2947,8 @@ async function openGlassRun(c0, forceLite){
   /* ---- couleur de la glace (onglet en haut à droite, mémorisée) ---- */
   let attBase = 1.7; const baseAtt = new THREE.Color(0x8ea6be);
   const setIceColor = hex => { const c = hex ? new THREE.Color(hex) : null;
-    if (c) { iceM.color.setRGB(1, 1, 1).lerp(c, low ? .55 : .3); if (iceM.attenuationColor) iceM.attenuationColor.copy(c); attBase = 1.7; shardM.color.setRGB(1, 1, 1).lerp(c, .35); if (shardM.attenuationColor) shardM.attenuationColor.copy(c); }
-    else { iceM.color.setRGB(.92, .95, 1); if (iceM.attenuationColor) iceM.attenuationColor.copy(baseAtt); attBase = 1.7; shardM.color.setRGB(1, 1, 1); if (shardM.attenuationColor) shardM.attenuationColor.set(0xc4c8cd); }
+    if (c) { iceM.color.set(lite ? 0xffffff : 0x3a4757).lerp(c, low ? .55 : .45); if (iceM.attenuationColor) iceM.attenuationColor.copy(c); attBase = 1.7; shardM.color.setRGB(1, 1, 1).lerp(c, .35); if (shardM.attenuationColor) shardM.attenuationColor.copy(c); }
+    else { iceM.color.set(lite ? 0xe8eef5 : 0x3a4757); if (iceM.attenuationColor) iceM.attenuationColor.copy(baseAtt); attBase = 1.7; shardM.color.setRGB(1, 1, 1); if (shardM.attenuationColor) shardM.attenuationColor.set(0xc4c8cd); }
     ov.querySelector(".ig-colbtn i").style.background = hex || "linear-gradient(135deg,#eef1f4,#9ea3aa)";
     ov.querySelectorAll(".ig-sw").forEach(b => b.classList.toggle("on", (b.dataset.c || "") === (hex || "")));
     try { hex ? localStorage.setItem("bdm-ice-color", hex) : localStorage.removeItem("bdm-ice-color"); } catch (e) {} };
@@ -5512,7 +5512,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-02";
+const APP_VERSION = "2026-10-29-03";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
