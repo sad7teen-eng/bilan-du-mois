@@ -4748,10 +4748,10 @@ function stratCfg(){
   return C;
 }
 /* les anciens champs servent au suivi « respect de la stratégie » : on les garde synchronisés */
-const sUp = x => String(x || "").replace(/\b(fvg|ifvg|ob|obs|bos|choch|mss|sl|tp|rr|ema|sma|poc|vwap|smt|orb|ny|be|eqh|eql|pdh|pdl|ote|hh|ll|hl|lh|rsi|macd|atr|ph|pb)\b/gi, m => m.toUpperCase()).replace(/\b([mhdw])(\d+)\b/gi, (_, a, n) => a.toUpperCase() + n);
+const sUp = x => String(x || "").replace(/\b(fvg|ifvg|ob|obs|bos|choch|mss|sl|tp|rr|ema|sma|poc|vwap|smt|orb|ny|be|eqh|eql|pdh|pdl|ote|hh|ll|hl|lh|rsi|macd|atr|ph|pb)\b/gi, m => m.toUpperCase()).replace(/\b([mhdw])(\d+)\b/gi, (_, a, n) => a.toUpperCase() + n).replace(/\bpoint ([a-dx])\b/gi, (m, a) => "point " + a.toUpperCase());
 const sCap = x => x ? (x.charAt(0).toUpperCase() + x.slice(1)).replace(/\bnew york\b/gi, "New York").replace(/\blondres\b/g, "Londres").replace(/\basie\b/g, "Asie") : x;
 function stratChecklist(C){ const o = [], ex = (C.tfs[C.tfs.length - 1] || {}).tf || "", bt = (C.tfs.find(x => x.role === "bias") || {}).tf || "", z0 = C.zones[0] ? zoneName(C, C.zones[0]) : "ma zone", nm = C.zoneKey === "ob" ? "OB" : "FVG";
-  C.steps.forEach((s, i) => { const L = stratStepLabel(C, s, i), q = {bias: `Biais ${bt} vérifié ?`, mark: C.markKind === "zones" ? `${C.zoneTxt || C.obTxt || "Zones"} repéré${C.zoneN > 1 ? "s" : ""}${bt ? " dans le sens du " + bt : ""} ?` : `${sCap(L.replace(/^Tracer /, ""))} tracé${/^(les |le plus haut et)/.test(L.replace(/^Tracer /, "")) ? "s" : /^la /.test(L.replace(/^Tracer /, "")) ? "e" : ""} ?`,
+  C.steps.forEach((s, i) => { const L = stratStepLabel(C, s, i); if (S_DICT.some(d => d[2] === L) && s !== "bias") { const q2 = `${L} ?`; if (!o.includes(q2)) o.push(q2); return; } const q = {bias: `Biais ${bt} vérifié ?`, mark: C.markKind === "zones" ? `${C.zoneTxt || C.obTxt || "Zones"} repéré${C.zoneN > 1 ? "s" : ""}${bt ? " dans le sens du " + bt : ""} ?` : `${sCap(L.replace(/^Tracer /, ""))} tracé${/^(les |le plus haut et)/.test(L.replace(/^Tracer /, "")) ? "s" : /^la /.test(L.replace(/^Tracer /, "")) ? "e" : ""} ?`,
       wait: `${L} : respecté ?`, trend: "Tendance claire ?", retrace: "Retracement en cours ?", range: "Range bien identifié ?", liq: L === "Second sweep" ? "Second sweep fait ?" : "Liquidité prise ?",
       zone: C.zoneN > 1 ? `Prix revenu dans le ${C.zoneN}e ${nm} ?` : /^Retour /.test(L) ? `Prix revenu ${L.replace(/^Retour /, "")} ?` : `Prix revenu sur ${z0} ?`, refine: `Raffinement en ${ex} fait ?`,
       rebound: `Rejet ${ex}${C.zoneN > 1 ? " dans le " + C.zoneN + "e " + nm : C.isFibo ? " dans la zone" : C.lvlTxt ? " sur le niveau" : ""}, bougie clôturée ?`, break: /^(Shift|Cassure|Breakout|Bougie|Grosse|FVG|OB|Clôture|Casse)/.test(L) ? `${L.replace(/\s+$/, "")} ?` : `Cassure${ex ? " " + ex : ""} validée par une clôture de corps ?`,
@@ -4843,7 +4843,7 @@ function renderStrat(){
             ${kp.length ? `<div class="hero-kpi" style="grid-template-columns:repeat(${kp.length},1fr)">${kp.map(([a, b], i) => `<div class="hl" data-hl="${i + 5}"><small>${a}</small><b>${b}</b></div>`).join("")}</div>` : ""}</div></div></section>
       ${C.steps.length ? `<section class="tile scard s-entry2"><span class="lab2">Déroulé de l'entrée</span><canvas class="sviz" data-viz="seq"></canvas></section>` : ""}
       ${small.map((x, k) => x.replace(`<section class="tile scard">`, `<section class="tile scard" style="grid-column:span ${span(k)}">`)).join("")}
-      ${C.zones.length ? `<section class="tile scard s-zones"><span class="lab2">Zone${C.zones.length > 1 ? "s" : ""}</span><div class="zgrid${C.zones.length === 1 ? " one" : ""}">${C.zones.map(z => `<div><canvas class="sviz" data-viz="zone" data-z="${z}"></canvas><small>${esc(z === C.zoneKey && C.zoneTxt ? C.zoneTxt : z === "lvl" && C.lvlTxt ? C.lvlTxt : SC.zones[z] || z)}</small></div>`).join("")}</div></section>` : ""}
+      ${C.zones.length ? `<section class="tile scard s-zones"><span class="lab2">Zone${C.zones.length > 1 ? "s" : ""}</span><div class="zgrid${C.zones.length === 1 ? " one" : ""}">${C.zones.map(z => `<div><canvas class="sviz" data-viz="zone" data-z="${z}"></canvas><small>${esc(zoneName(C, z))}</small></div>`).join("")}</div></section>` : ""}
       ${stratReal(C)}
       ${C.comment ? `<section class="tile scard s-com"><span class="lab2">Note</span><p class="stxt">${esc(C.comment)}</p></section>` : ""}
     </div>`;
@@ -4901,6 +4901,48 @@ const S_ST = [["trend", /\b((?<!ligne de )(?<!ligne de la )tendance|(?<!trend ?)
   ["pattern", /\b(double (top|bottom|sommet|creux|fond)|epaule.?tete.?epaule|tete.?epaules?|h ?& ?s|triangle|drapeau|flag|fanion|biseau|wedge|figure chartiste|tasse avec anse|inside day|trois (sommets|creux|poussees)|three drives|compression|reste (entierement )?dans celle)\b/],
   ["entry", /\b(je prends|je rentre|j'entre|je achete|j'achete|je vends|j'ouvre|je place (mon|un) ordre|ordre limite|prendre position|je prends position|prends un (long|short)|entree|je suis le mouvement)\b/]];
 /* on ne lit pas le déroulé dans les phrases qui parlent du stop ou de la cible */
+/* ---------- Lexique trading : tout ce qu'un trader peut écrire (ICT / SMC, Wyckoff, figures, chandeliers, indicateurs, harmoniques, sessions…) ---------- */
+/* type : pattern | signal | liq | break | retrace | range | trend = étape du déroulé ; Z = zone seulement */
+const S_DICT = [
+  [/\bspring\b/, "liq", "Spring"], [/\b(utad|upthrust)\b/, "liq", "UTAD / Upthrust"], [/\bturtle soup\b/, "liq", "Turtle soup"], [/\bjudas( swing)?\b/, "liq", "Judas swing"], [/\b(power of 3|po3|amd)\b/, "pattern", "Power of 3 (AMD)"],
+  /* figures chartistes */
+  [/\bbart( simpson)?\b/, "pattern", "Bart Simpson"], [/\btasse( avec anse)?|cup (and|&) handle\b/, "pattern", "Tasse avec anse"], [/\b(fond|creux|sommet) arrondi|rounding (bottom|top)\b/, "pattern", "Formation arrondie"],
+  [/\bile (de )?retournement|island reversal\b/, "pattern", "Île de retournement"], [/\bdiamant|diamond\b/, "pattern", "Diamant"], [/\b(biseau|wedge) (montant|ascendant|rising)\b/, "pattern", "Biseau montant"], [/\b(biseau|wedge) (descendant|falling)\b/, "pattern", "Biseau descendant"],
+  [/\bfanion|pennant\b/, "pattern", "Fanion"], [/\brectangle\b/, "pattern", "Rectangle"], [/\b(elargissement|broadening|megaphone)\b/, "pattern", "Élargissement"], [/\b(quasimodo|qm)\b/, "pattern", "Quasimodo"],
+  [/\bdead cat( bounce)?\b/, "pattern", "Dead cat bounce"], [/\bv (reversal|shape)|retournement en v\b/, "pattern", "Retournement en V"], [/\btriple (top|bottom|sommet|creux|fond)\b/, "pattern", "Triple top / bottom"],
+  [/\b(epaule.?tete.?epaule|tete.?epaules?|h ?& ?s|ete) inverse\w*\b/, "pattern", "ETE inversée"], [/\btriangle (ascendant|montant)\b/, "pattern", "Triangle ascendant"], [/\btriangle (descendant)\b/, "pattern", "Triangle descendant"], [/\btriangle symetrique\b/, "pattern", "Triangle symétrique"],
+  [/\bcanal (haussier|ascendant|montant)\b/, "pattern", "Canal haussier"], [/\bcanal (baissier|descendant)\b/, "pattern", "Canal baissier"], [/\bgap (d'epuisement|de fuite|de rupture|commun)|exhaustion gap|breakaway gap\b/, "pattern", "Gap (type)"],
+  /* harmoniques / vagues */
+  [/\bgartley\b/, "pattern", "Gartley"], [/\b(bat|chauve.?souris)\b(?! ?signal)/, "pattern", "Bat"], [/\bbutterfly|papillon\b/, "pattern", "Butterfly"], [/\bcrab|crabe\b/, "pattern", "Crab"], [/\bshark|requin\b/, "pattern", "Shark"], [/\bcypher\b/, "pattern", "Cypher"],
+  [/\babcd\b/, "pattern", "ABCD"], [/\bprz\b|zone de retournement potentiel/, "Z", "PRZ (harmonique)"], [/\bvague 3|onde 3|wave 3\b/, "trend", "Vague 3 (Elliott)"], [/\bvague 5|onde 5|wave 5\b/, "pattern", "Vague 5 (Elliott)"],
+  [/\b(correction |vague )?abc\b|\bzig.?zag\b/, "retrace", "Correction ABC"], [/\belliott\b/, "pattern", "Vagues d'Elliott"], [/\bwolfe\b/, "pattern", "Vagues de Wolfe"],
+  /* chandeliers */
+  [/\bpin ?bar|marteau|hammer|etoile filante|shooting star\b/, "signal", "Pin bar"], [/\binside bar|bougie interieure\b/, "pattern", "Inside bar"], [/\boutside bar|bougie exterieure\b/, "signal", "Outside bar"],
+  [/\bdoji\b/, "signal", "Doji"], [/\bmarubozu\b/, "signal", "Marubozu"], [/\betoile du (matin|soir)|morning star|evening star\b/, "signal", "Étoile du matin / soir"], [/\btweezer|pinces?\b/, "signal", "Tweezer"],
+  [/\btrois soldats|three (white )?soldiers|trois corbeaux|three (black )?crows\b/, "signal", "3 soldats / 3 corbeaux"], [/\bharami\b/, "signal", "Harami"], [/\bpiercing|avalement|dark cloud|nuage noir\b/, "signal", "Avalement"],
+  /* ICT / SMC */
+  [/\bcisd\b|change in state of delivery/, "break", "CISD"], [/\bdisplacement|deplacement\b/, "break", "Displacement"], [/\binducement|idm\b/, "liq", "Inducement"], [/\bmss\b|market structure shift/, "break", "MSS"],
+  [/\bmmxm|market maker (buy|sell) model|mmbm|mmsm\b/, "pattern", "Market maker model"], [/\bunicorn\b/, "pattern", "Unicorn (breaker + FVG)"], [/\b2022 model|modele 2022\b/, "pattern", "Modèle 2022 (ICT)"], [/\bvenom\b/, "pattern", "Venom"],
+  [/\bsibi|bisi\b/, "Z", "SIBI / BISI"], [/\bbpr|balanced price range\b/, "Z", "BPR"], [/\bconsequent encroachment|50 % du fvg|milieu du fvg\b/, "Z", "CE (50 % du FVG)"], [/\bnwog|ndog|new (week|day) opening gap|gap d'ouverture (hebdo|de la semaine|du jour)\b/, "Z", "NWOG / NDOG"],
+  [/\b(ifvg|inversion fvg|fvg inverse\w*)\b/, "Z", "Inversion FVG"], [/\brejection block|bloc de rejet\b/, "Z", "Rejection block"], [/\bpropulsion block\b/, "Z", "Propulsion block"], [/\bvacuum block|liquidity void|vide de liquidite\b/, "Z", "Vide de liquidité"],
+  [/\bmitigation( block)?|bloc de mitigation\b/, "Z", "Mitigation block"], [/\bflip( zone)?|zone de flip\b/, "Z", "Flip zone"], [/\bpoi\b|point of interest|point d'interet\b/, "Z", "POI"], [/\bipda\b/, "Z", "Range IPDA"], [/\bcbdr\b|central bank dealers range/, "range", "CBDR"],
+  [/\b(kill ?zones?|killzones?)\b/, "Z", "Killzone"], [/\bflout\b/, "range", "Flout"], [/\brun on stops|run de liquidite|raid\b/, "liq", "Raid de liquidité"], [/\binternal liquidity|liquidite interne\b/, "Z", "Liquidité interne"], [/\bexternal liquidity|liquidite externe\b/, "Z", "Liquidité externe"],
+  [/\bdealing range|range de travail\b/, "range", "Dealing range"], [/\bswing failure|sfp\b/, "liq", "Swing failure (SFP)"], [/\blrlr|low resistance liquidity run\b/, "trend", "LRLR"],
+  /* Wyckoff */
+  [/\bwyckoff\b/, "pattern", "Schéma Wyckoff"], [/\baccumulation\b/, "range", "Accumulation"], [/\bdistribution\b/, "range", "Distribution"], [/\b(sos|sign of strength|signe de force)\b/, "break", "SOS (signe de force)"],
+  [/\b(sow|sign of weakness|signe de faiblesse)\b/, "break", "SOW (signe de faiblesse)"], [/\b(lps|last point of support|lpsy)\b/, "retrace", "LPS / LPSY"], [/\b(creek|ice|glace)\b/, "Z", "Creek / Ice"], [/\b(selling climax|buying climax)\b/, "pattern", "Climax"],
+  /* indicateurs */
+  [/\b(croisement|cross) (de |des )?(ema|mm|sma|moyennes)|golden cross|death cross\b/, "signal", "Croisement de moyennes"], [/\bkeltner\b/, "Z", "Canal de Keltner"], [/\bdonchian\b/, "Z", "Canal de Donchian"],
+  [/\bbollinger\b/, "signal", "Bandes de Bollinger"], [/\bsqueeze\b/, "signal", "Squeeze"], [/\badx\b/, "signal", "ADX"], [/\batr\b/, "signal", "ATR"], [/\bparabolic|sar\b/, "signal", "Parabolic SAR"], [/\bsupertrend\b/, "signal", "Supertrend"],
+  [/\bichimoku|kumo|nuage\b/, "Z", "Nuage Ichimoku"], [/\btenkan|kijun|chikou\b/, "signal", "Ichimoku (tenkan / kijun)"], [/\bstoch\w*\b/, "signal", "Stochastique"], [/\bcci\b/, "signal", "CCI"], [/\bwilliams|%r\b/, "signal", "Williams %R"], [/\bobv|cvd|on balance volume\b/, "signal", "OBV / CVD"],
+  [/\b(vwap ancre|anchored vwap|avwap)\b/, "Z", "VWAP ancré"], [/\bbandes? (de )?vwap|vwap bands?\b/, "Z", "Bandes VWAP"], [/\bhvn|lvn|noeud de volume\b/, "Z", "HVN / LVN"], [/\bvah|val\b/, "Z", "VAH / VAL"], [/\bcamarilla\b/, "Z", "Pivots Camarilla"],
+  [/\bheikin\w*\b/, "signal", "Heikin Ashi"], [/\brenko\b/, "signal", "Renko"], [/\babsorption\b/, "signal", "Absorption"], [/\bimbalance (acheteuse|vendeuse|order ?flow)|footprint\b/, "signal", "Footprint / order flow"], [/\bdelta\b/, "signal", "Delta"], [/\bdivergence cachee|hidden divergence\b/, "signal", "Divergence cachée"],
+  /* sessions, temps, autres méthodes */
+  [/\b(premiere|1ere) bougie (de |des )?(15|5|30) ?min\w*|first (15|5)( |-)?min\w* candle\b/, "range", "Première bougie de la session"], [/\bopening range breakout\b/, "break", "Opening range breakout"], [/\blondon breakout|cassure de londres\b/, "break", "London breakout"],
+  [/\bturtle breakout|donchian 20|cassure des 20\b/, "break", "Turtle breakout"], [/\bmean reversion|retour a la moyenne\b/, "retrace", "Retour à la moyenne"], [/\bgap fill|comblement de gap\b/, "retrace", "Comblement de gap"],
+  [/\bnews trading|trader la news|straddle\b/, "signal", "Trading de news"], [/\bcorrelation|dxy|yields?\b/, "signal", "Corrélation (DXY / taux)"], [/\bsaisonnalite|seasonality\b/, "signal", "Saisonnalité"],
+  [/\bgrid|grille\b/, "pattern", "Grille"], [/\bscalp\w*\b/, "signal", "Scalping"], [/\bpyramid\w*\b/, "signal", "Pyramidage"]
+];
 const sStrip = t => t.replace(/\bavec [^.,;]* comme (cible|objectif)/g, " ").replace(/\b(pas de trade|je ne trade pas|je trade pas) (si|quand) [^.;]*/g, " ").replace(/\b(si|quand) [^.;]{3,60}(pas de trade|je ne trade pas)/g, " ").replace(/\b(sl|tp|stop loss|take profit|cible|objectif|je vise|vise)\b[^.;]*?(?=[.;]|,\s(?!\d)|$)/g, " ");
 function stratParse(A){
   const C = {market: "XAUUSD", marketOther: "", side: "both", tfs: [], bias: "none", misalign: "none", zones: [], steps: [], stepTxt: [], trigger: "", risk: "", rrMin: "", rrTarget: "", partial: "", sl: "", tp: [], be: false, ifs: [], sessions: [], sessCtx: [], maxTrades: "", rules: [], ruleTxt: [], windows: [], comment: "", desc: A};
@@ -4945,6 +4987,7 @@ function stratParse(A){
   /* zones (sans les phrases du stop / de la cible) */
   const z = sStrip((A.zones || "").trim() ? T("zones") : ALL); C.zones = S_ZN.filter(([, r]) => r.test(z)).map(([k]) => k);
   if (C.zones.includes("brk")) C.zones = C.zones.filter(k => k !== "ob" && k !== "sr");
+  S_DICT.forEach(([r, ty, lb]) => { if (ty === "Z" && r.test(z) && !C.zones.includes("x:" + lb)) C.zones.push("x:" + lb); });
   { const all = [...ALL.matchAll(/\b(2|deux|3|trois)\s+(fvg|ifvg|ob|obs|order ?blocks?|zones?|imbalances?)\s*(h\d+|m\d+|d1|w1)?\s*(empil\w*|consecutifs?|successifs?|d'affilee|qui se suivent|alignes?)?/g)], mz = all.find(x => x[4] && x[3]) || all.find(x => x[4]) || all[0];
     if (mz && (mz[4] || /\b(empil\w*|consecuti\w*|successi\w*)\b/.test(ALL))) { C.zoneN = sNum(mz[1]); C.zoneKey = /fvg|imbalance/.test(mz[2]) ? "fvg" : /^ob|order/.test(mz[2]) ? "ob" : (C.zones[0] || "fvg"); if (!C.zones.includes(C.zoneKey)) C.zones.unshift(C.zoneKey);
       C.zoneTf = (mz[3] || "").toUpperCase(); C.zoneTxt = `${C.zoneN} ${C.zoneKey === "ob" ? "OB" : "FVG"}${C.zoneTf ? " " + C.zoneTf : ""} empilés`; } }
@@ -4958,15 +5001,16 @@ function stratParse(A){
   S_ST.forEach(([k, r]) => { const rg = new RegExp(r.source, "g"); let mm; while ((mm = rg.exec(q))) { if (negAt(q, mm.index)) continue;
     if (k === "refine") { const tfm = q.slice(mm.index, mm.index + 30).match(/\b(m|h)\d+\b/); if (tfm && lastTF && tfm[0].toUpperCase() !== lastTF && !/raffin|affin/.test(mm[0])) continue; }
     marks.push([mm.index, k, mm[0]]); } });
+  S_DICT.forEach(([r, ty, lb]) => { if (ty === "Z") return; const rg = new RegExp(r.source, "g"); let mm; while ((mm = rg.exec(q))) { if (negAt(q, mm.index)) continue; const dup = marks.find(x => Math.abs(x[0] - mm.index) < 4 && x[1] === ty); if (dup) dup[3] = lb; else marks.push([mm.index, ty, mm[0], lb]); } });
   marks.sort((a, b2) => a[0] - b2[0]); const ent = marks.filter(x => x[1] === "entry").map(x => x[0]); let st = [], stx = [], sti = [];
   const dbl = /\b(second|deuxieme|double) sweep|\bpuis celle de l'autre|dernier sweep/.test(q);
-  marks.forEach(([i0, k, txt]) => { if (k === "entry") return;
+  marks.forEach(([i0, k, txt, dlb]) => { if (k === "entry") return;
     if (k === "zone" && st.includes("zone") && ent.some(e => Math.abs(e - i0) < 45)) return; /* « j'entre dans l'OB » = l'entrée, pas une 2e zone */
     if (k === "mark" && st.includes("break") && /\b(ob|fvg|order|zone)/.test(txt)) k = "zone"; /* « je repère l'OB de la cassure » = zone d'entrée */
     if (k === "trend" && (st.includes("break") || st.includes("liq") || st.includes("pattern"))) return;
-    if (k === "range" && st[st.length - 1] === "pattern") return;
+    if (k === "range" && st.includes("pattern")) return;
     const ctx = q.slice(i0, i0 + 64).split(/[,.;:]| puis | et je | et une? | et revien| avec /)[0].trim();
-    const again = (k === "liq" && dbl && st.filter(x => x === "liq").length < 2) || (k === "signal" && !stx.includes(fix(ctx))) || k === "zone";
+    const again = (k === "liq" && dbl && st.filter(x => x === "liq").length < 2) || (k === "signal" && !stx.includes(dlb || sCap(fix(ctx)))) || k === "zone";
     if ((st[st.length - 1] === k && !(again && k !== "zone")) || (st.includes(k) && !again)) return;
     const PAT = [[/trois|three/, "Trois poussées"], [/inside|reste/, "Inside day"], [/compression|se resserre/, "Compression"], [/triangle/, "Triangle"], [/double (top|sommet)/, "Double top"], [/double/, "Double bottom"], [/epaule|tete/, "Épaule-tête-épaule"], [/drapeau|flag|fanion/, "Drapeau"], [/biseau|wedge/, "Biseau"]];
     let lb = txt.trim(); if (k === "pattern") lb = (PAT.find(([r]) => r.test(txt)) || [0, sCap(fix(txt.trim()))])[1];
@@ -4977,9 +5021,10 @@ function stratParse(A){
     else if (k === "zone") { const nn = (txt.match(/\b(ob|obs|fvg|vwap|ema|gap|ote|order|bloc|poi|support|resistance|offre|demande)\b/) || [])[1]; if (nn) lb = "Retour " + (/\bdans\b/.test(txt) ? "dans " : "sur ") + ({ob: "l'OB", obs: "les OB", fvg: "le FVG", vwap: "le VWAP", ema: "l'EMA", gap: "le gap", ote: "l'OTE", order: "l'OB", bloc: "l'OB", poi: "le POI", support: "le support", resistance: "la résistance", offre: "l'offre", demande: "la demande"})[nn]; }
     else if (k === "liq" && st.includes("liq")) lb = /dernier/.test(txt) ? "Dernier sweep" : "Second sweep";
     if (k === "wait" && /fenetre/.test(txt)) lb = "";
+    if (dlb) lb = dlb;
     if (k === "zone" && st[st.length - 1] === "rebound" && i0 - sti[sti.length - 1] < 45) { st.splice(st.length - 1, 0, k); stx.splice(stx.length - 1, 0, lb); sti.splice(sti.length - 1, 0, i0); return; }
     st.push(k); stx.push(lb); sti.push(i0);
-    if (k === "signal" && !C.trigger) C.trigger = fix(ctx).toUpperCase(); if (k === "pattern" && !C.patTxt) C.patTxt = lb.toUpperCase(); if (k === "wait" && !C.waitTxt) C.waitTxt = fix(ctx.replace(/^(a |j'attends? |attends? |attendre )/, "")).toUpperCase(); });
+    if (k === "signal" && !C.trigger) C.trigger = (dlb || fix(ctx)).toUpperCase(); if (k === "pattern" && !C.patTxt) C.patTxt = lb.toUpperCase(); if (k === "wait" && !C.waitTxt) C.waitTxt = fix(ctx.replace(/^(a |j'attends? |attends? |attendre )/, "")).toUpperCase(); });
   const mk = marks.find(x => x[1] === "mark");
   C.markKind = !mk ? "" : /\b(fvg|ob|obs|order|zones?|imbalances?)\b/.test(mk[2]) && st.includes("mark") ? "zones" : /liquidit|range|plus hauts? et|plus haut ou/.test(q.slice(mk[0], mk[0] + 60)) ? "liq" : "level";
   if (C.markKind === "level" && /gap|ecart/.test(mk[2])) { C.lvlTxt = C.gapTxt || "GAP"; C.lvlPhrase = "le " + (C.gapTxt || "gap").toLowerCase(); }
@@ -5056,6 +5101,7 @@ function stratParse(A){
   return C;
 }
 const stratStepLabel = (C, s, i) => { const tx = C.stepTxt && i != null ? C.stepTxt[i] : "", ex = (C.tfs[C.tfs.length - 1] || {}).tf || "";
+  if (tx && S_DICT.some(d => d[2] === tx)) return tx;
   if ((s === "signal" || s === "other" || s === "pattern" || s === "wait" || s === "break" || (s === "zone" && /^Retour /.test(tx) && !C.isFibo) || (s === "liq" && /sweep$/.test(tx))) && tx) return sCap(s === "wait" ? tx.replace(/^(a |l')/, "") : tx);
   if (s === "wait" && C.windows && C.windows.length) return "Fenêtre " + C.windows.join(" / ");
   if (s === "liq" && C.steps && i != null && C.steps.slice(0, i).includes("liq")) return "Second sweep";
@@ -5064,7 +5110,7 @@ const stratStepLabel = (C, s, i) => { const tx = C.stepTxt && i != null ? C.step
     : s === "rebound" && C.zoneN > 1 ? "Rejet " + ex + " dedans" : s === "mark" ? (C.lvlPhrase ? "Tracer " + C.lvlPhrase : C.lvlTxt ? "Tracer " + C.lvlTxt.toLowerCase().replace("ph / pb", "le plus haut et le plus bas").replace(/^(plus|milieu|gap|fibo|ote)/, "le $1").replace(/^(ouverture)/, "l'$1").replace(/^(clôture)/, "la $1") : C.markKind === "liq" ? "Tracer les liquidités" : "Tracer le niveau")
     : s === "rebound" && (C.markKind === "level" || C.lvlTxt) ? "Rejet " + (ex ? ex + " " : "") + (C.isFibo ? "dans la zone" : "sur le niveau") : s === "zone" && C.isFibo ? "Retour dans la zone " + (C.fiboTxt || "").replace(/^(FIBO|OTE) /, "") : s === "zone" && (C.markKind === "level" || (C.lvlTxt && !C.zones.some(z => z === "ob" || z === "fvg"))) ? "Retour sur " + (C.lvlPhrase || "le niveau")
     : s === "zone" && C.zones[0] && C.zones[0] !== "lvl" ? "Retour sur " + zoneName(C, C.zones[0]) : SC.steps[s] || s; };
-const zoneName = (C, z) => z === C.zoneKey && C.zoneTxt ? C.zoneTxt : z === "lvl" && C.lvlPhrase ? sCap(C.lvlPhrase.replace(/^(le |la |les |l')/, "")) : z === "lvl" && C.lvlTxt ? sUp(sCap(C.lvlTxt.toLowerCase())) : z === "fibo" && C.fiboTxt ? C.fiboTxt : z === "gap" && C.gapTxt ? sCap(C.gapTxt.toLowerCase()) : z === "ob" && C.obTxt ? C.obTxt : SC.zones[z] || z;
+const zoneName = (C, z) => /^x:/.test(z) ? z.slice(2) : z === C.zoneKey && C.zoneTxt ? C.zoneTxt : z === "lvl" && C.lvlPhrase ? sCap(C.lvlPhrase.replace(/^(le |la |les |l')/, "")) : z === "lvl" && C.lvlTxt ? sUp(sCap(C.lvlTxt.toLowerCase())) : z === "fibo" && C.fiboTxt ? C.fiboTxt : z === "gap" && C.gapTxt ? sCap(C.gapTxt.toLowerCase()) : z === "ob" && C.obTxt ? C.obTxt : SC.zones[z] || z;
 const stratUnderstood = (C, k) => { const o = [], lc = x => /^[A-Z]{2}/.test(x) ? x : x.charAt(0).toLowerCase() + x.slice(1);
   if (k === "mk") { o.push(C.market === "_" ? C.marketOther || "Autre" : C.market); o.push(SC.side[C.side]); }
   if (k === "tf") C.tfs.forEach(x => o.push(x.tf + " · " + (SC.roles[x.role] || "").toLowerCase()));
@@ -6477,7 +6523,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-50";
+const APP_VERSION = "2026-10-29-52";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
