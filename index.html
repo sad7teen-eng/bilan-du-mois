@@ -2505,7 +2505,7 @@ function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSe
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openGlass(c); }
 /* ===== Certificat : bloc de verre en vraie 3D (WebGL), lumière studio, montant en compteur ===== */
 /* préchargement du bloc de glace : moteur 3D + modèle, lancé dès qu'on approche des certificats */
-function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=2").then(r => r.arrayBuffer()), fetch("studio.hdr?v=1").then(r => r.arrayBuffer()), fetch("ice_n.jpg?v=1")]).catch(() => { window.__igPre = null; }); }
+function igPreload(){ if (window.__igPre) return; window.__igPre = Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js"), import("three/addons/loaders/GLTFLoader.js"), fetch("ice.glb?v=2").then(r => r.arrayBuffer()), fetch("studio.hdr?v=1").then(r => r.arrayBuffer()), fetch("ice_n.jpg?v=1")]).catch(() => { window.__igPre = null; }); }
 document.addEventListener("pointerover", e => { if (e.target.closest && e.target.closest("#certGrid")) igPreload(); }, {passive: true});
 addEventListener("hashchange", () => { if (/cert/.test(location.hash)) setTimeout(igPreload, 800); }); if (/cert/.test(location.hash)) setTimeout(igPreload, 2500);
 /* ouverture : glaçon 3D, ou « plexiglas » léger si l'appareil n'y arrive pas (bascule automatique) */
@@ -2513,7 +2513,8 @@ async function openGlass(c0){
   try { await openGlassRun(c0, false); }
   catch (e) { console.warn(e); document.querySelectorAll(".ig").forEach(x => x.remove()); document.body.style.overflow = "";
     try { localStorage.setItem("bdm-ice-lite", "1"); localStorage.removeItem("bdm-ice-try"); } catch (er) {}
-    try { await openGlassRun(c0, true); } catch (e2) { console.warn(e2); document.querySelectorAll(".ig").forEach(x => x.remove()); document.body.style.overflow = ""; } }
+    try { await openGlassRun(c0, true); } catch (e2) { console.warn(e2); document.querySelectorAll(".ig").forEach(x => x.remove()); document.body.style.overflow = "";
+      /* dernier recours : l'image du certificat en grand */ try { lbId = c0.id; $("lbEdit").hidden = false; $("lightImg").src = (imgCache["cert:" + c0.id] || [])[0] || c0.src; $("lightbox").hidden = false; } catch (e3) {} } }
 }
 async function openGlassRun(c0, forceLite){
   const imOf = c => (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2556,7 +2557,7 @@ async function openGlassRun(c0, forceLite){
   const setP = (p, m) => { loadEl.querySelector(".ig-lp").textContent = Math.round(p) + "%"; if (m) loadEl.querySelector(".ig-lm").textContent = m; };
   setP(4, "CHARGEMENT DU MOTEUR 3D");
   let THREE, gsap;
-  try { [THREE, {gsap}] = await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("gsap")]); }
+  try { [THREE, {gsap}] = await Promise.all([import("https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"), import("https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js")]); }
   catch (e) { alive = false; removeEventListener("keydown", onKey, true); fallback(); return; }
   if (!alive) return;
   setP(22, "PRÉPARATION DE LA GLACE"); await tick();
@@ -5511,7 +5512,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-01";
+const APP_VERSION = "2026-10-29-02";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
