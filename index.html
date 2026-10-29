@@ -2951,14 +2951,15 @@ async function openGlassRun(c0, forceLite){
         .to(s.position, {x: o.x, z: o.z, duration: .9, ease: "power1.out"}, 0).to(s.position, {y: p.y + .18 + rnd() * .12, duration: .25, ease: "power2.out"}, 0).to(s.position, {y: p.y - 1.4, duration: .65, ease: "power2.in"}, .25)
         .to(s.rotation, {x: "+=" + (rnd() * 6 - 3), y: "+=" + (rnd() * 6 - 3), duration: .9}, 0).to(s.scale, {x: 0, y: 0, z: 0, duration: .3}, .6); } };
   const burst = (hl, dl) => { dig(hl, dl); chips(hl, dl); S.kick = 1; };
-  const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit && MELT.v < .7) return; addMelt(meltDir * .25); S.kick = .5; ov._sfx && ov._sfx("shard"); };
+  const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit && MELT.v < .7) return; if (meltDir < 0) return; addMelt(.25); S.kick = .5; ov._sfx && ov._sfx("shard"); };
   explore = () => { if (busy) return; const [bx, by] = scr(new V3(0, CB.y, 0), innerWidth, innerHeight); clickAt(bx, by); };
   /* ---- jauge de fonte : la glace fond du haut vers le bas ; à 70 % le certificat est libéré (molette = zoom) ---- */
   const MELT = {v: 0, s: 0, z: 1, zt: 1}; const mFill = ov.querySelector(".ig-mfill"), mPct = ov.querySelector(".ig-mpct");
   const mCol = k => { const a = [111, 168, 220], b = [255, 138, 61]; return `rgb(${a.map((x, i) => Math.round(x + (b[i] - x) * k)).join(",")})`; };
   const addMelt = d => { if (busy) return; const was = MELT.v; MELT.v = Math.max(0, Math.min(1, MELT.v + d)); if (was < .7 && MELT.v >= .7) { ov.classList.add("melted"); ov._sfx && ov._sfx("shard"); } else if (was >= .7 && MELT.v < .7) { ov.classList.remove("melted"); MELT.zt = 1; } };
   let meltDir = 1, holdIce = false; const mBtn = ov.querySelector(".ig-mmode");
-  mBtn.addEventListener("click", e => { e.stopPropagation(); meltDir = -meltDir; mBtn.classList.toggle("rec", meltDir < 0); mBtn.querySelector("span").textContent = meltDir > 0 ? "FONTE" : "RÉCUP."; });
+  const setMode = d => { meltDir = d; mBtn.classList.toggle("rec", d < 0); mBtn.querySelector("span").textContent = d > 0 ? "FONTE" : "RÉCUP."; };
+  mBtn.addEventListener("click", e => { e.stopPropagation(); setMode(meltDir > 0 && MELT.v > 0 ? -1 : 1); });
   mBtn.addEventListener("pointerdown", e => e.stopPropagation());
   cv.addEventListener("pointerdown", e => { ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); holdIce = !!ray.intersectObject(iceMesh, false)[0] || MELT.v >= .7; });
   addEventListener("pointerup", () => { holdIce = false; });
@@ -2969,7 +2970,7 @@ async function openGlassRun(c0, forceLite){
   [[-1, 1, 3], [1, 1, 3], [1, -1, 4]].forEach(([sx, sy, n]) => { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(shardGeos[(i * 3 + n) % shardGeos.length], thawM); m.userData = {sx, sy, ox: .01 + rnd() * .09, oy: .01 + rnd() * .09, s: .02 + rnd() * .035}; m.rotation.set((rnd() - .5) * .3, (rnd() - .5) * .3, rnd() * 6); thaw.add(m); thawBits.push(m); } });
   const placeThaw = () => { const {PW, PH} = cert.userData; thawBits.forEach(m => { const u = m.userData; m.position.set(u.sx * (PW / 2 - u.ox), u.sy * (PH / 2 - u.oy), .085); m.scale.set(u.s, u.s * .75, u.s * .18); }); };
   cert.add(thaw); placeThaw();
-  const stepMelt = dt => { { const k = 1 - Math.max(0, Math.min(1, (MELT.s - .45) / .25)); ptU.k.value *= k; lines.visible = dots.visible = k > .01; }
+  const stepMelt = dt => { if (meltDir < 0) { addMelt(-dt * .4); if (MELT.v <= 0) setMode(1); } { const k = 1 - Math.max(0, Math.min(1, (MELT.s - .45) / .25)); ptU.k.value *= k; lines.visible = dots.visible = k > .01; }
     MELT.s += (MELT.v - MELT.s) * Math.min(1, dt * 2); MELT.z += (MELT.zt - MELT.z) * Math.min(1, dt * 5);
     densU.meltY.value = H / 2 + .9 - MELT.s * (H + 1.6); ov._meltS = MELT.s; ice.scale.setScalar(MELT.z);
     thawM.opacity = Math.max(0, Math.min(.75, (MELT.s - .55) * 3));
@@ -5547,7 +5548,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-09";
+const APP_VERSION = "2026-10-29-10";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
