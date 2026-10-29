@@ -1133,6 +1133,14 @@ html body .tile.s-b3:hover,html body.light .tile.s-b3:hover{transform:none!impor
 body.light #b3fix{--bg:#f4f5f7;--fg:#0b0b0c;--muted:#4d5158;--loss:#e5484d}
 body.instrat{overflow:hidden!important;height:100vh;overscroll-behavior:none}html:has(body.instrat){overflow:hidden!important;overscroll-behavior:none}
 body.instrat .dash{pointer-events:none}body.instrat .dash .vhead,body.instrat .dash .sbar,body.instrat .dash .s-none,body.instrat .dash .tools{pointer-events:auto}
+body.instrat .shead{margin-bottom:0}body.instrat .shead .tools{gap:8px;align-items:center}body.instrat .shead .tools > button{font-size:12px!important;padding:6px 12px!important;min-height:0!important}
+.sdd{position:relative}.sdd-b{display:flex;align-items:center;gap:6px;font-size:12px!important;padding:6px 12px!important}.sdd-b svg{opacity:.7}
+.sdd-m{position:absolute;right:0;top:calc(100% + 6px);min-width:200px;display:flex;flex-direction:column;gap:2px;padding:6px;border-radius:12px;background:rgba(18,19,22,.92);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);z-index:30;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.sdd-m .stab{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;font-size:12.5px;padding:8px 10px!important;border-radius:8px!important;border:0!important;background:transparent!important;color:#ddd!important}
+.sdd-m .stab:hover,.sdd-m .stab.on{background:rgba(255,255,255,.08)!important;color:#fff!important}.sdd-m .stab.add{color:#9a9a9a!important;border-top:1px solid rgba(255,255,255,.08)!important;border-radius:0 0 8px 8px!important}
+.sdd .sren{font-size:12px;padding:6px 10px;width:170px}
+.b3nav,.b3help{transition:opacity .45s ease,transform .45s cubic-bezier(.2,.8,.2,1)}
+@media (hover:hover){#b3fix:not(.navon) .b3nav,#b3fix:not(.navon) .b3help{opacity:0;transform:translateY(14px);pointer-events:none}}
 body.instrat .dash > .savebar,body.instrat #btnTheme{display:none!important}
 .b3c{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}.b3c:active{cursor:grabbing}
 .b3l{position:absolute;inset:0;pointer-events:none;overflow:hidden}
@@ -4942,9 +4950,11 @@ function stratKaelRestore(){ try {
 function renderStrat(){ stratKaelRestore();
   const S = strat(), C = stratCfg(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
   const L = stratList(), act = strat().active;
-  const head = `<header class="top vhead"><div><h1>Stratégie</h1></div>
-      <div class="tools"><button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
-    <div class="sbar">${L.map(x => x.id === act && stratRen ? `<input class="sren" id="sRen" value="${esc(x.name)}" maxlength="28">` : `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}">${esc(x.name)}${x.id === act ? ` <i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle</button></div>`;
+  const cur = L.find(x => x.id === act) || L[0];
+  const head = `<header class="top vhead shead"><div></div>
+      <div class="tools"><div class="sdd">${stratRen ? `<input class="sren" id="sRen" value="${esc(cur.name)}" maxlength="28">` : `<button type="button" class="sdd-b" id="sddB" aria-haspopup="true">${esc(cur.name)}<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>`}
+        <div class="sdd-m" hidden>${L.map(x => `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}"><span>${esc(x.name)}</span>${x.id === act ? `<i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle stratégie</button></div></div>
+        <button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>`;
   if (C.empty || !C.steps.length) {
     b3Remove();
     $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
@@ -4987,11 +4997,12 @@ function renderStrat(){ stratKaelRestore();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
     rn.onkeydown = e => { if (e.key === "Enter") done(true); if (e.key === "Escape") done(false); }; rn.onblur = () => done(true); }
 }
-let stratRen = false;
+let stratRen = false; addEventListener("pointerdown", e => { if (!e.target.closest(".sdd")) document.querySelectorAll(".sdd-m").forEach(m => m.hidden = true); });
 function stratDelete(){ const S = strat(), L = stratList(), k = L.findIndex(x => x.id === S.active);
   if (L.length > 1) { L.splice(k, 1); S.active = L[Math.max(0, k - 1)].id; } else { L[0].cfg = stratBlank(); L[0].name = "Stratégie 1"; }
   S.at = Date.now(); stratSync(); save(); renderStrat(); }
 $("stratView").addEventListener("click", e => { const S = strat();
+  if (e.target.closest("#sddB")) { const m = e.target.closest(".sdd").querySelector(".sdd-m"); m.hidden = !m.hidden; return; }
   if (e.target.closest(".spen")) { stratRen = true; renderStrat(); return; }
   const tb = e.target.closest("[data-sid]"); if (tb && tb.dataset.sid !== S.active) { S.active = tb.dataset.sid; S.at = Date.now(); stratSync(); save(); renderStrat(); return; }
   if (e.target.closest("#sAdd")) { const L = stratList(), id = "s" + Date.now().toString(36); L.push({id, name: "Stratégie " + (L.length + 1), cfg: stratBlank()}); S.active = id; S.at = Date.now(); stratSync(); save(); renderStrat(); openStratDescribe(); } });
@@ -5630,7 +5641,7 @@ function openStratBrain(){
 let brain3 = null;
 /* le cerveau occupe tout l'écran, derrière l'en-tête de la page */
 function b3Container(){ let d = document.getElementById("b3fix"); if (!d) { d = document.createElement("div"); d.id = "b3fix"; d.className = "b3"; document.body.appendChild(d); } return d; }
-function b3Remove(){ if (brain3) { brain3.destroy(); brain3 = null; } const d = document.getElementById("b3fix"); if (d) d.remove(); }
+function b3Remove(){ const h0 = document.getElementById("b3fix"); if (h0 && h0._nv) removeEventListener("mousemove", h0._nv); if (brain3) { brain3.destroy(); brain3 = null; } const d = document.getElementById("b3fix"); if (d) d.remove(); }
 let b3Born = false;
 async function mountBrain3(host, C){
   if (brain3) { brain3.destroy(); brain3 = null; }
@@ -5644,7 +5655,8 @@ async function mountBrain3(host, C){
     <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
     <div class="b3help">GLISSER · ORBITE — MOLETTE OU PINCER · ZOOM — GLISSER UN NŒUD · TIRER — Z · VOLER — DOUBLE-CLIC · RECENTRER</div><aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k"), nav = host.querySelector(".b3nav");
-  { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".sbar"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
+  { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".vhead"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
+  { const nv = e => host.classList.toggle("navon", e.clientY > innerHeight - 170); addEventListener("mousemove", nv); host._nv = nv; }
   if (!THREE) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   let ren; try { ren = new THREE.WebGLRenderer({canvas: cv, antialias: true, alpha: true}); } catch (e) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
   const PR = Math.min(2, devicePixelRatio || 1), weak = (navigator.hardwareConcurrency || 8) <= 4; ren.setPixelRatio(PR); ren.setClearColor(0, 0);
@@ -5751,7 +5763,7 @@ async function mountBrain3(host, C){
   const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls; d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
   const bhM = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 20), new THREE.MeshBasicMaterial({color: 0x000000})); bhM.renderOrder = -1; bhM.visible = false; scene.add(bhM);
   /* easter egg : l'interface est aspirée lettre par lettre par le trou noir */
-  const EAT_SEL = ".topnav, #stratView .vhead, #stratView .sbar, .b3hud, .b3nav, .b3help, .b3info"; let eatWraps = [], eatAnims = [];
+  const EAT_SEL = ".topnav, #stratView .vhead, .b3hud, .b3nav, .b3help, .b3info"; let eatWraps = [], eatAnims = [];
   const eatUI = (on, hx, hy) => { eatAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); eatAnims = [];
     if (on) { const boxes = [...document.querySelectorAll(EAT_SEL)].filter(el => el.offsetParent || el.getClientRects().length), chars = [];
       boxes.forEach(box => { const tw = document.createTreeWalker(box, NodeFilter.SHOW_TEXT, {acceptNode: n => n.nodeValue.trim() && !n.parentElement.closest("input,textarea,script,style") ? 1 : 2}), list = []; while (tw.nextNode()) list.push(tw.currentNode);
@@ -5772,7 +5784,7 @@ async function mountBrain3(host, C){
   secs.forEach(S => { S.kind = "hub"; S.p = S.c; addLab(S, "hub", S.f.label.toUpperCase()).onclick = () => focus(S.i); });
   nodes.forEach(n => addLab(n, "item b3card" + (n.cell.f.key === "trades" ? " tr" : "") + (n.red ? " r" : ""), n.l).onclick = () => show(n));
   /* ---- caméra ---- */
-  const D0 = 2050, st = {th: .5, ph: 1.2, dist: b3Born ? D0 : 420, th0: .5, ph0: 1.2, dist0: D0, tgt: new THREE.Vector3(), tgt0: new THREE.Vector3()}; let focusI = -1, hovS = -1, hovN = null, dragN = null, idle = 0, drag = null; const ptrs = new Map(), mouse = new THREE.Vector2(-9, -9);
+  const D0 = 1620, st = {th: .5, ph: 1.2, dist: b3Born ? D0 : 420, th0: .5, ph0: 1.2, dist0: D0, tgt: new THREE.Vector3(), tgt0: new THREE.Vector3()}; let focusI = -1, hovS = -1, hovN = null, dragN = null, idle = 0, drag = null; const ptrs = new Map(), mouse = new THREE.Vector2(-9, -9);
   let hovCore = false, eaten = false; const pan = new THREE.Vector3(), keys = new Set(), fly = {on: false, pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, locked: false}, helpEl = host.querySelector(".b3help"), helpTxt = helpEl.textContent;
   const flyStart = () => { if (fly.on) return; const d = cam.getWorldDirection(new THREE.Vector3()); fly.on = true; fly.pos.copy(cam.position); fly.vel.set(0, 0, 0); fly.yaw = Math.atan2(d.x, d.z); fly.pitch = Math.asin(Math.max(-1, Math.min(1, d.y))); info.hidden = true;
     try { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} helpEl.textContent = "ZQSD · AVANCER — SOURIS · REGARDER — MAJ · PLUS VITE — ESPACE / CTRL · MONTER / DESCENDRE — ÉCHAP · SORTIR"; };
@@ -7183,7 +7195,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-115";
+const APP_VERSION = "2026-10-29-116";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
