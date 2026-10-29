@@ -773,6 +773,15 @@ body:not(.light) .rt:hover{background:#121212!important}
 .tn-in{max-width:1320px;margin:0 auto;padding:10px 36px;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;align-items:center;gap:8px}
 .tn-tabs{display:flex;gap:2px;min-width:0}
 .tn-tabs:first-child{justify-content:flex-end}
+/* barre du haut : reflet lumineux qui suit la souris sur le bord + soulignement animé au survol */
+.tn-in{position:relative}
+.tn-glow{position:absolute;left:24px;right:24px;top:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07) 12%,rgba(255,255,255,.07) 88%,transparent);opacity:.9}
+.tn-glow::before{content:"";position:absolute;inset:0;background:radial-gradient(150px 1.5px at var(--mx,50%) 50%,rgba(255,255,255,.95),rgba(255,255,255,.35) 40%,transparent 100%);opacity:var(--mo,0);transition:opacity .4s}
+.tn-glow::after{content:"";position:absolute;left:0;right:0;top:-6px;height:14px;background:radial-gradient(120px 7px at var(--mx,50%) 50%,rgba(255,255,255,.18),transparent 70%);opacity:var(--mo,0);transition:opacity .4s;filter:blur(2px)}
+.tn{position:relative}
+.tn::after{content:"";position:absolute;left:50%;bottom:2px;width:0;height:1.5px;border-radius:2px;background:#ff5a4f;transform:translateX(-50%);transition:width .3s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 6px rgba(255,90,79,.6)}
+.tn:hover::after{width:calc(100% - 22px)}
+.tn:hover{color:#fff}
 .tn{display:inline-flex;align-items:center;gap:7px;border:0!important;background:transparent!important;color:var(--muted);font-size:13px;padding:7px 11px!important;border-radius:9px!important;white-space:nowrap}
 .tn svg{width:15px;height:15px;flex:none}
 .tn:hover{color:var(--fg)}
@@ -916,6 +925,9 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 @keyframes czPulse{50%{opacity:.35}}
 .cz-x{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:18px;width:42px;height:42px;padding:0!important;border-radius:50%!important;display:grid;place-items:center;background:rgba(255,255,255,.08)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important;cursor:pointer}
 .cz.out{background:rgba(0,0,0,0)!important;backdrop-filter:none!important}.cz.out .cz-fig,.cz.out .cz-go,.cz.out .cz-dl{opacity:0;transition:opacity .3s}
+#certFrost,#certHaze{position:fixed;pointer-events:none;z-index:-1;opacity:0;transition:opacity 1.2s}#certFrost{inset:0;width:100%;height:100%}
+#certHaze{left:50%;top:48%;width:120vmax;height:120vmax;border-radius:50%;transform:translate(-50%,-50%) scale(.15);background:radial-gradient(circle,rgba(150,190,255,.09),rgba(150,190,255,.035) 35%,transparent 62%)}
+body.incerts #certModal{position:relative;z-index:2}
 #certEggs{position:fixed;inset:0;z-index:1;pointer-events:none;display:none}body.incerts #certEggs{display:block}
 #certEggs svg{width:100%;height:100%}#certEggs .egg-l{stroke:rgba(255,255,255,.16);stroke-width:1}#certEggs .egg-x{stroke:rgba(255,255,255,.5);stroke-width:1}#certEggs .egg-d{fill:rgba(255,255,255,.55)}
 /* ---------- La vitrine du certificat ---------- */
@@ -1912,7 +1924,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 </aside>
 <div class="scene" aria-hidden="true"><div class="orb o1"><i></i></div><div class="orb o2"><i></i></div><div class="floor"></div></div>
 <nav class="topnav" aria-label="Pages">
-  <div class="tn-in">
+  <div class="tn-in"><span class="tn-glow" aria-hidden="true"></span>
     <div class="tn-tabs"><button type="button" class="tn" data-view="tableau"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v9H4zM13 4h7v5h-7zM13 11h7v9h-7zM4 15h7v5H4z"/></svg><span>Tableau</span></button><button type="button" class="tn" data-view="resultats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 2.5v4M16 2.5v4"/></svg><span>Résultats</span></button><button type="button" class="tn" data-view="certs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="14" r="6"/><path d="M9 3h6l-2 5h-2z"/></svg><span>Certificats</span></button></div>
     <div class="tn-brand">Kael<b>Journal</b></div>
     <div class="tn-tabs"><button type="button" class="tn" data-view="strategie"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Stratégie</span></button><button type="button" class="tn" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V13M9.5 20V7M15 20v-9M20.5 20V4"/></svg><span>Analytics</span></button><button type="button" class="tn" data-view="graphique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4v3M6 15v5M18 3v4M18 13v6M12 7v2M12 17v3"/><rect x="4" y="7" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="8" rx="1"/><rect x="16" y="7" width="4" height="6" rx="1"/></svg><span>Graphique</span></button></div>
@@ -2528,6 +2540,11 @@ function layoutDeck(){
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openCertZoom(c); }
+/* reflet de la barre du haut qui suit la souris */
+(() => { const g = document.querySelector(".tn-glow"); if (!g) return; let raf = 0, x = 0, near = 0;
+  addEventListener("pointermove", e => { const r = g.getBoundingClientRect(); x = e.clientX - r.left; near = Math.max(0, 1 - Math.max(0, e.clientY - r.top - 30) / 260);
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; g.style.setProperty("--mx", x + "px"); g.style.setProperty("--mo", near.toFixed(2)); }); }, {passive: true});
+  document.addEventListener("pointerleave", () => g.style.setProperty("--mo", 0)); })();
 /* clic sur un certificat : d'abord un zoom (télécharger / lancer l'animation), l'animation 3D ensuite */
 function openCertZoom(c){
   const im = (imgCache["cert:" + c.id] || [])[0] || c.src; if (!im) { certEdit = {...c}; drawCerts(); return; }
@@ -2552,6 +2569,25 @@ function openCertZoom(c){
       a.href = u; a.download = nm + "." + ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
     catch (er) { window.open(im, "_blank"); } b.classList.remove("busy"); };
 }
+/* givre qui se propage lentement depuis le centre (derrière les certificats) tant qu'on reste sur la page */
+(() => { const cv = document.createElement("canvas"), haze = document.createElement("div"); cv.id = "certFrost"; haze.id = "certHaze"; (document.getElementById("certModal") || document.body).prepend(haze, cv);
+  const g = cv.getContext("2d"); let tips = [], on = false, t0 = 0, last = 0, budget = 0, segs = 0, W = 0, H = 0, cx = 0, cy = 0, R = 0;
+  const start = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; cx = W / 2; cy = H * .48; R = Math.hypot(W, H) * .55; g.clearRect(0, 0, W, H); tips = []; segs = 0; budget = 0; t0 = performance.now();
+    const n = 7, a0 = Math.random() * 6.3; for (let i = 0; i < n; i++) tips.push({x: cx, y: cy, a: a0 + i * Math.PI * 2 / n + (Math.random() - .5) * .3, len: 400, d: 0}); };
+  addEventListener("resize", () => { if (on) start(); });
+  const grow = t => { const s = 2.2 + Math.random() * 1.6, nx = t.x + Math.cos(t.a) * s, ny = t.y + Math.sin(t.a) * s;
+    g.strokeStyle = `rgba(${t.d ? "175,205,245" : "200,225,255"},${[.26, .15, .09, .06][t.d]})`; g.lineWidth = t.d ? .6 : .9; g.beginPath(); g.moveTo(t.x, t.y); g.lineTo(nx, ny); g.stroke();
+    t.x = nx; t.y = ny; t.a += (Math.random() - .5) * (t.d ? .22 : .1); t.len--; segs++;
+    if (t.d < 3 && Math.random() < (t.d ? .05 : .09)) tips.push({x: nx, y: ny, a: t.a + (Math.random() < .5 ? 1 : -1) * Math.PI / 3 * (.85 + Math.random() * .3), len: Math.max(8, t.len * (.25 + Math.random() * .25)), d: t.d + 1});
+    return t.len > 0 && Math.hypot(nx - cx, ny - cy) < R; };
+  const tick = now => { requestAnimationFrame(tick); const inC = document.body.classList.contains("incerts");
+    if (!inC) { if (on) { on = false; cv.style.opacity = 0; haze.style.opacity = 0; } return; }
+    if (!on) { on = true; start(); last = now; cv.style.opacity = 1; haze.style.opacity = 1; }
+    const dt = Math.min(.1, (now - last) / 1000); last = now; if (document.querySelector(".ig,.cz") || document.hidden) return;
+    const el = (now - t0) / 1000; haze.style.transform = `translate(-50%,-50%) scale(${Math.min(1, .15 + el / 200)})`;
+    budget += dt * (28 + Math.min(40, el * .4)); let k = 0;
+    while (budget >= 1 && tips.length && segs < 9000 && k++ < 200) { budget--; const i = Math.floor(Math.random() * Math.min(tips.length, 40)); if (!grow(tips[i])) tips.splice(i, 1); } };
+  requestAnimationFrame(tick); })();
 /* petits « easter eggs » sur la page noire des certificats : quelques constellations discrètes qui dérivent et fuient la souris */
 (() => { const NS = "http://www.w3.org/2000/svg", host = document.createElement("div"); host.id = "certEggs"; host.innerHTML = `<svg></svg>`; document.body.appendChild(host);
   const svg = host.firstChild, groups = [[.88, .16, 5, 90], [.9, .84, 4, 70], [.07, .88, 4, 60], [.12, .2, 3, 50]], pts = [];
@@ -5601,7 +5637,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-14";
+const APP_VERSION = "2026-10-29-16";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
