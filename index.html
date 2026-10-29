@@ -5613,7 +5613,7 @@ async function mountBrain3(host, C){
   const pMat = new THREE.ShaderMaterial({uniforms: U, transparent: true, depthWrite: false, blending: blend,
     vertexShader: GLC + `attribute float aS, aD, aZ; varying vec3 vC; varying float vA;
       void main(){ int s = int(aS + .5); vec3 o = position; if (s == 7) o *= 1. + .12 * sin(uT * 1.3) + .05 * sin(uT * 3.1 + aD * 9.);
-        vec3 p = s == 7 ? mix(vec3(0.), o, clamp(uBirth * 6., 0., 1.)) : place(s, o, aD); vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
+        vec3 p = s == 7 ? uCen[7] + mix(vec3(0.), o, clamp(uBirth * 6., 0., 1.)) : place(s, o, aD); vec4 mv = modelViewMatrix * vec4(p, 1.); gl_Position = projectionMatrix * mv;
         float coc = clamp(abs(-mv.z - uFD) / uFD, 0., 1.5), flick = .65 + .35 * sin(uT * (1. + aD * 2.) + aD * 40.);
         gl_PointSize = max(1., aZ * (1. + coc * 1.6) * uScale / -mv.z * 1.9);
         float flash = s == 7 ? 1. : 1. + 2.5 * exp(-pow((uBirth - .12 - aD * .3) * 9., 2.));
@@ -5657,7 +5657,7 @@ async function mountBrain3(host, C){
   scene.add(new THREE.Points(ug, glowMat)); const pulses = [];
   /* ---- étiquettes ---- */
   const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls; d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
-  const coreN = {kind: "core", p: new THREE.Vector3()}; addLab(coreN, "core", sname);
+  const coreN = {kind: "core", p: new THREE.Vector3(), vel: new THREE.Vector3(), drag: false}, ORG = new THREE.Vector3(); addLab(coreN, "core", sname);
   secs.forEach(S => { S.kind = "hub"; S.p = S.c; addLab(S, "hub", S.f.label.toUpperCase()).onclick = () => focus(S.i); });
   nodes.forEach(n => addLab(n, "item b3card" + (n.cell.f.key === "trades" ? " tr" : "") + (n.red ? " r" : ""), n.l).onclick = () => show(n));
   /* ---- caméra ---- */
@@ -5670,16 +5670,16 @@ async function mountBrain3(host, C){
   const pickNode = (x, y) => { let best = null, bd = 16; nodes.forEach(n => { const s = proj(n.p); if (s[2] > 1) return; const d = Math.hypot(s[0] - x, s[1] - y); if (d < bd) { bd = d; best = n; } }); return best; };
   const pickSec = (x, y) => { let best = -1, bd = 1e9; secs.forEach(S => { const s = proj(S.c), rr = S.r * U.uScale.value / PR / Math.max(1, cam.position.distanceTo(S.c)), d = Math.hypot(s[0] - x, s[1] - y); if (s[2] < 1 && d < rr * .9 && d < bd) { bd = d; best = S.i; } }); return best; };
   cv.addEventListener("pointerdown", e => { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); idle = 0;
-    const n = pickNode(x, y); if (n && ptrs.size === 1) { dragN = n; n.drag = true; } drag = {x: e.clientX, y: e.clientY, moved: false}; });
+    const cs0 = proj(coreN.p), onCore = Math.hypot(cs0[0] - x, cs0[1] - y) < 34, n = onCore ? coreN : pickNode(x, y); if (n && ptrs.size === 1) { dragN = n; n.drag = true; } drag = {x: e.clientX, y: e.clientY, moved: false}; });
   cv.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; mouse.set(x, y); idle = 0;
-    if (!ptrs.has(e.pointerId)) { hovN = pickNode(x, y); hovS = hovN ? hovN.sec.i : pickSec(x, y); cv.style.cursor = hovN ? "grab" : hovS >= 0 ? "pointer" : ""; return; }
+    if (!ptrs.has(e.pointerId)) { hovN = pickNode(x, y); hovS = hovN ? hovN.sec.i : pickSec(x, y); { const cs1 = proj(coreN.p); cv.style.cursor = hovN || Math.hypot(cs1[0] - x, cs1[1] - y) < 34 ? "grab" : hovS >= 0 ? "pointer" : ""; } return; }
     const pr = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4) drag.moved = true;
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(60, Math.min(3200, st.dist0 * d1 / d2)); return; }
     if (dragN) { const ndc = new THREE.Vector3(x / W() * 2 - 1, -(y / H()) * 2 + 1, .5).unproject(cam).sub(cam.position).normalize(), pl = new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()), dragN.p), hit = new THREE.Vector3();
       if (new THREE.Ray(cam.position, ndc).intersectPlane(pl, hit)) dragN.p.copy(hit); return; }
     st.th0 -= (e.clientX - pr[0]) * .006; st.ph0 = Math.max(.25, Math.min(2.9, st.ph0 - (e.clientY - pr[1]) * .006)); });
   cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
-    if (dragN) { dragN.drag = false; if (!drag.moved) show(dragN); dragN = null; } else if (drag && !drag.moved) { const s = pickSec(x, y); if (s >= 0) focus(s); } drag = null; });
+    if (dragN) { dragN.drag = false; if (!drag.moved && dragN !== coreN) show(dragN); dragN = null; } else if (drag && !drag.moved) { const s = pickSec(x, y); if (s >= 0) focus(s); } drag = null; });
   cv.addEventListener("pointerleave", () => { mouse.set(-9, -9); hovN = null; hovS = -1; });
   cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0; st.dist0 = Math.max(60, Math.min(3200, st.dist0 * (e.deltaY > 0 ? 1.12 : 1 / 1.12))); }, {passive: false});
   cv.addEventListener("dblclick", () => focus(-1));
@@ -5697,7 +5697,8 @@ async function mountBrain3(host, C){
     const t = (now - t0) / 1000, dt = Math.min(.05, t - lastT); lastT = t; fr++; idle += dt; U.uT.value = t;
     const bu = Math.min(1, (t - birthT0) / 5); U.uBirth.value = bu;
     /* forces : les sections respirent, dérivent, se repoussent */
-    secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(a.home).sub(a.c).multiplyScalar(.5);
+    if (!coreN.drag) { coreN.vel.addScaledVector(coreN.p, -dt * 9).multiplyScalar(.9); coreN.p.addScaledVector(coreN.vel, dt * 3); } U.uCen.value[7].copy(coreN.p);
+    secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(a.home).add(coreN.p).sub(a.c).multiplyScalar(coreN.drag || coreN.p.lengthSq() > 4 ? 1.6 + (a.ph % 1) * 1.6 : .5);
       secs.forEach(b => { if (a === b) return; const d = a.c.clone().sub(b.c), Ld = d.length() || 1, m = a.r + b.r + 80; if (Ld < m) f.add(d.multiplyScalar((m - Ld) / Ld * 6)); });
       a.v.add(f.multiplyScalar(dt)).multiplyScalar(.93); a.c.add(a.v.clone().multiplyScalar(dt * 1.5)); a.br = 1 + .08 * Math.sin(t * .55 + a.ph * 3); U.uCen.value[a.i].copy(a.c); U.uBr.value[a.i] = a.br; });
     U.uHot.value = hovN ? hovN.sec.i : focusI >= 0 ? focusI : hovS; { const h = U.uHot.value, k = Math.min(1, dt * 3.2);
@@ -5707,7 +5708,7 @@ async function mountBrain3(host, C){
       links.forEach(l => { if (l.a === n || l.b === n) { const o = l.a === n ? l.b : l.a, d = A2.copy(o.p).sub(n.p), Ld = d.length(); if (Ld > 140) f.addScaledVector(d, (Ld - 140) / Ld * (o.drag ? 3 : .6)); } });
       n.vel.addScaledVector(f, dt).multiplyScalar(.86); n.p.addScaledVector(n.vel, dt * 4); });
     /* caméra */
-    if (focusI < 0 && idle > 4 && !ptrs.size) st.th0 += .00056; st.tgt0.copy(focusI >= 0 ? secs[focusI].c : coreN.p);
+    if (focusI < 0 && idle > 4 && !ptrs.size) st.th0 += .00056; st.tgt0.copy(focusI >= 0 ? secs[focusI].c : ORG);
     st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * (bu < 1 ? .025 : .06); st.tgt.lerp(st.tgt0, .06);
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt); U.uFD.value = st.dist;
     /* liens qui travaillent */
@@ -5735,7 +5736,7 @@ async function mountBrain3(host, C){
     /* nœuds lumineux */
     nodes.forEach((n, k) => { nPos.set([n.p.x, n.p.y, n.p.z], k * 3); const c = n.red ? new THREE.Color(dark ? "#ff6b8a" : "#c0284e") : n.sec.col, ip = pathChain.indexOf(n), lit = ip >= 0 && pathOn < 3.5 ? Math.max(0, 1 - Math.abs(pathOn * 3 - ip) / 1.5) : 0;
       const gk = dark ? Math.min(1, .25 + G[n.sec.i] * .75) : 1; nCol.set([c.r * gk, c.g * gk, c.b * gk], k * 3); nSz[k] = (n.cell.f.key === "trades" ? 16 : 26) * grow * (1 + lit * .8 + (n === hovN ? .6 : 0)) * (nb && !nb.has(n) ? .7 : 1); });
-    const kc = nodes.length; nPos.set([0, 0, 0], kc * 3); nCol.set([white.r, white.g, white.b], kc * 3); nSz[kc] = 46 * (1 + .15 * Math.sin(t * 1.3)) * Math.min(1, bu * 5);
+    const kc = nodes.length; nPos.set([coreN.p.x, coreN.p.y, coreN.p.z], kc * 3); nCol.set([white.r, white.g, white.b], kc * 3); nSz[kc] = 46 * (1 + .15 * Math.sin(t * 1.3)) * Math.min(1, bu * 5);
     ng.attributes.position.needsUpdate = true; ng.attributes.color.needsUpdate = true; ng.attributes.aZ.needsUpdate = true;
     ren.render(scene, cam);
     if (fr % 5 === 0) kTxt.textContent = (combos += Math.floor((2 + Math.random() * 6) * (idle < 2 ? 3 : 1))).toLocaleString("fr-FR") + " combinaisons explorées";
@@ -7027,7 +7028,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-77";
+const APP_VERSION = "2026-10-29-78";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
