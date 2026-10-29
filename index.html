@@ -938,7 +938,7 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 /* boutons du zoom : même style que les onglets du haut (verre clair, texte simple) */
 .cz-btn,.cz-get{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500}
 .cz-btn{padding:11px 16px!important;border-radius:11px!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.35)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(20,25,35,.3);transition:background .25s,border-color .25s,transform .28s cubic-bezier(.2,.8,.2,1)}
-.cz-btn:hover{background:rgba(255,255,255,.24)!important;border-color:rgba(255,255,255,.55)!important;transform:scale(1.03)}.cz-dlb{box-sizing:border-box}.cz-dlb,.cz-dlb:hover{cursor:default;transform:none!important;background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.35)!important}
+.cz-btn:hover{background:rgba(255,255,255,.24)!important;border-color:rgba(255,255,255,.55)!important;transform:scale(1.03)}.cz-dlb{box-sizing:border-box}.cz-dlb.busy{opacity:.55;pointer-events:none}.cz-dlb,.cz-dlb:hover{cursor:pointer;transform:none!important;background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.35)!important}
 .cz-get{padding:10px 14px!important;border-radius:10px!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border:1px solid rgba(255,255,255,.4)!important}
 .liq{position:relative;overflow:hidden;isolation:isolate;transition:color .45s ease .1s,border-color .45s!important}
 .liq::before,.liq::after{content:"";position:absolute;left:0;right:0;top:100%;height:calc(100% + 16px);z-index:-1;pointer-events:none;transition:top .9s cubic-bezier(.2,.8,.2,1);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='14' viewBox='0 0 80 14'%3E%3Cpath d='M0 7 Q20 0 40 7 T80 7 V14 H0Z'/%3E%3C/svg%3E") 0 0/80px 14px repeat-x,linear-gradient(#000,#000) 0 13px/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='14' viewBox='0 0 80 14'%3E%3Cpath d='M0 7 Q20 0 40 7 T80 7 V14 H0Z'/%3E%3C/svg%3E") 0 0/80px 14px repeat-x,linear-gradient(#000,#000) 0 13px/100% 100% no-repeat;animation:liqWave 1.4s linear infinite}
@@ -2777,8 +2777,8 @@ function openCertZoom(c){
   ov.innerHTML = `<button type="button" class="cz-x" aria-label="Fermer">✕</button>
     <div class="cz-row"><figure class="cz-fig"><img alt="Certificat ${esc(c.firm || "")}" src="${im}"></figure>
       <div class="cz-side">
-        <div class="cz-dd open"><div class="cz-btn cz-dlb liq"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span></div>
-          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div><button type="button" class="cz-get liq">Télécharger</button></div></div></div>
+        <div class="cz-dd open"><div class="cz-btn cz-dlb liq" role="button" tabindex="0"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span></div>
+          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div></div></div></div>
         <button type="button" class="cz-btn cz-go" aria-label="Lancer l'animation" title="Lancer l'animation"><svg class="cz-ice" viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
   <defs><linearGradient id="czIceG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f9ff" stop-opacity=".95"/><stop offset=".45" stop-color="#b9cfe8" stop-opacity=".55"/><stop offset="1" stop-color="#7d98b8" stop-opacity=".75"/></linearGradient><linearGradient id="czIceF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#cfe2f7" stop-opacity=".25"/></linearGradient></defs><g class="cz-cube"><path d="M15.5 40 12 32.5l.8-14.2 3.6-5.6 3.4.9 1.6-3.4 2.9 1.6 3.4-5.8 2.4 2.3 3.2-.6 2.2 5.1.4 13.5-2.2 10.2-4.6 2.6-7.4.2z" fill="url(#czIceG)"/><path d="M16.4 12.7 23.6 16.4l9.3-4.5-2.2-5.1-3.2.6-2.4-2.3-3.4 5.8-2.9-1.6-1.6 3.4-3.4-.9z" fill="url(#czIceF)" stroke="none"/>
     <path d="M16.4 12.7 23.6 16.4l9.3-4.5M23.6 16.4l-.8 25.4M16.4 12.7l-.9 27.3" stroke-width="1.1" opacity=".7"/>
@@ -2798,7 +2798,7 @@ function openCertZoom(c){
   ov.querySelector(".cz-x").onclick = close; ov.addEventListener("click", e => { if (e.target === ov || e.target.classList.contains("cz-row")) close(); });
   ov.querySelector(".cz-go").onclick = () => { close(); setTimeout(() => openGlass(c), 200); };
   const dd = ov.querySelector(".cz-dd"), dlb = ov.querySelector(".cz-dlb"), pimg = ov.querySelector(".cz-prev img"); makeCertShare(im).then(u => { pimg.src = u; });
-  ov.querySelector(".cz-get").onclick = async e => { e.stopPropagation(); const b = e.currentTarget; b.classList.add("busy"); const src = await makeCertShare(im);
+  dlb.onclick = async e => { e.stopPropagation(); const b = e.currentTarget; b.classList.add("busy"); const src = await makeCertShare(im);
     const nm = ("certificat-" + (c.firm || "") + "-" + (c.date || "")).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
     try { const blob = await (await fetch(src)).blob(), ext = (blob.type.split("/")[1] || "png").replace("jpeg", "jpg"), u = URL.createObjectURL(blob), a = document.createElement("a");
       a.href = u; a.download = nm + "." + ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
@@ -7131,7 +7131,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-108";
+const APP_VERSION = "2026-10-29-109";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
