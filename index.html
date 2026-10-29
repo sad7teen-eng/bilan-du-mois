@@ -1153,6 +1153,7 @@ body.instrat .dash > .savebar{display:none!important}
 .swin{width:min(640px,100%);max-height:calc(100vh - 32px);display:flex;flex-direction:column;background:rgba(18,19,22,.92);border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;animation:swIn .25s ease}
 @keyframes swIn{from{opacity:0;transform:translateY(10px) scale(.98)}}
 .swin header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 20px 10px}.swin header small{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:#8b8b8b}.swin h2{margin:4px 0 0;font-size:22px;letter-spacing:-.01em}
+.swin.qz{animation:qzIn .38s cubic-bezier(.2,.8,.2,1)}.swin.qz.back{animation:qzBk .38s cubic-bezier(.2,.8,.2,1)}@keyframes qzIn{from{opacity:0;transform:translateX(26px)}}@keyframes qzBk{from{opacity:0;transform:translateX(-26px)}}.swc em{font-family:var(--mono)}.qzed{background:none!important;border:0!important;color:#8b8b8b!important;font:inherit;font-size:10px;letter-spacing:.1em;cursor:pointer;margin-left:8px;text-decoration:underline;padding:0}
 .swbar{height:2px;background:rgba(255,255,255,.08);margin:0 20px}.swbar i{display:block;height:100%;background:#fff;transition:width .3s}
 .swbody{padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
 .swh{margin:0;color:#8b8b8b;font-size:12.5px}
@@ -4872,13 +4873,13 @@ function renderStrat(){ stratKaelRestore();
   const S = strat(), C = stratCfg(), mk = C.market === "_" ? (C.marketOther || "Autre") : C.market;
   const L = stratList(), act = strat().active;
   const head = `<header class="top vhead"><div><h1>Stratégie</h1></div>
-      <div class="tools"><button type="button" id="stratDescB">Décrire ma stratégie</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
+      <div class="tools"><button type="button" id="stratDescB">${C.empty || !C.steps.length ? "Décrire ma stratégie" : "Modifier ma stratégie"}</button><button type="button" class="go" id="stratEditB">Ajuster</button></div></header>
     <div class="sbar">${L.map(x => x.id === act && stratRen ? `<input class="sren" id="sRen" value="${esc(x.name)}" maxlength="28">` : `<button type="button" class="stab${x.id === act ? " on" : ""}" data-sid="${x.id}">${esc(x.name)}${x.id === act ? ` <i class="spen" title="Renommer">✎</i>` : ""}</button>`).join("")}<button type="button" class="stab add" id="sAdd">+ Nouvelle</button></div>`;
   if (C.empty || !C.steps.length) {
     b3Remove();
     $("stratView").innerHTML = head + `<div class="sgrid sg2"><section class="tile s-none"><h2>Pas encore de stratégie</h2>
-      <p>Expliquez comment vous tradez, en quelques phrases ou à la voix. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
-    $("stratDescB2").onclick = () => openStratDescribe();
+      <p>7 écrans de choix rapides, environ 5 minutes. Le site construit le cerveau de votre stratégie.</p><button type="button" class="brbtn" id="stratDescB2"><i></i>Décrire ma stratégie</button></section></div>`;
+    $("stratDescB2").onclick = () => openStratQuiz();
   } else if (window.__stratClassic !== true) {
     $("stratView").innerHTML = head;
     mountBrain3(b3Container(), C);
@@ -4912,7 +4913,7 @@ function renderStrat(){ stratKaelRestore();
   }
   if ($("brainOpen")) { $("brainOpen").onclick = () => openStratBrain(); $("brainPrev").onclick = () => openStratBrain(); }
   $("stratEditB").onclick = () => openStratWizard();
-  $("stratDescB").onclick = () => openStratDescribe();
+  $("stratDescB").onclick = () => openStratQuiz();
   const rn = $("sRen"); if (rn) { rn.focus(); rn.select(); const done = ok => { if (!stratRen) return; stratRen = false; if (ok && rn.value.trim()) { stratEntry().name = rn.value.trim(); strat().at = Date.now(); save(); } renderStrat(); };
     rn.onkeydown = e => { if (e.key === "Enter") done(true); if (e.key === "Escape") done(false); }; rn.onblur = () => done(true); }
 }
@@ -5244,6 +5245,105 @@ function openStratDescribe(){
       const ta = ov.querySelector("#dsTxt"), base = ta.value ? ta.value.replace(/\s*$/, " ") : ""; rec = new SR(); rec.lang = "fr-FR"; rec.continuous = true; rec.interimResults = true;
       rec.onresult = ev => { let s = ""; for (let r = 0; r < ev.results.length; r++) s += ev.results[r][0].transcript; ta.value = base + s; upd(); };
       rec.onend = () => { b.classList.remove("on"); rec = null; }; try { rec.start(); b.classList.add("on"); } catch (er) { rec = null; } } });
+  addEventListener("keydown", function kd(e){ if (!document.body.contains(ov)) return removeEventListener("keydown", kd); if (e.key === "Escape") close(); });
+  draw();
+}
+
+/* ---------- Questionnaire stratégie : une section par écran, des puces, 5 minutes ---------- */
+const QZ = [
+  {id: "id", t: "Identité", q: [
+    {k: "name", l: "Nom de la stratégie", text: "ex. Kael H4 / M15"},
+    {k: "assets", l: "Actifs tradés", m: 1, o: ["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "NAS100", "US30", "SPX500", "DAX", "BTCUSD", "ETHUSD"]},
+    {k: "style", l: "Style", o: ["Scalping", "Intraday", "Swing"]}]},
+  {id: "fund", t: "Fondamental & biais", q: [
+    {k: "bias", l: "Comment je construis mon biais", m: 1, o: ["Structure HTF", "Macro", "News", "Saisonnalité", "Corrélations", "DXY", "Taux US", "Sentiment", "Pas de biais"]},
+    {k: "newsMode", l: "Les annonces", o: ["Je les évite", "Je les trade", "Je ne regarde pas"]},
+    {k: "news", l: "Lesquelles", m: 1, o: ["NFP", "CPI", "FOMC", "PPI", "Chômage", "PMI", "Discours Fed", "PIB"]}]},
+  {id: "tech", t: "Technique", q: [
+    {k: "htf", l: "Unités de temps hautes (HTF)", m: 1, o: ["MN", "W1", "D1", "H4", "H1"]},
+    {k: "ltf", l: "Unités de temps basses (LTF)", m: 1, o: ["H1", "M30", "M15", "M5", "M1"]},
+    {k: "concepts", l: "Concepts", m: 1, o: ["Structure", "BOS / CHoCH", "Liquidité", "FVG", "Order block", "Breaker", "Fibo", "Offre / Demande", "Support / Résistance", "VWAP", "Moyennes mobiles", "RSI", "Volume profile", "Range Asie"]}]},
+  {id: "entry", t: "Entrées", q: [
+    {k: "triggers", l: "Déclencheurs (dans l'ordre)", m: 1, ord: 1, o: ["Prise de liquidité", "Cassure de structure", "Retour en zone", "Rejet de zone", "Retest", "Pin bar / avalement", "Cassure de range", "Signal indicateur"]},
+    {k: "confirm", l: "Confirmations", m: 1, o: ["Clôture de corps", "Alignement des UT", "Volume", "Divergence", "Aucune"]},
+    {k: "order", l: "Type d'ordre", m: 1, o: ["Market", "Limite", "Stop"]}]},
+  {id: "risk", t: "Gestion du risque", q: [
+    {k: "risk", l: "Risque par trade", o: ["0,25 %", "0,5 %", "1 %", "2 %"]},
+    {k: "rr", l: "RR visé", o: ["1:1,5", "1:2", "1:3", "1:5+"]},
+    {k: "sl", l: "Placement du SL", o: ["Sous la mèche", "Derrière la zone", "Derrière la structure", "ATR", "Fixe"]},
+    {k: "manage", l: "TP et gestion", m: 1, o: ["TP à RR fixe", "Liquidité opposée", "Partiels", "Break-even à 1R", "Stop suiveur"]}]},
+  {id: "sess", t: "Sessions & horaires", q: [
+    {k: "sessions", l: "Sessions tradées", m: 1, o: ["Asie", "Londres", "New York AM", "New York PM"]},
+    {k: "banned", l: "Heures interdites", m: 1, o: ["Avant 8h", "Pause déjeuner", "Après 17h", "La nuit", "Vendredi après-midi", "Lundi matin"]}]},
+  {id: "psy", t: "Psychologie & règles", q: [
+    {k: "max", l: "Trades max par jour", o: ["1", "2", "3", "Illimité"]},
+    {k: "afterLoss", l: "Après une perte", o: ["J'arrête la journée", "Je réduis le risque", "Je fais une pause", "Je continue"]},
+    {k: "noTrade", l: "Je ne trade pas si…", m: 1, o: ["Fatigué", "Émotionnel", "Pas de setup clair", "Grosse annonce", "Après 2 pertes", "Objectif atteint"]}]}
+];
+/* les réponses deviennent des phrases, lues par le même moteur que la description libre */
+function quizToDesc(a){
+  const j = (x, s) => (x || []).join(s || ", "), low = x => (x || []).map(y => y.toLowerCase()), A = {}, has = (k, v) => (a[k] || []).includes(v);
+  A.mk = [j(a.assets), a.style ? a.style.toLowerCase() : ""].filter(Boolean).join(", ");
+  const htf = a.htf || [], ltf = a.ltf || [], b0 = htf[0] || "";
+  A.tf = [htf.length ? j(htf, " et ") + " pour le biais" : "", ltf.length ? j(ltf, " et ") + " pour entrer" : ""].filter(Boolean).join(", ");
+  const bo = low((a.bias || []).filter(x => x !== "Structure HTF")); A.bias = has("bias", "Pas de biais") ? "pas de biais" : has("bias", "Structure HTF") ? "biais " + b0 + " sur la structure" + (bo.length ? ". Je regarde aussi " + j(bo) : "") : bo.length ? "biais " + b0 + " : " + j(bo) : "";
+  const zmap = {"Liquidité": "liquidité", "FVG": "FVG", "Order block": "order block", "Breaker": "breaker block", "Fibo": "fibo 50 %", "Offre / Demande": "offre et demande", "Support / Résistance": "support et résistance", "VWAP": "VWAP", "Moyennes mobiles": "moyenne mobile", "Volume profile": "volume profile", "Range Asie": "range asie", "RSI": "RSI"};
+  A.zones = (a.concepts || []).filter(x => zmap[x]).map(x => zmap[x]).join(" et ");
+  const tmap = {"Prise de liquidité": "prise de liquidité", "Cassure de structure": "cassure de structure" + (ltf[ltf.length - 1] ? " " + ltf[ltf.length - 1] : "") + (has("confirm", "Clôture de corps") ? " avec clôture de corps" : ""), "Retour en zone": "retour dans la zone", "Rejet de zone": "rejet de la zone", "Retest": "retest", "Pin bar / avalement": "pin bar", "Cassure de range": "cassure du range", "Signal indicateur": "signal RSI"};
+  A.seq = [...(a.triggers || []).map(x => tmap[x]), "j'entre" + ((a.order || []).length ? " en ordre " + j(low(a.order), " ou ") : "")].join(", ");
+  const rr = a.rr ? a.rr.replace("1:", "").replace("+", "").replace(",", ".") : "";
+  const slm = {"Sous la mèche": "SL sous la mèche", "Derrière la zone": "SL derrière la zone", "Derrière la structure": "SL derrière la structure", "ATR": "SL ATR", "Fixe": "SL fixe"};
+  const mg = {"TP à RR fixe": rr ? "TP " + rr + "R" : "", "Liquidité opposée": "TP sur la liquidité opposée", "Partiels": "partiels", "Break-even à 1R": "BE à 1R", "Stop suiveur": "stop suiveur"};
+  A.risk = [a.risk ? "risque " + a.risk : "", rr ? "RR " + rr : "", slm[a.sl] || "", ...(a.manage || []).map(x => mg[x]).filter(Boolean), a.afterLoss === "Je réduis le risque" ? "si je perds je divise le risque par 2" : ""].filter(Boolean).join(", ");
+  const sm = {"Asie": "Asie", "Londres": "Londres", "New York AM": "New York", "New York PM": "New York après-midi"};
+  A.rules = [j((a.sessions || []).map(x => sm[x])), a.max && a.max !== "Illimité" ? a.max + " trade" + (a.max === "1" ? "" : "s") + " max par jour" : "", a.newsMode === "Je les évite" ? "pas de trade pendant les annonces" + ((a.news || []).length ? " (" + j(a.news) + ")" : "") : "",
+    has("banned", "La nuit") ? "pas la nuit" : "", a.afterLoss === "J'arrête la journée" ? "stop après une perte" : "", ...(a.noTrade || []).filter(x => x !== "Grosse annonce").map(x => "pas de trade si " + x.toLowerCase())].filter(Boolean).join(". ");
+  const X = {id: "mk", fund: "bias", tech: "zones", entry: "seq", risk: "risk", sess: "rules", psy: "rules"};
+  Object.entries(X).forEach(([s, k]) => { const ex = String(a["_" + s] || "").trim(); if (ex) A[k] = [A[k], ex].filter(Boolean).join(", "); });
+  return A;
+}
+function openStratQuiz(){
+  const old = stratCfg(), E = stratEntry(); let a = JSON.parse(JSON.stringify(old.quiz || {})); if (!a.name && E.name && !/^Stratégie \d+$/.test(E.name)) a.name = E.name;
+  let i = -1, ck = null, dir = 1;
+  const ov = document.createElement("div"); ov.className = "swz swq"; document.body.appendChild(ov); document.body.style.overflow = "hidden";
+  const chip = (q, v) => { const on = q.m ? (a[q.k] || []).includes(v) : a[q.k] === v, n = q.ord && on ? (a[q.k] || []).indexOf(v) + 1 : 0; return `<button type="button" class="swc${on ? " on" : ""}" data-qk="${q.k}" data-qv="${esc(v)}">${n ? `<em>${n}</em> ` : ""}${esc(v)}</button>`; };
+  const filled = s => s.q.some(q => q.text ? String(a[q.k] || "").trim() : q.m ? (a[q.k] || []).length : a[q.k]);
+  const draw = () => {
+    if (i < 0) { ov.innerHTML = `<div class="swin"><header><div><small>STRATÉGIE</small><h2>Construisons votre stratégie</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
+      <div class="swbody"><p class="swh">7 écrans, surtout des choix à cocher. Environ 5 minutes. Tout reste modifiable ensuite.</p>
+        <button type="button" class="swb go" id="qzStart">Commencer</button><button type="button" class="swb" id="qzNone">Je n'ai pas encore de stratégie</button></div></div>`; return; }
+    if (i >= QZ.length) { const C = stratParse(quizToDesc(a)); if (!ck) ck = stratChecklist(C);
+      ov.innerHTML = `<div class="swin qz${dir > 0 ? "" : " back"}"><header><div><small>RÉCAPITULATIF</small><h2>${esc(a.name || "Votre stratégie")}</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
+      <div class="swbar"><i style="width:100%"></i></div>
+      <div class="swbody">${QZ.map((s, k) => `<div class="swrow"><small>${esc(s.t)} <button type="button" class="qzed" data-qgo="${k}">modifier</button></small><div class="swg">${s.q.map(q => q.text ? (a[q.k] ? [a[q.k]] : []) : q.m ? (a[q.k] || []) : a[q.k] ? [a[q.k]] : []).flat().map(x => `<span class="swk">${esc(x)}</span>`).join("") || `<span class="swh">—</span>`}</div></div>`).join("")}
+        <div class="swrow"><small>Votre checklist · proposée, modifiable · affichée sur le Tableau</small><div class="swck">${ck.map((x, k) => `<div><input class="swi" data-dck="${k}" value="${esc(x)}"><button type="button" class="swx" data-dckrm="${k}">×</button></div>`).join("")}</div>
+          <button type="button" class="swc" id="dsCkAdd">+ Ajouter une ligne</button></div></div>
+      <footer><button type="button" class="swb" id="qzBack">Retour</button><button type="button" class="swb go" id="qzDone">Valider ma stratégie</button></footer></div>`; return; }
+    const s = QZ[i];
+    ov.innerHTML = `<div class="swin qz${dir > 0 ? "" : " back"}"><header><div><small>${i + 1} / ${QZ.length}</small><h2>${esc(s.t)}</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
+      <div class="swbar"><i style="width:${(i + 1) / (QZ.length + 1) * 100}%"></i></div>
+      <div class="swbody">${s.q.map(q => `<div class="swrow"><small>${esc(q.l)}${q.m ? " · plusieurs choix" : ""}</small>${q.text ? `<input class="swi" data-qt="${q.k}" placeholder="${esc(q.text)}" value="${esc(a[q.k] || "")}" maxlength="28">` : `<div class="swg">${q.o.map(v => chip(q, v)).join("")}</div>`}</div>`).join("")}
+        <div class="swrow"><small>Précisions · facultatif</small><textarea class="swi" rows="2" data-qt="_${s.id}" placeholder="Ce que les puces ne disent pas…">${esc(a["_" + s.id] || "")}</textarea></div></div>
+      <footer><button type="button" class="swb" id="qzBack">Retour</button><button type="button" class="swb go" id="qzNext">${filled(s) ? "Suivant" : "Passer"}</button></footer></div>`; };
+  const close = () => { ov.remove(); document.body.style.overflow = ""; };
+  ov.addEventListener("input", e => { const k = e.target.dataset.qt; if (k != null) { a[k] = e.target.value; const nx = ov.querySelector("#qzNext"); if (nx) nx.textContent = filled(QZ[i]) ? "Suivant" : "Passer"; } if (e.target.dataset.dck != null) ck[+e.target.dataset.dck] = e.target.value; });
+  ov.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+    if (b.id === "swClose") return close();
+    if (b.id === "qzStart") { i = 0; dir = 1; return draw(); }
+    if (b.id === "qzNone") { stratSetCfg(Object.assign(stratCfg(), {empty: true})); close(); renderStrat(); return; }
+    if (b.id === "qzBack") { i--; dir = -1; return draw(); }
+    if (b.id === "qzNext") { i++; dir = 1; ck = null; return draw(); }
+    if (b.dataset.qgo != null) { i = +b.dataset.qgo; dir = -1; ck = null; return draw(); }
+    if (b.id === "dsCkAdd") { ck.push(""); return draw(); }
+    if (b.dataset.dckrm != null) { ck.splice(+b.dataset.dckrm, 1); return draw(); }
+    if (b.dataset.qk) { const s = QZ[i], q = s.q.find(x => x.k === b.dataset.qk), v = b.dataset.qv;
+      if (q.m) { let L = a[q.k] || []; L = L.includes(v) ? L.filter(x => x !== v) : [...L, v]; if (q.k === "bias" && v === "Pas de biais" && L.includes(v)) L = [v]; else if (q.k === "bias") L = L.filter(x => x !== "Pas de biais" || v === "Pas de biais"); if (q.k === "confirm" && v === "Aucune" && L.includes(v)) L = [v]; else if (q.k === "confirm") L = L.filter(x => x !== "Aucune" || v === "Aucune"); a[q.k] = L; }
+      else a[q.k] = a[q.k] === v ? "" : v;
+      const row = b.closest(".swg"); row.innerHTML = q.o.map(x => chip(q, x)).join(""); ov.querySelector("#qzNext").textContent = filled(s) ? "Suivant" : "Passer"; return; }
+    if (b.id === "qzDone") { const D = quizToDesc(a), C = stratParse(D); C.desc = D; C.quiz = a; C.comment = old.comment || ""; C.empty = false; C.born = old.born || Date.now(); if ((a.bias || []).includes("Structure HTF")) C.bias = "structure";
+      if (!C.steps.length) C.steps = ["entry"];
+      const L2 = (ck || stratChecklist(C)).map(x => x.trim()).filter(Boolean); if (L2.length) E.checklist = L2; if (a.name && a.name.trim()) E.name = a.name.trim().slice(0, 28);
+      stratSetCfg(C); close(); renderStrat(); return; } });
   addEventListener("keydown", function kd(e){ if (!document.body.contains(ov)) return removeEventListener("keydown", kd); if (e.key === "Escape") close(); });
   draw();
 }
@@ -6864,7 +6964,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-67";
+const APP_VERSION = "2026-10-29-68";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
