@@ -2604,7 +2604,7 @@ function openCertZoom(c){
   ov.innerHTML = `<button type="button" class="cz-x" aria-label="Fermer">✕</button>
     <div class="cz-row"><figure class="cz-fig"><img alt="Certificat ${esc(c.firm || "")}" src="${im}"></figure>
       <div class="cz-side">
-        <div class="cz-dd"><button type="button" class="cz-btn cz-dlb" aria-expanded="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span><svg class="cz-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="cz-dd open"><button type="button" class="cz-btn cz-dlb" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span><svg class="cz-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
           <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>APERÇU</small></div><button type="button" class="cz-get">Télécharger</button></div></div></div>
         <button type="button" class="cz-btn cz-go"><i></i><span>Lancer l'animation</span></button>
       </div></div>`;
@@ -5723,7 +5723,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-22";
+const APP_VERSION = "2026-10-29-23";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
