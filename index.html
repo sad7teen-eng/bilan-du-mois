@@ -940,6 +940,13 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .cz-btn:hover{background:rgba(255,255,255,.24)!important;border-color:rgba(255,255,255,.55)!important;transform:scale(1.03)}
 .cz-get{padding:10px 14px!important;border-radius:10px!important;background:rgba(255,255,255,.9)!important;color:#111!important}
 .cz-prev{border-radius:11px;border-color:rgba(255,255,255,.35)}.cz-prev small{font-family:var(--display);letter-spacing:.04em;text-transform:none}
+.cz-go{justify-content:center;padding:12px!important}.cz-ice{display:block;width:46px!important;height:46px!important;flex:none;filter:drop-shadow(0 0 6px rgba(190,220,255,.35))}
+.cz-ice .cz-cube{transform-origin:24px 30px;animation:czCube 3.2s ease-in-out infinite}
+.cz-ice .cz-melt{transform-origin:24px 36px;animation:czMelt 3.2s ease-in-out infinite}
+.cz-ice .cz-drop{animation:czDrop 3.2s ease-in infinite}
+@keyframes czCube{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.86)}}
+@keyframes czMelt{0%,100%{transform:scaleX(.8);opacity:.35}50%{transform:scaleX(1.15);opacity:.8}}
+@keyframes czDrop{0%,40%{transform:translateY(-3px);opacity:0}50%{opacity:.9}85%{transform:translateY(2px);opacity:0}100%{opacity:0}}
 @media (max-width:760px){.cz-row{flex-direction:column}.cz-side{flex:none;width:100%}}
 /* barre du haut sur le fond gris de la page Certificats : textes clairs et lisibles, onglet actif en verre */
 body.incerts.certbg .topnav .tn{color:rgba(255,255,255,.82)!important;text-shadow:0 1px 6px rgba(20,25,35,.35)}
@@ -2612,7 +2619,11 @@ function openCertZoom(c){
       <div class="cz-side">
         <div class="cz-dd open"><button type="button" class="cz-btn cz-dlb" aria-expanded="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span><svg class="cz-chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
           <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div><button type="button" class="cz-get">Télécharger</button></div></div></div>
-        <button type="button" class="cz-btn cz-go"><i></i><span>Lancer l'animation</span></button>
+        <button type="button" class="cz-btn cz-go" aria-label="Lancer l'animation" title="Lancer l'animation"><svg class="cz-ice" viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+  <g class="cz-cube"><path d="M24 5 36 11.5v12L24 30 12 23.5v-12z" fill="rgba(255,255,255,.08)"/><path d="M12 11.5 24 18l12-6.5M24 18v12"/><path d="M15.5 14l5 2.7M17 9.8l4.4-2.3" opacity=".55"/></g>
+  <path class="cz-melt" d="M11 36.5c2.5-1.6 5-1.8 7.5-.9 2 .7 3.8 1.2 5.5 1.2 2 0 3.6-.8 5.6-1.4 2.6-.7 5.2-.2 7.4 1.1" stroke-width="1.6"/>
+  <path class="cz-drop" d="M30 31.5c0 0-1.6 2-1.6 3a1.6 1.6 0 0 0 3.2 0c0-1-1.6-3-1.6-3z" fill="currentColor" stroke="none"/>
+</svg></button>
       </div></div>`;
   document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const fig = ov.querySelector(".cz-fig"), img = fig.querySelector("img");
@@ -5729,7 +5740,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-26";
+const APP_VERSION = "2026-10-29-27";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
