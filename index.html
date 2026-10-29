@@ -1997,15 +1997,14 @@ section.view[data-view="resultats"].venter #btnPlay{animation:popIn .6s .8s cubi
 /* ===== v67 : salle des certificats (fond noir) + trophée en verre ===== */
 body.incerts{background:#000!important}
 body.incerts .scene{opacity:0;transition:opacity .5s}
-body.incerts.certin .scene{opacity:1!important;transition:none}body.incerts.certin{background:transparent!important}body.incerts.certin::before{opacity:0!important}
-body.certin #certBg{opacity:0!important;transition:none}body.certin #certEggs{opacity:0}#certBg{transition:opacity .9s ease}
 .cfl{display:inline-block}
-#certFog{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-#certFog i{position:absolute;width:75vmax;height:75vmax;margin:-37.5vmax 0 0 -37.5vmax;border-radius:50%;background:radial-gradient(circle,rgba(154,159,167,1) 0%,rgba(154,159,167,.92) 35%,rgba(170,175,183,.5) 55%,rgba(154,159,167,0) 70%);filter:blur(30px);opacity:0;animation:fogIn 1.05s cubic-bezier(.3,.6,.25,1) forwards}
-#certFog b{position:absolute;inset:0;background:#9a9fa7;opacity:0;animation:fogFill .5s .65s ease-in forwards}
-@keyframes fogIn{0%{opacity:0;transform:translate(0,0) scale(.5)}35%{opacity:1}100%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(1.6)}}
+#certFog{position:fixed;inset:0;z-index:9000;pointer-events:none;overflow:hidden}
+#certFog i{position:absolute;width:85vmax;height:60vmax;margin:-30vmax 0 0 -42.5vmax;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(158,163,171,.98) 0%,rgba(165,170,178,.85) 30%,rgba(180,185,192,.45) 52%,rgba(160,165,173,0) 70%);filter:blur(26px);opacity:0;animation:fogIn 1.7s cubic-bezier(.4,.3,.3,1) forwards}
+#certFog i:nth-child(3n){background:radial-gradient(ellipse at 50% 50%,rgba(205,209,215,.85) 0%,rgba(185,190,197,.6) 35%,rgba(160,165,173,0) 68%)}
+#certFog b{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 50%,#a4a9b0,#8f949b);opacity:0;animation:fogFill .5s 1.25s ease-in forwards}
+@keyframes fogIn{0%{opacity:0;transform:translate(0,0) scale(calc(var(--s) * .6)) rotate(-8deg)}20%{opacity:1}100%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(calc(var(--s) * 1.45)) rotate(6deg)}}
 @keyframes fogFill{to{opacity:1}}
-#certFog.out{transition:opacity 1.1s ease;opacity:0}
+#certFog.out{transition:opacity 1.3s cubic-bezier(.4,0,.2,1),transform 1.3s;opacity:0;transform:scale(1.08)}
 body.incerts::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000)}
 body.incerts .topnav{color:#f2f2f2}
 body.incerts .topnav .tn{color:#8b8b8b}
@@ -4764,7 +4763,11 @@ $("btnCal").onclick = () => $("calSec").scrollIntoView({behavior: reduced ? "aut
 /* ===== Pages : navigation du haut (Tableau, Résultats, Certificats, Stratégie, Analytics) ===== */
 const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graphique", "macro"];
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
+let certFogOn = false;
 function setView(v, keepScroll){
+  if (v === "certs" && !document.body.classList.contains("incerts") && !certFogOn && !matchMedia("(prefers-reduced-motion: reduce)").matches) return certFogCover(() => setView0(v, keepScroll));
+  return setView0(v, keepScroll); }
+function setView0(v, keepScroll){
   if (!VIEWS.includes(v)) v = "tableau";
   /* la planète macro est un calque noir posé par-dessus : on garde la page du dessous affichée */
   const overlay = v === "macro";
@@ -4780,8 +4783,8 @@ function setView(v, keepScroll){
   try { history.replaceState(null, "", "#" + v); } catch(e) {}
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
-  if (v === "certs") { deckIntro = true; if (!document.body.classList.contains("incerts") && !matchMedia("(prefers-reduced-motion: reduce)").matches) { $("certGrid").style.visibility = "hidden"; addEventListener("certfog", () => { if (document.body.classList.contains("incerts")) { $("certGrid").style.visibility = ""; loadCerts(); } }, {once: true}); } else loadCerts(); }
-  if (v === "certs" && !document.body.classList.contains("incerts")) certFogIn();
+  if (v === "certs") { deckIntro = true; loadCerts(); }
+  if (v === "certs" && !document.body.classList.contains("incerts") && certFogOn) certTitleIn();
   document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") b3Remove();
   { let lt = true; try { lt = localStorage.getItem(THEME_KEY) !== "dark"; } catch (e) {} document.body.classList.toggle("light", v === "strategie" ? false : lt); }
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
@@ -5892,16 +5895,17 @@ async function mountBrain3(host, C){
   brain3 = {host, destroy};
 }
 /* ---------- Arrivée sur Certificats : la brume recouvre le fond, le titre se construit ---------- */
-function certFogIn(){ if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const B = document.body; B.classList.add("certin");
-  let f = document.getElementById("certFog"); if (f) f.remove(); f = document.createElement("div"); f.id = "certFog";
-  f.innerHTML = Array.from({length: 14}, (_, k) => { const a = k / 14 * 6.283, x = 50 + Math.cos(a) * 70, y = 55 + Math.sin(a) * 65; return `<i style="left:${x}%;top:${y}%;--dx:${(50 - x) * .9}vw;--dy:${(55 - y) * .9}vh;animation-delay:${(k % 5) * 50}ms"></i>`; }).join("") + "<b></b>";
-  const sc = document.querySelector(".scene"); sc ? sc.after(f) : B.prepend(f);
-  let done = false; const covered = () => { if (done) return; done = true; B.classList.remove("certin"); window.dispatchEvent(new Event("certfog")); f.classList.add("out"); setTimeout(() => f.remove(), 1300); };
-  f.querySelector("b").addEventListener("animationend", covered); setTimeout(covered, 2600);
-  const h = document.querySelector("#certModal .vhead h1"), add = document.getElementById("certAdd");
+function certFogCover(go){ certFogOn = true; let f = document.getElementById("certFog"); if (f) f.remove(); f = document.createElement("div"); f.id = "certFog";
+  const P = [[-30, 60], [-20, 105], [20, 120], [55, 125], [90, 118], [125, 100], [130, 55], [110, -15], [50, -25], [-15, 10]];
+  f.innerHTML = P.map(([x, y], k) => `<i style="left:${x}%;top:${y}%;--dx:${(50 - x) * .62}vw;--dy:${(50 - y) * .62}vh;--s:${.8 + (k % 3) * .2};animation-delay:${(k * 53) % 300}ms"></i>`).join("") + "<b></b>";
+  document.body.appendChild(f);
+  let done = false; const covered = () => { if (done) return; done = true; go();
+    requestAnimationFrame(() => requestAnimationFrame(() => { f.classList.add("out"); certFogOn = false; setTimeout(() => f.remove(), 1500); })); };
+  f.querySelector("b").addEventListener("animationend", covered); setTimeout(covered, 2800); }
+function certTitleIn(){ const h = document.querySelector("#certModal .vhead h1"), add = document.getElementById("certAdd");
   if (h && !h.dataset.split) { h.dataset.split = 1; h.innerHTML = [...h.textContent].map(c => `<span class="cfl">${c === " " ? "&nbsp;" : esc(c)}</span>`).join(""); }
-  if (h) h.querySelectorAll(".cfl").forEach((c, k) => c.animate([{opacity: 0, transform: "translateY(10px) scale(.85)", filter: "blur(10px) brightness(2.2)"}, {opacity: .9, transform: "translateY(-1px) scale(1.03)", filter: "blur(1px) brightness(1.6)", offset: .6}, {opacity: 1, transform: "none", filter: "blur(0) brightness(1)"}], {duration: 750, delay: 900 + k * 55, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards"}));
-  if (add) add.animate([{opacity: 0, clipPath: "inset(0 100% 0 0 round 999px)", filter: "blur(6px)"}, {opacity: 1, clipPath: "inset(0 0 0 0 round 999px)", filter: "blur(0)"}], {duration: 900, delay: 1300, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards"}); }
+  if (h) h.querySelectorAll(".cfl").forEach((c, k) => c.animate([{opacity: 0, transform: "translateY(10px) scale(.85)", filter: "blur(10px) brightness(2.2)"}, {opacity: .9, transform: "translateY(-1px) scale(1.03)", filter: "blur(1px) brightness(1.6)", offset: .6}, {opacity: 1, transform: "none", filter: "blur(0) brightness(1)"}], {duration: 750, delay: 250 + k * 55, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards"}));
+  if (add) add.animate([{opacity: 0, clipPath: "inset(0 100% 0 0 round 999px)", filter: "blur(6px)"}, {opacity: 1, clipPath: "inset(0 0 0 0 round 999px)", filter: "blur(0)"}], {duration: 900, delay: 650, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards"}); }
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
 const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + des repères à partir des étapes */
   cfg = cfg || {}; let fvs = null, lvlK = null, p = .5, hi = .5, lo = .5, swingHi = .55, liqHi = null, liqLo = null, sweep = null, swept = false; const pts = [p], ev = [];
@@ -7179,7 +7183,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-113";
+const APP_VERSION = "2026-10-29-114";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
