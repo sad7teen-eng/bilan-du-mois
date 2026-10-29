@@ -4715,8 +4715,8 @@ const SC = {
   tfs: ["W1", "D1", "H4", "H1", "M30", "M15", "M5", "M1"],
   roles: {bias: "Biais", zone: "Zones", setup: "Setup", exec: "Exécution", ctx: "Contexte"},
   bias: {structure: "Structure (HH / HL)", ma: "Moyenne mobile", macro: "Fondamental / macro", none: "Pas de biais"},
-  zones: {lvl: "Niveau clé", ob: "Order block", fvg: "FVG / Imbalance", sr: "Support / Résistance", fibo: "Fibo 50 %", sd: "Offre / Demande", liq: "Liquidité", vwap: "VWAP"},
-  steps: {bias: "Biais", mark: "Tracer les niveaux", wait: "Attente / ouverture", trend: "Tendance", retrace: "Retracement", range: "Range", liq: "Prise de liquidité", zone: "Entrée en zone", refine: "Raffinement (UT inf.)", rebound: "Rebond", break: "Cassure (corps)", signal: "Signal indicateur", retest: "Retest", entry: "Entrée", manage: "SL & TP", other: "Autre"},
+  zones: {lvl: "Niveau clé", ob: "Order block", fvg: "FVG / Imbalance", sr: "Support / Résistance", fibo: "Fibo 50 %", sd: "Offre / Demande", liq: "Liquidité", vwap: "VWAP", ma: "Moyenne mobile", tl: "Ligne de tendance", vp: "Volume profile", piv: "Points pivots", round: "Chiffres ronds", orng: "Range d'ouverture / Asie"},
+  steps: {pattern: "Figure chartiste", bias: "Biais", mark: "Tracer les niveaux", wait: "Attente / ouverture", trend: "Tendance", retrace: "Retracement", range: "Range", liq: "Prise de liquidité", zone: "Entrée en zone", refine: "Raffinement (UT inf.)", rebound: "Rebond", break: "Cassure (corps)", signal: "Signal indicateur", retest: "Retest", entry: "Entrée", manage: "SL & TP", other: "Autre"},
   sl: {wick: "Au-delà de la mèche", zone: "Derrière la zone", struct: "Derrière la structure", atr: "ATR", fixed: "Fixe (pips)"},
   tp: {opp: "Liquidité opposée", liq: "Liquidité proche", struct: "Dernier HH / LL", range: "Côté opposé du range", rr: "RR fixe", trail: "Suiveur"},
   rules: {news: "Pas d'annonces", night: "Pas la nuit", setup: "Setup clair obligatoire", htf: "Respect du biais HTF", stopday: "Stop après une perte"},
@@ -4748,7 +4748,24 @@ function stratCfg(){
   return C;
 }
 /* les anciens champs servent au suivi « respect de la stratégie » : on les garde synchronisés */
-function stratSync(){ const S = strat(), C = stratCfg(); S.market = C.market === "_" ? (C.marketOther || "Autre") : C.market; S.risk = C.risk; S.rrMin = C.rrMin; S.rrTarget = C.rrTarget; S.maxTrades = C.maxTrades; S.sessions = C.sessions.slice(); }
+function stratChecklist(C){ const o = [], ex = (C.tfs[C.tfs.length - 1] || {}).tf || "", bt = (C.tfs.find(x => x.role === "bias") || {}).tf || "", zn = C.lvlTxt ? C.lvlTxt.toLowerCase() : C.zones.length ? C.zones.map(z => SC.zones[z]).join(" / ") : "ma zone";
+  C.steps.forEach(s => { const q = {bias: `Biais ${bt} vérifié ?`, mark: C.markKind === "level" ? `${(C.lvlTxt || "Niveau").charAt(0) + (C.lvlTxt || "niveau").slice(1).toLowerCase()} tracé ?` : "Liquidités tracées ?", wait: C.waitTxt ? `${C.waitTxt.charAt(0) + C.waitTxt.slice(1).toLowerCase()} : respecté ?` : "Temps d'attente respecté ?",
+      trend: "Tendance claire ?", retrace: "Retracement en cours ?", range: "Range bien identifié ?", liq: "Liquidité prise ?", zone: `Prix revenu sur ${zn} ?`, refine: `Raffinement en ${ex} fait ?`, rebound: "Rejet net, bougie clôturée ?",
+      break: `Cassure ${ex} validée par une clôture de corps ?`, signal: `${(C.trigger || "Signal").charAt(0) + (C.trigger || "signal").slice(1).toLowerCase()} présent ?`, retest: "Retest fait ?", other: `${(C.trigger || "Déclencheur").charAt(0) + (C.trigger || "déclencheur").slice(1).toLowerCase()} présent ?`}[s]; if (q && !o.includes(q)) o.push(q); });
+  (C.noTrade || []).forEach(x => o.push(`Pas de « ${x} » ?`));
+  if (C.sl || C.tp.length) o.push(`SL${C.sl ? " " + (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : SC.sl[C.sl].toLowerCase()) : ""} et TP${C.tp.length ? " " + SC.tp[C.tp[0]].charAt(0).toLowerCase() + SC.tp[C.tp[0]].slice(1) : ""} posés ?`);
+  if (C.rrMin) o.push(`RR d'au moins ${String(C.rrMin).replace(".", ",")}R ?`);
+  if (C.risk || C.ifs.length) o.push(C.ifs.length ? `Risque du jour ajusté (base ${String(C.risk || "—").replace(".", ",")} %) ?` : `Risque à ${String(C.risk).replace(".", ",")} % ?`);
+  if (C.sessions.length) o.push(`Suis-je en session ${C.sessions.join(" ou ")} ?`);
+  if (C.rules.includes("news")) o.push("Pas d'annonce en cours ?");
+  if (C.maxTrades && C.maxTrades !== "0") o.push(C.maxTrades === "1" ? `Pas encore de trade ${C.maxPer === "jour" ? "aujourd'hui" : "sur cette session"} ?` : `Moins de ${C.maxTrades} trades ${C.maxPer === "jour" ? "aujourd'hui" : "sur cette session"} ?`);
+  return o.slice(0, 10); }
+/* la stratégie active pilote la checklist et la session du plan (Tableau) */
+function stratApplyPlan(){ try { const e = stratEntry(), C = stratCfg(), P = plan(); let ch = false;
+  if (Array.isArray(e.checklist) && e.checklist.length && JSON.stringify(P.checklist) !== JSON.stringify(e.checklist)) { P.checklist = e.checklist.slice(); P.checks = {d: dkey(new Date()), on: []}; ch = true; }
+  if (C.sessions && C.sessions.length) { const ss = C.sessions.length === 1 ? "Session " + (C.sessions[0] === "Londres" ? "de Londres" : C.sessions[0] === "Asie" ? "d'Asie" : "de " + C.sessions[0].replace("NY", "New York")) : C.sessions.join(" + "); if (P.session !== ss) { P.session = ss; ch = true; } }
+  if (ch && typeof renderPlan === "function") renderPlan(); } catch (er) {} }
+function stratSync(){ const S = strat(), C = stratCfg(); S.market = C.market === "_" ? (C.marketOther || "Autre") : C.market; S.risk = C.risk; S.rrMin = C.rrMin; S.rrTarget = C.rrTarget; S.maxTrades = C.maxTrades; S.sessions = C.sessions.slice(); stratApplyPlan(); }
 const ifLabel = r => { const n = String(r.n).replace(".", ","), v = String(r.v || "").replace(".", ",");
   const c = r.c === "losses" ? `${n} perte${r.n > 1 ? "s" : ""}` : r.c === "wins" ? `${n} gain${r.n > 1 ? "s" : ""}` : r.c === "dd" ? `-${n} % jour` : r.c === "state" ? "mauvais état" : r.c === "setup" ? "setup parfait" : r.c === "news" ? "jour d'annonce" : r.c === "week" ? "semaine négative" : (r.txt || "autre");
   return c + " → " + (r.a === "stop" ? "stop" : r.a === "base" ? "risque de base" : v + " %"); };
@@ -4840,8 +4857,8 @@ $("stratView").addEventListener("click", e => { const S = strat();
   const tb = e.target.closest("[data-sid]"); if (tb && tb.dataset.sid !== S.active) { S.active = tb.dataset.sid; S.at = Date.now(); stratSync(); save(); renderStrat(); return; }
   if (e.target.closest("#sAdd")) { const L = stratList(), id = "s" + Date.now().toString(36); L.push({id, name: "Stratégie " + (L.length + 1), cfg: stratBlank()}); S.active = id; S.at = Date.now(); stratSync(); save(); renderStrat(); openStratDescribe(); } });
 $("stratView").addEventListener("mouseover", e => { const x = e.target.closest("[data-hl]"); window.__heroHL = x ? +x.dataset.hl : 0; });
-["mousemove", "touchmove"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"]'); if (!c) return; const r = c.getBoundingClientRect(), p = e.touches ? e.touches[0] : e; c._m = {x: p.clientX - r.left, y: p.clientY - r.top}; }, {passive: true}));
-["mouseout", "touchend"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"]'); if (c) c._m = null; }));
+["mousemove", "touchmove"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"],canvas[data-viz="seq"]'); if (!c) return; const r = c.getBoundingClientRect(), p = e.touches ? e.touches[0] : e; c._m = {x: p.clientX - r.left, y: p.clientY - r.top}; }, {passive: true}));
+["mouseout", "touchend"].forEach(ev => $("stratView").addEventListener(ev, e => { const c = e.target.closest('canvas[data-viz="sess"],canvas[data-viz="seq"]'); if (c) c._m = null; }));
 
 /* ---------- Lecture d'une stratégie écrite ou dictée (sans IA : vocabulaire du trading) ---------- */
 const sNorm = s => " " + String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[’`]/g, "'").replace(/\s+/g, " ") + " ";
@@ -4851,15 +4868,16 @@ const S_TF = [["W1", /\b(w1|weekly|hebdo\w*)\b/g], ["D1", /\b(d1|daily|1d|journa
 const S_MK = [["XAUUSD", /\b(xau(usd)?|gold)\b|\b(l'or|de l'or|sur l'or|que l'or)\b/], ["NAS100", /\b(nas(daq)?( ?100)?|us ?100|ustec|nq)\b/], ["US30", /\b(us ?30|dow( jones)?|dj ?30)\b/], ["SPX500", /\b(s&?p ?500|spx|us ?500|sp500)\b/],
   ["EURUSD", /\b(eur ?\/? ?usd|euro ?dollar)\b/], ["GBPUSD", /\b(gbp ?\/? ?usd|cable)\b/], ["USDJPY", /\b(usd ?\/? ?jpy|yen)\b/], ["BTCUSD", /\b(btc|bitcoin)\b/], ["ETHUSD", /\b(eth|ethereum)\b/]];
 const S_ZN = [["lvl", /\b(50 ?%|moitie|milieu|equilibre)\s*(de la |du |d')?(bougie|range|hier|veille|journ\w*|daily|semaine)|\b(plus haut|plus bas|ouverture|cloture|open)\s*(d'hier|de la veille|journali\w*|daily|de la semaine)|\b(pdh|pdl|pwh|pwl)\b|\bniveaux? (cle|cles|rond|ronds|psychologique\w*)\b/], ["ob", /\b(ob|obs|order ?blocks?|bloc d'ordres?|blocs? d'ordre)\b/], ["fvg", /\b(fvg|ifvg|imbalances?|desequilibre|gap)\b/], ["sr", /\b(supports?|resistances?|s ?\/ ?r|niveaux? cles?)\b/],
-  ["fibo", /\b(fibo\w*|ote|0[.,]618|61[.,]8)\b|\b(0[.,]5)\b|\b50 ?%/], ["sd", /\b(offres?|demandes?|supply|demand)\b/], ["liq", /\b(liquidites?|eqh|eql|sweep|stop ?hunt|chasse aux stops)\b/], ["vwap", /\bvwap\b/]];
-const S_ST = [["trend", /\b(tendance|trend|impulsion|ca monte|ca descend)\b/], ["retrace", /\b(retrac\w*|pull ?back|correction|repli)\b/], ["range", /\b(range|consolid\w*|lateral)\b/],
+  ["fibo", /\b(fibo\w*|ote|0[.,]618|61[.,]8)\b|\b(0[.,]5)\b|\b50 ?%/], ["sd", /\b(offres?|demandes?|supply|demand)\b/], ["liq", /\b(liquidites?|eqh|eql|sweep|stop ?hunt|chasse aux stops)\b/], ["vwap", /\bvwap\b/], ["ma", /\b(ema|sma|mm ?\d+|moyennes? mobiles?)\b/], ["tl", /\b(oblique\w*|lignes? de tendance|trend ?lines?|canal|canaux|channel)\b/], ["vp", /\b(poc|vah|val|vpoc|volume profile|profil de volume)\b/],
+  ["piv", /\b(points? pivots?|pivots?)\b/], ["round", /\b(chiffres? ronds?|nombres? ronds?|niveaux? psycho\w*)\b/], ["orng", /\b(opening range|range d'ouverture|range (de l')?asi\w*|range asiatique|(haut|bas) (de l'|du range d')?asie|orb)\b/]];
+const S_ST = [["trend", /\b((?<!ligne de )(?<!ligne de la )tendance|(?<!trend ?)trend(?! ?line)|impulsion|ca monte|ca descend)\b/], ["retrace", /\b(retrac\w*|pull ?back|correction|repli)\b/], ["range", /\b(range|consolid\w*|lateral)\b/],
   ["mark", /\b(je (trace|marque|note|repere|place) (les |mes |le |la |mon )?(liquidit\w*|niveaux?|hauts?|bas|plus hauts|plus bas|highs?|lows?|range|50|milieu|moitie|equilibre|ouverture)|tracer les liquidit\w*)/],
   ["wait", /\b(attend\w* (\d+) ?(min\w*|minutes?|h\b|heures?)|(a )?l'ouverture (de |d')?(ny|new york|londres|london|us|l'asie|la session)|ouverture (de |d')?(ny|new york|londres|london|us))\b/],
-  ["liq", /\b(prise de liquidite|prend\w* (la |les |une )?liquidit\w*|en prenn?\w*( une| un)?|sweep\w*|chass\w* (les )?stops?|stop ?hunt|fausse cassure|prend les (hauts|bas|plus hauts|plus bas))\b/],
+  ["liq", /\b(turtle soup|spring|upthrust|utad|judas( swing)?|manipulation|power of 3|po3|amd|prise de liquidite|prend\w* (la |les |une )?liquidit\w*|en prenn?\w*( une| un)?|sweep\w*|chass\w* (les )?stops?|stop ?hunt|fausse cassure|prend les (hauts|bas|plus hauts|plus bas))\b/],
   ["zone", /\b(atteint\w*|atteign\w*|arriv\w*|touch\w*|revien\w*|rentr\w*|retourn\w*|tap\w*|vien\w*)\b[^.,;]{0,25}\b(ob|obs|zone|fvg|order|bloc|poi|niveau|support|resistance|fibo|offre|demande)\b|\bdans (l'|la |le |les |mon |ma |son |sa )?(ob|zone|fvg|order|bloc|poi)\b|\b(repere|identifie|trouve|cherche|localise)\w* (l'|le |la |les |un |une |mon |ma )?(ob|obs|fvg|order|zone|poi|bloc)\b|\by (revien\w*|retourn\w*|revient|reviens|arrive|touche)\b|\b(revien\w*|retourn\w*) (dessus|sur (le|ce) niveau|au niveau|sur le 50|au 50)/],
   ["refine", /\b(raffin\w*|zoom\w*|descend\w* en|passe\w* en (m|h)\d+|bascule\w* en)\b/], ["rebound", /\b(rebond\w*|rejet\w*|meche de rejet|pin ?bar)\b/],
-  ["break", /\b(cassure|casse|bos|choch|shift|break|cloture de corps|cloture au.?dessus|cloture en.?dessous|mss)\b/],
-  ["signal", /\b(rsi|macd|stoch\w*|croisement|bougie englobante|englobante|engulfing|divergence|bollinger|ichimoku|signal)\b/], ["retest", /\b(retest\w*|reteste|re ?test)\b/],
+  ["break", /\b(breakout|orb|cassure|casse|bos|choch|shift|break|cloture de corps|cloture au.?dessus|cloture en.?dessous|mss)\b/],
+  ["signal", /\b(smt|squeeze|golden cross|death cross|heikin\w*|supertrend|delta|footprint|rsi|macd|stoch\w*|croisement|bougie englobante|englobante|engulfing|divergence|bollinger|ichimoku|signal)\b/], ["retest", /\b(retest\w*|reteste|re ?test)\b/], ["pattern", /\b(double (top|bottom|sommet|creux|fond)|epaule.?tete.?epaule|tete.?epaules?|h ?& ?s|triangle|drapeau|flag|fanion|biseau|wedge|figure chartiste|tasse avec anse)\b/],
   ["entry", /\b(je prends|je rentre|j'entre|je achete|j'achete|je vends|j'ouvre|je place (mon|un) ordre|ordre limite|prendre position|je prends position|prends un (long|short)|entree)\b/]];
 function stratParse(A){
   const C = {market: "XAUUSD", marketOther: "", side: "both", tfs: [], bias: "none", misalign: "none", zones: [], steps: [], trigger: "", risk: "", rrMin: "", rrTarget: "", partial: "", sl: "", tp: [], be: false, ifs: [], sessions: [], sessCtx: [], maxTrades: "", rules: [], comment: "", desc: A};
@@ -4910,7 +4928,7 @@ function stratParse(A){
   marks.sort((a, b2) => a[0] - b2[0]); const ent = marks.filter(x => x[1] === "entry").map(x => x[0]); let st = [];
   marks.forEach(([i0, k, txt]) => { if (k === "entry") return;
     if (k === "zone" && st.includes("zone") && ent.some(e => Math.abs(e - i0) < 45)) return; /* « j'entre dans l'OB » = l'entrée, pas une 2e zone */
-    if (st[st.length - 1] !== k && !(k !== "zone" && st.includes(k))) st.push(k); if (k === "signal" && !C.trigger) C.trigger = txt.trim().toUpperCase(); if (k === "wait" && !C.waitTxt) C.waitTxt = txt.trim().replace(/^(a |j'attends? |attends? |attendre )/, "").toUpperCase(); });
+    if (st[st.length - 1] !== k && !(k !== "zone" && st.includes(k))) st.push(k); if (k === "signal" && !C.trigger) C.trigger = txt.trim().toUpperCase(); if (k === "pattern" && !C.patTxt) C.patTxt = txt.trim().toUpperCase(); if (k === "wait" && !C.waitTxt) C.waitTxt = txt.trim().replace(/^(a |j'attends? |attends? |attendre )/, "").toUpperCase(); });
   C.markKind = marks.some(x => x[1] === "mark" && /liquidit|range|hauts?|bas\b/.test(x[2])) ? "liq" : marks.some(x => x[1] === "mark") ? "level" : "";
   C.reversal = /\b(autre sens|sens inverse|sens oppose|retournement|contraire|contre le (premier )?mouvement)\b/.test(q);
   if (!st.length && String(A.seq || "").trim()) { st = ["other"]; C.trigger = String(A.seq).trim().split(/[.,;\n]/)[0].slice(0, 28).toUpperCase(); }
@@ -4971,12 +4989,13 @@ function stratParse(A){
   if ((C.sl || C.tp.length) && C.steps.length) C.steps.push("manage");
   return C;
 }
+const stratStepLabel = (C, s) => s === "other" || s === "signal" ? (C.trigger ? C.trigger.charAt(0) + C.trigger.slice(1).toLowerCase() : SC.steps[s]) : s === "bias" ? "Biais " + ((C.tfs.find(x => x.role === "bias") || {}).tf || "") : s === "pattern" && C.patTxt ? C.patTxt.charAt(0) + C.patTxt.slice(1).toLowerCase() : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" ? (C.markKind === "level" ? "Tracer le " + (C.lvlTxt || "niveau").toLowerCase() : "Tracer les liquidités") : s === "rebound" && C.markKind === "level" ? "Rejet du niveau" : s === "zone" && C.markKind === "level" ? "Retour sur le niveau" : SC.steps[s] || s;
 const stratUnderstood = (C, k) => { const o = [];
   if (k === "mk") { o.push(C.market === "_" ? C.marketOther || "Autre" : C.market); o.push(SC.side[C.side]); }
   if (k === "tf") C.tfs.forEach(x => o.push(x.tf + " · " + (SC.roles[x.role] || "").toLowerCase()));
   if (k === "bias") { o.push(SC.bias[C.bias]); if (C.bias !== "none") o.push(C.misalign === "wait" && C.steps.some(x => x === "zone" || x === "retrace") ? "Désaligné : retour normal, on attend " + (C.steps.includes("rebound") ? "le rejet" : "le shift") : "Désaligné : " + SC.mis[C.misalign].toLowerCase()); (C.noTrade || []).forEach(x => o.push("Si " + x + " → pas de trade")); }
   if (k === "zones") C.zones.forEach(z => o.push(z === "lvl" && C.lvlTxt ? C.lvlTxt.charAt(0) + C.lvlTxt.slice(1).toLowerCase() : SC.zones[z]));
-  if (k === "seq") C.steps.forEach((s, i) => o.push((i + 1) + ". " + (s === "other" || s === "signal" ? (C.trigger || SC.steps[s]) : s === "bias" ? "Biais " + ((C.tfs.find(x => x.role === "bias") || {}).tf || "") : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" ? (C.markKind === "level" ? "Tracer le " + (C.lvlTxt || "niveau").toLowerCase() : "Tracer les liquidités") : s === "rebound" && C.markKind === "level" ? "Rejet du niveau" : s === "zone" && C.markKind === "level" ? "Retour sur le niveau" : SC.steps[s])));
+  if (k === "seq") C.steps.forEach((s, i) => o.push((i + 1) + ". " + stratStepLabel(C, s)));
   if (k === "risk") { if (C.risk) o.push("Risque de base " + C.risk.replace(".", ",") + " %"); if (C.rrMin) o.push("RR min " + C.rrMin.replace(".", ",") + "R"); if (C.rrTarget) o.push("RR visé " + C.rrTarget.replace(".", ",") + "R");
     if (C.partial) o.push("Sécurisation à " + C.partial.replace(".", ",") + "R"); const lc = x => x.charAt(0).toLowerCase() + x.slice(1); if (C.sl) o.push("SL " + (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : lc(SC.sl[C.sl]))); C.tp.forEach(x => o.push("TP " + lc(SC.tp[x]))); if (C.be) o.push("Break-even" + (C.beAt ? " à " + C.beAt.replace(".", ",") + "R" : "")); C.ifs.forEach(r => o.push("Si " + ifLabel(r))); }
   if (k === "rules") { C.sessions.forEach(x => o.push(x)); (C.sessCtx || []).forEach(x => o.push(x + " · pour le range")); if (C.maxTrades) o.push(C.maxTrades === "0" ? "Trades illimités" : C.maxTrades + " trade" + (C.maxTrades > 1 ? "s" : "") + " max"); C.rules.forEach(x => o.push(SC.rules[x])); }
@@ -4993,7 +5012,7 @@ function openStratDescribe(){
     ["rules", "Sessions et règles ?", "Londres, 1 trade par jour"]];
   let draft = null; try { draft = JSON.parse(localStorage.getItem("bdm-strat-draft") || "null"); } catch (e) {}
   const prev = (draft && Object.values(draft).some(v => String(v || "").trim())) ? draft : (stratCfg().desc || {}), A = {}; Q.forEach(([k]) => A[k] = prev[k] || "");
-  let i = -1, C = stratParse(A), rec = null;
+  let i = -1, C = stratParse(A), rec = null, ck = null;
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const ov = document.createElement("div"); ov.className = "swz"; document.body.appendChild(ov); document.body.style.overflow = "hidden";
   const viz = k => k === "tf" ? (C.tfs.length > 1 ? ((C.bias === "none" || C.misalign === "none") ? "zoom" : "tf") : "") : k === "seq" ? "seq" : k === "bias" ? (C.bias !== "none" && C.tfs.length > 1 ? "tf" : "") : k === "risk" ? (C.ifs.length ? "riskx" : C.risk || C.rrTarget ? "risk" : "") : k === "rules" ? (C.sessions.length ? "sess" : "") : k === "zones" && C.zones.length ? "zone" : "";
@@ -5003,8 +5022,10 @@ function openStratDescribe(){
     if (i < 0) { ov.innerHTML = `<div class="swin"><header><div><small>STRATÉGIE</small><h2>Expliquez-nous comment vous tradez</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
       <div class="swbody"><p class="swh">7 questions courtes. Écrivez ou parlez comme vous le diriez à un ami : la page se construit à partir de vos réponses.</p>
         <button type="button" class="swb go" id="dsStart">Décrire ma stratégie</button><button type="button" class="swb" id="dsNone">Je n'ai pas encore de stratégie</button></div></div>`; return; }
-    if (i >= Q.length) { ov.innerHTML = `<div class="swin"><header><div><small>RÉSUMÉ</small><h2>Voilà ce que j'ai compris</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
+    if (i >= Q.length) { if (!ck) ck = stratChecklist(C); ov.innerHTML = `<div class="swin"><header><div><small>RÉSUMÉ</small><h2>Voilà ce que j'ai compris</h2></div><button type="button" class="swx" id="swClose" aria-label="Fermer">✕</button></header>
       <div class="swbody">${Q.map(([k, q]) => `<div class="swrow"><small>${esc(q)}</small><div class="swg">${chips(k)}</div></div>`).join("")}
+        <div class="swrow"><small>Votre checklist · proposée, modifiable · affichée sur le Tableau</small><div class="swck">${ck.map((x, k) => `<div><input class="swi" data-dck="${k}" value="${esc(x)}"><button type="button" class="swx" data-dckrm="${k}">×</button></div>`).join("")}</div>
+          <button type="button" class="swc" id="dsCkAdd">+ Ajouter une ligne</button></div>
         <p class="swh">Une erreur ? Revenez en arrière, ou corrigez ensuite avec « Ajuster ».</p></div>
       <footer><button type="button" class="swb" id="dsBack">Retour</button><button type="button" class="swb go" id="dsDone">Voir ma page</button></footer></div>`; return; }
     const [k, q, ph] = Q[i], v = viz(k);
@@ -5018,7 +5039,7 @@ function openStratDescribe(){
   const upd = () => { const ta = ov.querySelector("#dsTxt"); if (!ta) return; const k = Q[i][0]; A[k] = ta.value; C = stratParse(A); try { localStorage.setItem("bdm-strat-draft", JSON.stringify(A)); } catch (e) {}
     ov.querySelector("#dsChips").innerHTML = chips(k); const v = viz(k), pw = ov.querySelector(".swprev"), pv = ov.querySelector("#dsPrev");
     pw.hidden = !v; if (v) { pv.dataset.viz = v; if (k === "zones") pv.dataset.z = C.zones[0]; } pv._cfg = C; ov.querySelector("#dsNext").textContent = A[k].trim() ? "Suivant" : "Passer"; };
-  ov.addEventListener("input", e => { if (e.target.id === "dsTxt") upd(); });
+  ov.addEventListener("input", e => { if (e.target.id === "dsTxt") { upd(); ck = null; } if (e.target.dataset.dck != null) ck[+e.target.dataset.dck] = e.target.value; });
   const close = () => { stopRec(); ov.remove(); document.body.style.overflow = ""; };
   ov.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
     if (b.id === "swClose") return close();
@@ -5026,7 +5047,9 @@ function openStratDescribe(){
     if (b.id === "dsNone") { stratSetCfg(Object.assign(stratCfg(), {empty: true})); close(); renderStrat(); return; }
     if (b.id === "dsBack") { i--; return draw(); }
     if (b.id === "dsNext") { i++; return draw(); }
-    if (b.id === "dsDone") { try { localStorage.removeItem("bdm-strat-draft"); } catch (e) {} const old = stratCfg(); C.comment = old.comment || ""; C.empty = false; stratSetCfg(C); close(); renderStrat(); return; }
+    if (b.id === "dsCkAdd") { ck.push(""); return draw(); }
+    if (b.dataset.dckrm != null) { ck.splice(+b.dataset.dckrm, 1); return draw(); }
+    if (b.id === "dsDone") { try { localStorage.removeItem("bdm-strat-draft"); } catch (e) {} const old = stratCfg(); C.comment = old.comment || ""; C.empty = false; const L2 = (ck || stratChecklist(C)).map(x => x.trim()).filter(Boolean); if (L2.length) stratEntry().checklist = L2; stratSetCfg(C); close(); renderStrat(); return; }
     if (b.id === "dsMic") { if (rec) { stopRec(); b.classList.remove("on"); return; }
       const ta = ov.querySelector("#dsTxt"), base = ta.value ? ta.value.replace(/\s*$/, " ") : ""; rec = new SR(); rec.lang = "fr-FR"; rec.continuous = true; rec.interimResults = true;
       rec.onresult = ev => { let s = ""; for (let r = 0; r < ev.results.length; r++) s += ev.results[r][0].transcript; ta.value = base + s; upd(); };
@@ -5087,7 +5110,7 @@ function openStratWizard(){
     delArm = false;
     if (b.id === "swPrevB") { i = Math.max(0, i - 1); return draw(); }
     if (b.id === "swNext") { if (i < STEPS.length - 1) { i++; return draw(); }
-      C.empty = false; if (C.bias === "none") C.misalign = "none"; stratSetCfg(C); P.checklist = chk.map(x => x.trim()).filter(Boolean); save(); close(); renderStrat(); try { renderPlan(); } catch (er) {} return; }
+      C.empty = false; if (C.bias === "none") C.misalign = "none"; P.checklist = chk.map(x => x.trim()).filter(Boolean); stratEntry().checklist = P.checklist.slice(); stratSetCfg(C); save(); close(); renderStrat(); try { renderPlan(); } catch (er) {} return; }
     if (d.mk) C.market = d.mk; if (d.side) C.side = d.side; if (d.mis) C.misalign = d.mis;
     if (d.tf) { const k = C.tfs.findIndex(x => x.tf === d.tf); k >= 0 ? C.tfs.splice(k, 1) : C.tfs.push({tf: d.tf, role: C.tfs.length ? (C.tfs.length === 1 ? "zone" : "exec") : "bias"}); C.tfs.sort((a, b) => SC.tfs.indexOf(a.tf) - SC.tfs.indexOf(b.tf)); }
     if (d.role) { const [tf, r] = d.role.split("|"), x = C.tfs.find(y => y.tf === tf); if (x) x.role = r; }
@@ -5108,12 +5131,14 @@ function openStratWizard(){
 const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + des repères à partir des étapes */
   cfg = cfg || {}; let lvlK = null, p = .5, hi = .5, lo = .5, swingHi = .55, liqHi = null, liqLo = null, sweep = null, swept = false; const pts = [p], ev = [];
   const go = (n0, d, wob) => { const n = Math.round(n0 * 1.7); for (let k = 0; k < n; k++) { p += d / n + Math.sin(pts.length * 2.3) * (wob || .012) * (k % 2 ? 1 : -1); pts.push(p); hi = Math.max(hi, p); lo = Math.min(lo, p); } };
-  (steps.length ? steps : ["trend", "entry"]).forEach(s => { const a = pts.length - 1;
+  const ends = []; (steps.length ? steps : ["trend", "entry"]).forEach(s => { stepOne(s); ends.push(pts.length - 1); });
+  function stepOne(s){ const a = pts.length - 1;
     if (s === "trend") { go(6, .22); swingHi = hi; }
     else if (s === "retrace") { swingHi = hi; go(5, -.14); }
     else if (s === "range") { const c = p; for (let k = 0; k < 12; k++) { p = c + Math.sin(k * 1.3) * .045; pts.push(p); } ev.push({t: "range", a, b: pts.length - 1, lo: c - .06, hi: c + .06}); }
     else if (s === "mark" && cfg.markKind === "level") { go(4, .1); lvlK = p - .13; ev.push({t: "level", a, lvl: lvlK}); }
     else if (s === "mark") { const c0 = p; for (let k = 0; k < 10; k++) { p = c0 + Math.sin(k * 1.25) * .05 + (k % 3 ? .006 : -.006); pts.push(p); } liqHi = Math.max(...pts.slice(-10)); liqLo = Math.min(...pts.slice(-10)); hi = Math.max(hi, liqHi); lo = Math.min(lo, liqLo); ev.push({t: "marks", a, hi: liqHi, lo: liqLo}); }
+    else if (s === "pattern") { const b0 = p - .1; go(3, b0 - p); go(3, .07); go(3, b0 + .005 - p); ev.push({t: "pat", at: pts.length - 1, lvl: b0}); go(3, .06); }
     else if (s === "wait") { ev.push({t: "wait", at: pts.length - 1}); go(2, 0, .006); }
     else if (s === "liq" && liqLo != null) { const lvl = liqLo; go(2, lvl + .015 - p, .004); pts.push(lvl - .055); pts.push(lvl - .005); pts.push(lvl + .025); p = lvl + .025; sweep = lvl - .055; swept = true; lo = Math.min(lo, sweep); swingHi = Math.max(...pts.slice(-6)); ev.push({t: "sweep", at: pts.length - 3, lvl, w: sweep}); }
     else if (s === "liq") { const lvl = Math.min(...pts.slice(-8)); ev.push({t: "liq", a: Math.max(0, a - 6), b: a + 3, lvl}); pts.push(lvl - .03); pts.push(lvl - .05); pts.push(lvl + .01); pts.push(lvl + .04); p = lvl + .04; }
@@ -5130,8 +5155,8 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
     else if (s === "entry") { const at = pts.length - 1, e0 = p, opp = (cfg.tp || []).includes("opp") && liqHi != null; ev.push({t: "entry", at, lvl: e0, sl: sweep != null ? Math.min(sweep - .012, e0 - .03) : e0 - .08});
       if (lvlK != null && !opp) { go(7, .22); ev.push({t: "tp", at: pts.length - 1, lvl: p, lab: (cfg.tp || []).includes("struct") ? "TP · PLUS HAUT D'HIER" : "TP"}); return; }
       if (opp) { go(7, Math.max(.08, liqHi + .015 - p)); ev.push({t: "tp", at: pts.length - 1, lvl: liqHi, lab: "TP · LIQ. OPPOSÉE"}); } else { go(7, .24); ev.push({t: "tp", at: pts.length - 1, lvl: p}); } }
-  });
-  return {pts, ev, lo: Math.min(...pts, ...ev.filter(x => x.sl != null).map(x => x.sl), ...(sweep != null ? [sweep] : [])), hi: Math.max(...pts, ...(liqHi != null ? [liqHi] : []))};
+  }
+  return {pts, ev, ends, lo: Math.min(...pts, ...ev.filter(x => x.sl != null).map(x => x.sl), ...(sweep != null ? [sweep] : [])), hi: Math.max(...pts, ...(liqHi != null ? [liqHi] : []))};
 };
 (() => { const host = $("stratView"), t0 = performance.now();
   const col = el => { const cs = getComputedStyle(el || host); return {fg: cs.getPropertyValue("--fg").trim() || "#f4f4f4", mu: cs.getPropertyValue("--muted").trim() || "#8b8b8b", ls: cs.getPropertyValue("--loss").trim() || "#ff4d4d", mono: cs.getPropertyValue("--mono")}; };
@@ -5244,8 +5269,9 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
     seq(g, w, h, t, C, cv){ const cfg = KC(cv), key = cfg.steps.join(",") + cfg.side + (cfg.tp || []).join("") + (cfg.markKind || "");
       if (cv._k !== key) { cv._k = key; cv._s = stratSeq(cfg.steps, cfg); cv._t0 = t; }
       const S = cv._s, n = S.pts.length - 1, top = 40, bot = h - 22, Y = p => cfg.side === "short" ? top + (p - S.lo) / Math.max(.05, S.hi - S.lo) * (bot - top) : bot - (p - S.lo) / Math.max(.05, S.hi - S.lo) * (bot - top), bw = Math.min(16, (w - 90) / n), x0 = (w - bw * n) / 2, X = i => x0 + i * bw;
-      const T = ((t - cv._t0) % 9) / 7.5, show = Math.min(n, Math.floor(T * n));
-      S.ev.forEach(e => { const vis = (e.at != null ? e.at : e.a) <= show; if (!vis) return; g.setLineDash([3, 3]);
+      /* courbe toujours entière ; survol d'une étape de la frise = la courbe s'arrête à cette étape */
+      const st = cfg.steps, sw = (w - 12) / Math.max(1, st.length), m = cv._m, hk = m && m.y < 34 ? Math.max(0, Math.min(st.length - 1, Math.floor((m.x - 6) / sw))) : -1, show = hk >= 0 && S.ends[hk] != null ? S.ends[hk] : n;
+      S.ev.forEach((e, ei) => { const vis = (e.at != null ? e.at : e.a) <= show; if (!vis) return; g.save(); g.globalAlpha = .55 + .45 * Math.abs(Math.sin(t * 1.6 + ei * 1.1)); g.setLineDash([3, 3]);
         if (e.t === "tag") { const bt = (cfg.tfs.find(x => x.role === "bias") || cfg.tfs[0] || {}).tf || ""; lab(g, C, "BIAIS " + bt + (cfg.side === "short" ? " ▼" : " ▲"), X(e.at) + 2, top + 4, 1); }
         if (e.t === "refine") { g.setLineDash([2, 3]); g.strokeStyle = A(C.fg, .5); g.beginPath(); g.moveTo(X(e.at), top - 6); g.lineTo(X(e.at), bot); g.stroke(); g.setLineDash([]); lab(g, C, "→ " + ((cfg.tfs[cfg.tfs.length - 1] || {}).tf || "UT INF."), X(e.at) + 4, top + 4, 1); }
         if (e.t === "zone" || e.t === "range") { g.fillStyle = A(C.fg, .07); const y0 = Math.min(Y(e.hi), Y(e.lo)), y1 = Math.max(Y(e.hi), Y(e.lo)); g.fillRect(X(e.a), y0, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.strokeStyle = A(C.fg, .3); g.strokeRect(X(e.a) + .5, y0 + .5, X(Math.min(n, e.b)) - X(e.a), y1 - y0); g.setLineDash([]); lab(g, C, e.t === "zone" ? (SC.zones[cfg.zones[0]] || "ZONE").toUpperCase() : "RANGE", X(e.a) + 3, y1 - 3, .9); }
@@ -5256,16 +5282,17 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
         if (e.t === "reject") { const x = X(e.at) + bw / 2, y = Y(e.lvl); g.strokeStyle = A(C.fg, .9); g.beginPath(); g.arc(x, Y(e.lvl - .03), 6 + 2 * Math.sin(t * 6), 0, 7); g.stroke(); g.font = F(C, 10, 1); g.fillStyle = A(C.fg, 1); g.fillText("✓ REJET", x + 9, Y(e.lvl - .03) + (cfg.side === "short" ? -6 : 14)); }
         if (e.t === "marks") { const tf0 = ((cfg.tfs || [])[0] || {}).tf || ""; [e.hi, e.lo].forEach((v, k) => { g.setLineDash([4, 3]); g.strokeStyle = A(k ? C.ls : C.fg, .55); g.beginPath(); g.moveTo(X(e.a), Y(v)); g.lineTo(X(n), Y(v)); g.stroke(); g.setLineDash([]); lab(g, C, "LIQ. " + tf0 + (k ? " BASSE" : " HAUTE"), X(n) - 2, Y(v) + (k ? 11 : -4), .9, "right"); }); }
         if (e.t === "wait") { g.setLineDash([2, 3]); g.strokeStyle = A(C.mu, .6); g.beginPath(); g.moveTo(X(e.at), top - 6); g.lineTo(X(e.at), bot); g.stroke(); g.setLineDash([]); lab(g, C, cfg.waitTxt || "ATTENTE", X(e.at) + 4, top + 4, 1); }
+        if (e.t === "pat") { g.setLineDash([3, 3]); g.strokeStyle = A(C.fg, .6); g.beginPath(); g.moveTo(X(e.at - 12), Y(e.lvl)); g.lineTo(X(e.at + 2), Y(e.lvl)); g.stroke(); g.setLineDash([]); lab(g, C, cfg.patTxt || "FIGURE", X(e.at - 12), Y(e.lvl) + (cfg.side === "short" ? -6 : 12), 1); }
         if (e.t === "sweep") { g.strokeStyle = A(C.ls, .9); g.beginPath(); g.arc(X(e.at) + bw / 2, Y(e.w), 6 + 2 * Math.sin(t * 6), 0, 7); g.stroke(); lab(g, C, "SWEEP", X(e.at) + bw / 2, Y(e.w) + (cfg.side === "short" ? -12 : 20), 1, "center"); }
-        g.setLineDash([]); });
+        g.setLineDash([]); g.restore(); });
       for (let i = 0; i < show; i++) { const o = S.pts[i], c = S.pts[i + 1], up = c >= o, x = X(i), yo = Y(o), yc = Y(c), wk = 2 + Math.abs(Math.sin(i * 7.1)) * 4;
         g.strokeStyle = g.fillStyle = up ? A(C.fg, .9) : A(C.mu, .75); g.beginPath(); g.moveTo(x + bw / 2, Math.min(yo, yc) - wk); g.lineTo(x + bw / 2, Math.max(yo, yc) + wk * .7); g.stroke(); g.fillRect(x + bw * .2, Math.min(yo, yc), bw * .6, Math.max(1.5, Math.abs(yc - yo))); }
       S.ev.forEach(e => { if (e.t === "signal" && e.at <= show) { const x = X(e.at), y = Y(S.pts[e.at]); g.beginPath(); g.arc(x, y, 6 + 3 * Math.sin(t * 6), 0, 7); g.strokeStyle = A(C.ls, .9); g.stroke(); lab(g, C, (cfg.trigger || "SIGNAL").toUpperCase(), x, y - 12, 1, "center"); }
         if (e.t === "break" && e.at <= show) { g.font = F(C, 10, 1); g.fillStyle = A(C.ls, .55 + .45 * Math.sin(t * 9)); g.fillText("✓", X(e.at) + 6, Y(e.lvl) - 6); }
         if (e.t === "retest" && e.at <= show) { const x = X(e.at), y = Y(S.pts[e.at]); g.beginPath(); g.arc(x, y, 4, 0, 7); g.strokeStyle = A(C.fg, .9); g.stroke(); } });
-      /* frise des étapes, l'étape en cours s'allume */
-      const st = cfg.steps, sw = (w - 12) / Math.max(1, st.length), cur = Math.min(st.length - 1, Math.floor(T * st.length));
-      st.forEach((s, k) => { const x = 6 + k * sw; g.fillStyle = A(C.fg, k === cur ? .9 : k < cur ? .35 : .12); g.fillRect(x, 4, sw - 4, 2); if (k === cur) lab(g, C, (SC.steps[s] || s).toUpperCase(), x, 16, 1); }); },
+      /* frise des étapes : survolez une case pour arrêter la courbe à cette étape */
+      st.forEach((s, k) => { const x = 6 + k * sw, on = hk < 0 ? .45 : k <= hk ? .95 : .12; g.fillStyle = A(C.fg, on); g.fillRect(x, 4, sw - 4, k === hk ? 3 : 2);
+        g.font = F(C, 9, k === hk); g.fillStyle = A(k === hk ? C.fg : C.mu, hk < 0 ? .85 : k <= hk ? 1 : .4); let lb = ((k + 1) + ". " + stratStepLabel(cfg, s)).toUpperCase(); while (lb.length > 4 && g.measureText(lb).width > sw - 8) lb = lb.slice(0, -2) + "…"; g.fillText(lb, x, 17); }); },
     zone(g, w, h, t, C, cv){ const z = cv.dataset.z, T = (t * .5 + (cv._o = cv._o || Math.random() * 3)) % 3 / 3;
       const path = (pts, a) => { g.beginPath(); pts.forEach(([u, v], i) => { if (u > a) return; i ? g.lineTo(u * w, v * h) : g.moveTo(u * w, v * h); }); g.strokeStyle = A(C.fg, .9); g.lineWidth = 1.3; g.stroke(); g.lineWidth = 1; };
       g.setLineDash([3, 3]); g.strokeStyle = A(C.fg, .3); g.fillStyle = A(C.fg, .08);
@@ -5274,6 +5301,12 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
       else if (z === "sr") { g.setLineDash([]); g.strokeStyle = A(C.ls, .7); [[.3], [.7]].forEach(([v]) => { g.beginPath(); g.moveTo(0, v * h); g.lineTo(w, v * h); g.stroke(); }); path([[0, .5], [.15, .31], [.3, .55], [.45, .69], [.6, .45], [.75, .31], [.9, .5], [1, .65]], T); }
       else if (z === "fibo") { g.setLineDash([]); [0, .5, 1].forEach(f => { const y = h * (.12 + f * .76); g.strokeStyle = A(f === .5 ? C.ls : C.mu, f === .5 ? .9 : .35); g.beginPath(); g.moveTo(w * .3, y); g.lineTo(w, y); g.stroke(); lab(g, C, f.toString(), w * .3 - 3, y + 3, .8, "right"); }); path([[.32, .85], [.55, .15], [.7, .5], [.85, .2], [1, .05]], T); }
       else if (z === "sd") { g.fillRect(0, h * .1, w, h * .15); g.fillRect(0, h * .72, w, h * .15); g.setLineDash([]); path([[0, .5], [.2, .2], [.35, .6], [.5, .78], [.65, .4], [.8, .17], [1, .45]], T); }
+      else if (z === "ma") { g.setLineDash([]); g.beginPath(); for (let i = 0; i <= 40; i++) { const u = i / 40; g.lineTo(u * w, h * (.75 - u * .45) + Math.sin(u * 5) * 4); } g.strokeStyle = A(C.ls, .7); g.stroke(); lab(g, C, "MM", w - 4, h * .3 + 12, .9, "right"); path([[0, .6], [.15, .55], [.25, .62], [.4, .4], [.5, .5], [.65, .3], [.75, .38], [1, .1]], T); }
+      else if (z === "tl") { g.setLineDash([4, 3]); g.strokeStyle = A(C.ls, .7); g.beginPath(); g.moveTo(0, h * .88); g.lineTo(w, h * .28); g.stroke(); g.setLineDash([]); path([[0, .78], [.2, .5], [.3, .66], [.5, .36], [.6, .52], [.8, .2], [.88, .36], [1, .12]], T); }
+      else if (z === "vp") { g.setLineDash([]); for (let k = 0; k < 12; k++) { const v = (k + .5) / 12, bw2 = w * .35 * Math.exp(-Math.pow((v - .55) / .18, 2)); g.fillStyle = A(C.fg, .12); g.fillRect(0, v * h - h / 26, bw2, h / 14); } g.strokeStyle = A(C.ls, .8); g.beginPath(); g.moveTo(0, h * .55); g.lineTo(w, h * .55); g.stroke(); lab(g, C, "POC", w - 4, h * .55 - 4, .9, "right"); path([[.4, .2], [.55, .4], [.65, .52], [.72, .45], [.85, .25], [1, .15]], T); }
+      else if (z === "piv") { g.setLineDash([]); [[.22, "R1"], [.5, "P"], [.78, "S1"]].forEach(([v, l]) => { g.strokeStyle = A(l === "P" ? C.ls : C.mu, .6); g.beginPath(); g.moveTo(0, h * v); g.lineTo(w, h * v); g.stroke(); lab(g, C, l, 4, h * v - 3, .9); }); path([[.1, .35], [.3, .62], [.45, .5], [.6, .3], [.75, .22], [.88, .35], [1, .25]], T); }
+      else if (z === "round") { g.setLineDash([]); g.strokeStyle = A(C.ls, .7); g.beginPath(); g.moveTo(0, h * .5); g.lineTo(w, h * .5); g.stroke(); lab(g, C, ".00", 4, h * .5 - 3, .9); path([[0, .2], [.25, .42], [.4, .52], [.5, .44], [.7, .2], [1, .1]], T); }
+      else if (z === "orng") { g.fillStyle = A(C.fg, .08); g.fillRect(0, h * .4, w * .45, h * .25); g.setLineDash([3, 3]); g.strokeStyle = A(C.fg, .45); g.strokeRect(.5, h * .4, w * .45, h * .25); g.setLineDash([]); lab(g, C, "RANGE", 4, h * .65 - 3, .9); path([[0, .5], [.1, .43], [.2, .6], [.3, .45], [.42, .58], [.55, .3], [.7, .36], [1, .1]], T); }
       else if (z === "lvl") { g.setLineDash([5, 3]); g.strokeStyle = A(C.ls, .75); g.beginPath(); g.moveTo(0, h * .62); g.lineTo(w, h * .62); g.stroke(); g.setLineDash([]); path([[0, .2], [.2, .38], [.32, .3], [.5, .58], [.56, .7], [.6, .56], [.78, .36], [1, .14]], T); lab(g, C, KC(cv).lvlTxt || "NIVEAU", w - 4, h * .62 + 11, .9, "right"); if (T > .6) lab(g, C, "✓ REJET", w * .56, h * .86, 1, "center"); }
       else if (z === "liq") { g.setLineDash([3, 3]); g.strokeStyle = A(C.ls, .7); g.beginPath(); g.moveTo(0, h * .3); g.lineTo(w, h * .3); g.stroke(); g.setLineDash([]); path([[0, .78], [.18, .5], [.3, .6], [.46, .4], [.54, .12], [.6, .42], [.76, .6], [1, .82]], T); if (T > .55) lab(g, C, "PIÈGE", w * .54, h * .1, .9, "center"); }
       else { g.setLineDash([]); g.beginPath(); for (let i = 0; i <= 40; i++) { const u = i / 40; g.lineTo(u * w, h * (.55 - u * .2) + Math.sin(u * 8) * 3); } g.strokeStyle = A(C.mu, .8); g.stroke(); path([[0, .7], [.2, .4], [.4, .6], [.6, .35], [.8, .5], [1, .3]], T); }
@@ -6355,7 +6388,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-44";
+const APP_VERSION = "2026-10-29-46";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
