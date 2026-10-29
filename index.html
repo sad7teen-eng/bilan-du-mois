@@ -2708,7 +2708,7 @@ function layoutDeck(){
   st.querySelectorAll(".dcard.tilt").forEach(x => { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); });
   const W = st.clientWidth || 800, gap = Math.min(170, W * .17);
   st.querySelectorAll(".dcard").forEach(c => { const d = +c.dataset.ci - deckSel, a = Math.abs(d);
-    const cw = c.offsetWidth || 440; c.style.transform = `translate(-50%,-50%) translateX(${d * Math.min(gap, cw * .3)}px) translateY(${a * 10}px) scale(${Math.max(.62, 1 - a * .1)})`;
+    const cw = c.offsetWidth || 440; c.style.transform = `translate(-50%,-50%) translateX(${d * Math.min(gap, cw * .3)}px) translateY(${a * a * 9}px) rotate(${d * 5}deg) scale(${Math.max(.6, 1 - a * .09)})`;
     c.style.zIndex = 100 - a * 2 + (d < 0 ? 0 : -1); c.style.opacity = a > 4 ? 0 : 1; c.style.pointerEvents = a > 4 ? "none" : "";
     c.style.filter = a ? `brightness(${Math.max(.35, 1 - a * .2)}) blur(${Math.min(3, a * .8)}px)` : "brightness(1) blur(0px)"; c.classList.toggle("on", !d); c.tabIndex = d ? -1 : 0; });
   if (!deckIntro) st.querySelectorAll(".dcard").forEach(c => c.getAnimations().forEach(a => { if (a.effect && a.effect.getTiming().fill === "backwards") a.cancel(); }));
@@ -7131,7 +7131,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-106";
+const APP_VERSION = "2026-10-29-107";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
