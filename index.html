@@ -1402,7 +1402,7 @@ body:not(.light) .chside{background:linear-gradient(180deg,#0c0c0c,#060606);bord
 /* ===================== Version claire « verre » : tableau en avant, planète floue derrière ===================== */
 .scene{display:none}
 body.light .scene{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#fbfbfc 0%,#eef0f3 55%,#e4e7eb 100%)}
-.orb{position:absolute;border-radius:50%;will-change:transform}
+.orb{position:absolute;border-radius:50%;will-change:transform}body.instrat .scene .orb{display:none}
 .orb i{position:absolute;inset:0;border-radius:50%}
 .orb.o1{width:min(72vmin,702px);aspect-ratio:1;left:50%;margin-left:calc(min(72vmin,702px) / -2 + 18vw);top:50vh}
 .orb.o1 i{background:radial-gradient(circle at 34% 28%,#8a8d93 0%,#3a3c40 14%,#141416 38%,#050506 62%,#000 70.5%,transparent 71%);filter:blur(16px);opacity:.70}
@@ -4668,7 +4668,7 @@ function setView(v, keepScroll){
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
   if (v === "certs") loadCerts();
-  document.body.classList.toggle("incerts", v === "certs");
+  document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie");
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
   if (v === "tableau") { boardDrawn = false; renderBoard(); }
   if (v === "resultats") setTimeout(() => renderTCards(true), reduced ? 0 : 250);
@@ -4758,12 +4758,12 @@ function stratRespectHTML(){
   const rrMin = num(S.rrMin), maxT = parseInt(S.maxTrades, 10);
   const wR = all.filter(t => t.pnl > 0 && isNum(t.r)), okRR = isFinite(rrMin) && wR.length ? wR.filter(t => t.r >= rrMin - 1e-9).length / wR.length : null;
   const timed = all.filter(t => t.time), inSes = timed.length && S.sessions.length ? timed.filter(t => S.sessions.includes(sessionOf(t))).length / timed.length : null;
-  const per = new Map(); all.forEach(t => { const k = dkey(t.at) + "|" + (t.time ? sessionOf(t) : "?"); per.set(k, (per.get(k) || 0) + 1); });
+  const byDay = (stratCfg().maxPer || "session") === "jour", per = new Map(); all.forEach(t => { const k = dkey(t.at) + (byDay ? "" : "|" + (t.time ? sessionOf(t) : "?")); per.set(k, (per.get(k) || 0) + 1); });
   const okMax = isFinite(maxT) && maxT > 0 && per.size ? [...per.values()].filter(n => n <= maxT).length / per.size : null;
   const lR = all.filter(t => t.pnl < 0 && isNum(t.r)), okStop = lR.length ? lR.filter(t => t.r >= -1.15).length / lR.length : null;
   const ring = (lab, v) => `<div class="sring"><canvas class="sviz" data-viz="ring" data-v="${v == null ? -1 : v}"></canvas><small>${lab}</small></div>`;
   return `<section class="tile s-resp2"><div class="c3h"><span class="lab2">Respect de la stratégie</span><small>${all.length} trade${pl(all.length)}</small></div>
-    <div class="rings">${ring("RR min", okRR)}${ring("Stop 1R", okStop)}${ring("Sessions", inSes)}${ring("Max / session", okMax)}</div></section>`;
+    <div class="rings">${ring("RR min", okRR)}${ring("Stop 1R", okStop)}${ring("Sessions", inSes)}${ring(byDay ? "Max / jour" : "Max / session", okMax)}</div></section>`;
 }
 /* ce que montrent les trades, même quand la stratégie ne dit rien */
 function stratReal(C){
@@ -4778,7 +4778,11 @@ function stratReal(C){
   if (C && C.sessions.length && top && !C.sessions.includes(top[0])) gaps.push(`Votre session la plus tradée est <b>${esc(top[0])}</b>, elle n'est pas dans votre stratégie.`);
   if (C && C.side === "long" && Sh) gaps.push(`Stratégie « long uniquement », mais <b>${Sh} short${pl(Sh)}</b> dans le journal.`);
   if (C && C.side === "short" && L) gaps.push(`Stratégie « short uniquement », mais <b>${L} long${pl(L)}</b> dans le journal.`);
-  const mt = parseInt(C && C.maxTrades, 10); if (mt > 0 && perDay > mt + .2) gaps.push(`Max <b>${mt}</b> par session, vous êtes à <b>${perDay.toFixed(1).replace(".", ",")}</b> trades par jour.`);
+  const mt = parseInt(C && C.maxTrades, 10);
+  if (mt > 0) { const byDay = C.maxPer === "jour", m2 = new Map(); all.forEach(t => { const k = dkey(t.at) + (byDay ? "" : "|" + (t.time ? sessionOf(t) : "?")); m2.set(k, (m2.get(k) || 0) + 1); });
+    const over = [...m2.values()].filter(v => v > mt).length; if (over) gaps.push(`Max <b>${mt}</b> par ${byDay ? "jour" : "session"} : dépassé <b>${over} fois</b>.`); }
+  if (C && C.sessions.length) { const out = {}; all.filter(t => t.time).forEach(t => { const s = sessionOf(t); if (!C.sessions.includes(s)) out[s] = (out[s] || 0) + 1; }); const nOut = Object.values(out).reduce((a, b) => a + b, 0);
+    if (nOut) gaps.push(`<b>${nOut} trade${pl(nOut)}</b> hors de vos sessions (${Object.entries(out).map(([k, v]) => esc(k) + " " + v).join(", ")}).`); }
   return `<section class="tile scard s-real"><span class="lab2">Ce que vous faites vraiment <em>${n} trade${pl(n)}</em></span>
     <div class="realk"><div><small>RÉUSSITE</small><b>${Math.round(wr * 100)}%</b></div><div><small>GAIN MOYEN</small><b>${avgW == null ? "—" : avgW.toFixed(1).replace(".", ",") + "R"}</b></div>
       <div><small>LONG / SHORT</small><b>${L} / ${Sh}</b></div><div><small>PAR JOUR</small><b>${perDay.toFixed(1).replace(".", ",")}</b></div></div>
@@ -4801,7 +4805,7 @@ function renderStrat(){
     if (C.side !== "both") kp.push(["SENS", C.side === "long" ? "LONG" : "SHORT"]);
     if (C.risk) kp.push(["RISQUE", esc(String(C.risk).replace(".", ",")) + "%"]); else if (C.ifs.length) kp.push(["RISQUE", "VARIABLE"]);
     if (C.rrTarget) kp.push(["RR", esc(C.rrTarget) + "R"]); else if (C.rrMin) kp.push(["RR MIN", esc(C.rrMin) + "R"]);
-    if (C.maxTrades) kp.push(["MAX", (C.maxTrades === "0" ? "∞" : esc(C.maxTrades)) + "/S"]);
+    if (C.maxTrades) kp.push(["MAX", (C.maxTrades === "0" ? "∞" : esc(C.maxTrades)) + (C.maxPer === "jour" ? "/J" : "/S")]);
     const small = [];
     if (tfMode) small.push(`<section class="tile scard"><span class="lab2">${tfMode === "zoom" ? `Raffinement · ${tfs.map(x => x.tf).join(" → ")}` : "Unités de temps"}</span><canvas class="sviz" data-viz="${tfMode === "zoom" ? "zoom" : "tf"}"></canvas></section>`);
     if (C.bias !== "none") small.push(`<section class="tile scard"><span class="lab2">Biais · ${esc(SC.bias[C.bias] || "")}</span><canvas class="sviz" data-viz="bias"></canvas></section>`);
@@ -4890,7 +4894,7 @@ function stratParse(A){
   if (C.bias === "none") C.misalign = "none";
   else if (/\btout(e|es|s)?\b[^.]{0,30}\balign|\b(toutes les|les \w+) (ut|unites)\b[^.]{0,20}align|alignees? obligatoire/.test(bAny)) C.misalign = "all";
   else if (/\b(c'est|cest) (la|mon|le|là) [^.]{0,25}(entr|signal)|pull ?back|contre.?tendance\b/.test(bAny)) C.misalign = "signal";
-  else if (/\b(pas|aucun) (de )?(trade|position)|je (ne )?(trade|rentre|prends) (rien|pas)\b|je m'abstiens|j'evite/.test(bAny)) C.misalign = "notrade";
+  else if (/\b(desalign\w*|contre|autre sens|sens inverse|oppose)\b[^.]{0,40}\b((pas|aucun) (de )?(trade|position)|je (ne )?(trade|rentre|prends) (rien|pas)|je m'abstiens|j'evite)|\b((pas|aucun) (de )?(trade|position)|je (ne )?(trade|rentre|prends) (rien|pas))\b[^.]{0,30}\b(desalign\w*|contre|autre sens)/.test(bAny)) C.misalign = "notrade";
   else C.misalign = "wait";
   C.noTrade = []; { const rg = /\b(si|quand|lorsqu\w*|des que)\b([^.;]{3,70}?)[,]?\s*(je ne trade pas|on ne trade pas|pas de trade|je trade pas|on trade pas|je ne prends pas|je ne rentre pas|on ne prend pas|je passe)\b/g; let x;
     while ((x = rg.exec(ALL))) { const c = x[2].replace(/\b(alors|,)\s*$/, "").trim(); if (c && !/\b(fatigu|stress|tilt|perte)/.test(c)) C.noTrade.push(c.replace(/\b([mhdw])(\d+)\b/g, (_, a, n) => a.toUpperCase() + n)); } }
@@ -4959,6 +4963,7 @@ function stratParse(A){
     if (/\b(range|marque\w*|trace\w*|pour (le|definir|marquer|tracer))\b/.test(near) && !/\b(trade|j'entre|je prends|session de trading)\b/.test(near)) { if (!C.sessCtx.includes(n)) C.sessCtx.push(n); } else if (!C.sessions.includes(n)) C.sessions.push(n); } });
   C.sessions.sort((a, b2) => SESS.findIndex(x => x.n === a) - SESS.findIndex(x => x.n === b2));
   const mx = r7.match(/\b(\d+|un|une|deux|trois)\s+(seul\s+)?trades?\b[^.]{0,12}\b(par|\/)\s*(jour|session|journee)/); const mx2 = r7.match(/\b(\d+|un|une|deux|trois)\s+(seul\s+)?trades?\s+(max\w*|maxi|au maximum|maximum)\b|\bmax\w*\s+(\d+|un|une|deux|trois)\s+trades?\b/);
+  C.maxPer = mx && /session/.test(mx[4]) ? "session" : "jour";
   if (mx) C.maxTrades = String(sNum(mx[1])); else if (mx2) C.maxTrades = String(sNum(mx2[1] || mx2[4])); else if (/\bun seul trade\b/.test(r7)) C.maxTrades = "1"; else if (/\b(pas de limite|illimit\w*|autant que)\b/.test(r7)) C.maxTrades = "0";
   const rl = sNorm(A.rules) + " " + sNorm(A.risk);
   if (/\b(pas|aucun|jamais|evite\w*|sauf|hors)\b[^.]{0,36}\b(annonces?|news|nfp|cpi|fomc)\b/.test(rl)) C.rules.push("news"); if (/\bnuit\b/.test(rl)) C.rules.push("night"); if (/\b(setup clair|sans setup|si (je )?doute|pas sur)\b/.test(rl)) C.rules.push("setup");
@@ -4969,11 +4974,11 @@ function stratParse(A){
 const stratUnderstood = (C, k) => { const o = [];
   if (k === "mk") { o.push(C.market === "_" ? C.marketOther || "Autre" : C.market); o.push(SC.side[C.side]); }
   if (k === "tf") C.tfs.forEach(x => o.push(x.tf + " · " + (SC.roles[x.role] || "").toLowerCase()));
-  if (k === "bias") { o.push(SC.bias[C.bias]); if (C.bias !== "none") o.push("Désaligné : " + SC.mis[C.misalign].toLowerCase()); (C.noTrade || []).forEach(x => o.push("Si " + x + " → pas de trade")); }
+  if (k === "bias") { o.push(SC.bias[C.bias]); if (C.bias !== "none") o.push(C.misalign === "wait" && C.steps.some(x => x === "zone" || x === "retrace") ? "Désaligné : retour normal, on attend " + (C.steps.includes("rebound") ? "le rejet" : "le shift") : "Désaligné : " + SC.mis[C.misalign].toLowerCase()); (C.noTrade || []).forEach(x => o.push("Si " + x + " → pas de trade")); }
   if (k === "zones") C.zones.forEach(z => o.push(z === "lvl" && C.lvlTxt ? C.lvlTxt.charAt(0) + C.lvlTxt.slice(1).toLowerCase() : SC.zones[z]));
-  if (k === "seq") C.steps.forEach((s, i) => o.push((i + 1) + ". " + (s === "other" || s === "signal" ? (C.trigger || SC.steps[s]) : s === "bias" ? "Biais " + ((C.tfs.find(x => x.role === "bias") || {}).tf || "") : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" ? (C.markKind === "level" ? "Tracer le " + (C.lvlTxt || "niveau").toLowerCase() : "Tracer les liquidités") : s === "rebound" && C.markKind === "level" ? "Rejet du niveau" : SC.steps[s])));
+  if (k === "seq") C.steps.forEach((s, i) => o.push((i + 1) + ". " + (s === "other" || s === "signal" ? (C.trigger || SC.steps[s]) : s === "bias" ? "Biais " + ((C.tfs.find(x => x.role === "bias") || {}).tf || "") : s === "wait" && C.waitTxt ? "Attente · " + C.waitTxt.toLowerCase() : s === "mark" ? (C.markKind === "level" ? "Tracer le " + (C.lvlTxt || "niveau").toLowerCase() : "Tracer les liquidités") : s === "rebound" && C.markKind === "level" ? "Rejet du niveau" : s === "zone" && C.markKind === "level" ? "Retour sur le niveau" : SC.steps[s])));
   if (k === "risk") { if (C.risk) o.push("Risque de base " + C.risk.replace(".", ",") + " %"); if (C.rrMin) o.push("RR min " + C.rrMin.replace(".", ",") + "R"); if (C.rrTarget) o.push("RR visé " + C.rrTarget.replace(".", ",") + "R");
-    if (C.partial) o.push("Sécurisation à " + C.partial.replace(".", ",") + "R"); const lc = x => x.charAt(0).toLowerCase() + x.slice(1); if (C.sl) o.push("SL " + lc(SC.sl[C.sl])); C.tp.forEach(x => o.push("TP " + lc(SC.tp[x]))); if (C.be) o.push("Break-even" + (C.beAt ? " à " + C.beAt.replace(".", ",") + "R" : "")); C.ifs.forEach(r => o.push("Si " + ifLabel(r))); }
+    if (C.partial) o.push("Sécurisation à " + C.partial.replace(".", ",") + "R"); const lc = x => x.charAt(0).toLowerCase() + x.slice(1); if (C.sl) o.push("SL " + (C.sl === "zone" && C.markKind === "level" ? "derrière le niveau" : lc(SC.sl[C.sl]))); C.tp.forEach(x => o.push("TP " + lc(SC.tp[x]))); if (C.be) o.push("Break-even" + (C.beAt ? " à " + C.beAt.replace(".", ",") + "R" : "")); C.ifs.forEach(r => o.push("Si " + ifLabel(r))); }
   if (k === "rules") { C.sessions.forEach(x => o.push(x)); (C.sessCtx || []).forEach(x => o.push(x + " · pour le range")); if (C.maxTrades) o.push(C.maxTrades === "0" ? "Trades illimités" : C.maxTrades + " trade" + (C.maxTrades > 1 ? "s" : "") + " max"); C.rules.forEach(x => o.push(SC.rules[x])); }
   return o; };
 
@@ -5211,7 +5216,8 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
         L.forEach((n, i) => { if (n) lab(g, C, n, i % 2 ? w - 16 : 16, i > 1 ? h - 22 : 22, .75, i % 2 ? "right" : "left"); }); } },
     tf(g, w, h, t, C, cv){ /* chaque UT = sa mini-structure en lignes droites + son sens ; l'UT d'exécution passe baissière (rouge) puis se réaligne */
       const tfs = (KC(cv).tfs.length ? KC(cv).tfs : [{tf: "H4", role: "bias"}]), n = tfs.length, cw = w / n, rl = tfs.map(x => x.role), ex = rl.lastIndexOf("exec") >= 0 ? rl.lastIndexOf("exec") : n - 1;
-      const mode = KC(cv).misalign, cyc = (t % 10) / 10, mis = mode !== "all" && cyc > .4 && cyc < .75, top = 30, bot = h - 52, red = mode !== "signal";
+      const cf = KC(cv), mode = cf.misalign, pull = cf.steps.some(x => x === "zone" || x === "retrace"), cyc = (t % 10) / 10, mis = mode !== "all" && cyc > .4 && cyc < .75, top = 30, bot = h - 52, red = mode === "notrade" || (mode === "wait" && !pull);
+      const tgt = cf.lvlTxt ? "LE " + cf.lvlTxt : cf.zones[0] ? "L'" + ((SC.zones[cf.zones[0]] || "ZONE").toUpperCase().replace("ORDER BLOCK", "OB")) : "LA ZONE", wf = cf.steps.includes("rebound") ? "LE REJET" : cf.steps.includes("break") ? "LE SHIFT" : "LA CONFIRMATION";
       tfs.forEach((x, i) => { const bad = mis && i === ex, key = "d" + i, tgt = bad ? -1 : 1; cv[key] = cv[key] == null ? tgt : cv[key] + (tgt - cv[key]) * .07; const d = cv[key], x0 = i * cw + 14, x1 = (i + 1) * cw - 14, mid = (top + bot) / 2, H2 = (bot - top) / 2;
         if (i) { g.strokeStyle = A(C.mu, .25); g.beginPath(); g.moveTo(i * cw, top); g.lineTo(i * cw, bot + 28); g.stroke(); }
         const K = 7, pts = []; for (let k = 0; k <= K; k++) { const u = k / K, zz = (k % 2 ? -1 : 1) * .28 * H2 * (k && k < K ? 1 : 0); pts.push([x0 + u * (x1 - x0), mid + d * (H2 * .8 - u * H2 * 1.6) + zz * Math.sign(d || 1)]); }
@@ -5222,7 +5228,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
         g.textAlign = "right"; g.font = F(C, 12, 1); g.fillText(up ? "▲" : "▼", x1, 16); g.textAlign = "left";
         lab(g, C, (up ? "HAUSSIER" : "BAISSIER"), ax, bot + 16, 1, "center"); lab(g, C, (SC.roles[x.role] || "").toUpperCase(), ax, bot + 27, .55, "center");
         if (bad) { g.strokeStyle = A(red ? C.ls : C.fg, .5 + .4 * Math.sin(t * 8)); g.strokeRect(i * cw + 4.5, 2.5, cw - 9, h - 22); } });
-      g.font = F(C, 9, 1); g.fillStyle = mis ? A(red ? C.ls : C.fg, .6 + .4 * Math.sin(t * 8)) : A(C.mu, .9); g.textAlign = "center"; g.fillText(mis ? ({notrade: "DÉSALIGNÉ · PAS DE TRADE", signal: "CONTRE-TENDANCE · ZONE D'ENTRÉE"}[mode] || "DÉSALIGNÉ · ON ATTEND LE SHIFT") : mode === "all" ? "TOUT ALIGNÉ · OBLIGATOIRE ✓" : "ALIGNÉ ✓", w / 2, h - 2); g.textAlign = "left"; },
+      g.font = F(C, 9, 1); g.fillStyle = mis ? A(red ? C.ls : C.fg, .6 + .4 * Math.sin(t * 8)) : A(C.mu, .9); g.textAlign = "center"; g.fillText(mis ? ({notrade: "DÉSALIGNÉ · PAS DE TRADE", signal: "CONTRE-TENDANCE · ZONE D'ENTRÉE"}[mode] || (pull ? "RETOUR VERS " + tgt + " · ON ATTEND " + wf : "DÉSALIGNÉ · ON ATTEND " + wf)) : mode === "all" ? "TOUT ALIGNÉ · OBLIGATOIRE ✓" : "ALIGNÉ ✓", w / 2, h - 2); g.textAlign = "left"; },
     bias(g, w, h, t, C, cv){ const b = KC(cv).bias;
       if (b === "none") { lab(g, C, "SANS BIAIS · LES DEUX SENS", w / 2, h / 2, .9, "center"); g.strokeStyle = A(C.fg, .6); [[-1], [1]].forEach(([s]) => { g.beginPath(); g.moveTo(w / 2, h * .62); g.lineTo(w / 2 + s * 40, h * .62 + Math.sin(t * 2) * 6); g.stroke(); }); return; }
       if (b === "macro") { for (let i = 0; i < 5; i++) { const y = 14 + i * (h - 20) / 5, x = (w + 40 - ((t * 40 + i * 70) % (w + 80))); g.fillStyle = A(C.fg, .12); g.fillRect(x, y, 60, 10); lab(g, C, ["FED", "CPI", "NFP", "DXY", "PIB"][i], x + 4, y + 8, .9); }
@@ -5279,12 +5285,12 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
       const slT = !(c.be || c.tp.includes("trail")) ? -1 : mx >= 2 && rr >= 3 && c.tp.includes("trail") ? 1 : mx >= 1 ? 0 : -1; g._sl = g.canvas._sl = g.canvas._sl == null ? -1 : (Tt < .02 ? -1 : g.canvas._sl + (slT - g.canvas._sl) * .08); const sl = g.canvas._sl;
       g.fillStyle = A(C.fg, .06); g.fillRect(x0, Y(rr), x1 - x0, Y(0) - Y(rr)); g.fillStyle = A(C.ls, .1); g.fillRect(x0, Y(0), x1 - x0, Y(-1) - Y(0));
       const ln = (R, l, cc, a, dash) => { g.setLineDash(dash ? [3, 3] : []); g.strokeStyle = A(cc, a); g.beginPath(); g.moveTo(x0, Y(R)); g.lineTo(x1, Y(R)); g.stroke(); g.setLineDash([]); lab(g, C, l, x1 + 5, Y(R) + 3, .95); };
-      ln(rr, "TP +" + rr + "R", C.fg, .7); if (rr >= 2 || c.partial) ln(tp1, (c.partial ? "SÉCU " : "TP1 ") + String(+tp1.toFixed(1)).replace(".", ",") + "R", C.mu, .5, 1); ln(0, Math.abs(sl) > .2 ? "ENTRÉE" : "", C.fg, .5, 1);
+      ln(rr, c.rrTarget || c.rrMin ? "TP +" + rr + "R" : "TP", C.fg, .7); if (rr >= 2 || c.partial) ln(tp1, (c.partial ? "SÉCU " : "TP1 ") + String(+tp1.toFixed(1)).replace(".", ",") + "R", C.mu, .5, 1); ln(0, Math.abs(sl) > .2 ? "ENTRÉE" : "", C.fg, .5, 1);
       const slLab = sl > .5 ? "SL +1R" : sl > -.5 ? "SL = BE" : "SL -1R"; ln(sl, slLab, C.ls, .95);
       g.beginPath(); pts.forEach(([u, R], i) => { const x = x0 + u * (x1 - x0); i ? g.lineTo(x, Y(R)) : g.moveTo(x, Y(R)); }); g.strokeStyle = A(C.fg, .95); g.lineWidth = 1.5; g.stroke(); g.lineWidth = 1;
       const [lu, lR] = pts[pts.length - 1]; g.fillStyle = A(C.fg, 1); g.fillRect(x0 + lu * (x1 - x0) - 2.5, Y(lR) - 2.5, 5, 5);
       if (mx >= tp1 && (rr >= 2 || c.partial)) { lab(g, C, "✓", x0 + 4, Y(tp1) - 4, .9); } lab(g, C, (cur >= 0 ? "+" : "") + cur.toFixed(1) + "R", 5, 74, 1); },
-    sess(g, w, h, t, C, cv){ const c = KC(cv), rt = [c.maxTrades ? (c.maxTrades === "0" ? "TRADES ILLIMITÉS" : c.maxTrades + " TRADE" + (c.maxTrades > 1 ? "S" : "") + " MAX") : "", c.rules.includes("news") ? "PAS D'ANNONCES" : "", c.rules.includes("night") ? "PAS LA NUIT" : ""].filter(Boolean).join(" · ");
+    sess(g, w, h, t, C, cv){ const c = KC(cv), rt = [c.maxTrades ? (c.maxTrades === "0" ? "TRADES ILLIMITÉS" : c.maxTrades + " TRADE" + (c.maxTrades > 1 ? "S" : "") + " MAX" + (c.maxPer === "jour" ? " / JOUR" : " / SESSION")) : "", c.rules.includes("news") ? "PAS D'ANNONCES" : "", c.rules.includes("night") ? "PAS LA NUIT" : ""].filter(Boolean).join(" · ");
       if (rt) { g.font = F(C, 9, 1); g.fillStyle = A(C.fg, .9); g.textAlign = "center"; g.fillText(rt, w / 2, h - 4); g.textAlign = "left"; }
       const cx = w / 2, cy = h / 2 + (rt ? -4 : 4), r = Math.min(w, h) * (rt ? .31 : .36), now = new Date(), mn = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
       const m = cv._m, hov = m ? ((Math.atan2(m.y - cy, m.x - cx) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2) * 1440 : null, hs = hov != null ? SESS.find(s => hov >= s.a && hov < s.b) : null;
@@ -5300,7 +5306,7 @@ const stratSeq = (steps, cfg) => { /* construit une courbe de prix (bougies) + d
       g.font = F(C, 15, 1); g.fillStyle = A(C.fg, hov != null ? .35 : 1); g.textAlign = "center"; g.fillText(hh(mn), cx, cy - 2);
       if (hov == null) { const inS = SESS.find(s => mn >= s.a && mn < s.b && c.sessions.includes(s.n)); lab(g, C, inS ? "EN SESSION" : "HORS SESSION", cx, cy + 12, inS ? 1 : .6, "center"); }
       g.textAlign = "left"; },
-    rules(g, w, h, t, C, cv){ const c = KC(cv), it = c.rules.map(k => (SC.rules[k] || k).toUpperCase()); if (c.maxTrades) it.push((c.maxTrades === "0" ? "∞" : c.maxTrades) + " / SESSION"); c.ifs.filter(r => r.a === "stop").forEach(r => it.push(("SI " + ifLabel(r)).toUpperCase())); (c.noTrade || []).forEach(x => it.push(("SI " + x).toUpperCase().slice(0, 30) + " → PAS DE TRADE")); if (!it.length) it.push("—");
+    rules(g, w, h, t, C, cv){ const c = KC(cv), it = c.rules.map(k => (SC.rules[k] || k).toUpperCase()); if (c.maxTrades) it.push((c.maxTrades === "0" ? "∞" : c.maxTrades) + (c.maxPer === "jour" ? " / JOUR" : " / SESSION")); c.ifs.filter(r => r.a === "stop").forEach(r => it.push(("SI " + ifLabel(r)).toUpperCase())); (c.noTrade || []).forEach(x => it.push(("SI " + x).toUpperCase().slice(0, 30) + " → PAS DE TRADE")); if (!it.length) it.push("—");
       const cw = w / it.length, R = Math.min(15, cw * .22); it.forEach((s, i) => { const x = i * cw + cw / 2, y = h * .4, on = Math.sin(t * 1.5 - i * .8) > .3;
         g.beginPath(); g.arc(x, y, R, 0, 7); g.strokeStyle = A(on ? C.ls : C.mu, .8); g.lineWidth = 1.2; g.stroke();
         g.beginPath(); g.arc(x, y, R, -Math.PI / 2, -Math.PI / 2 + ((t * .6 + i * .25) % 1) * Math.PI * 2); g.strokeStyle = A(C.fg, .9); g.stroke(); g.lineWidth = 1;
@@ -6349,7 +6355,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-43";
+const APP_VERSION = "2026-10-29-44";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
