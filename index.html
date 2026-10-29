@@ -5535,7 +5535,7 @@ async function mountBrain3(host, C){
   const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0, lastT = 0; const A = new THREE.Vector3(), B = new THREE.Vector3(), M = new THREE.Vector3(), P = new THREE.Vector3();
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
     const t = (now - t0) / 1000, dt = Math.min(.05, t - lastT); lastT = t; fr++; idle += dt;
-    if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
+    if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .00096;
     /* les régions dérivent doucement dans l'amas */
     cells.forEach(a => { a.c.copy(a.home).add(v3.set(Math.sin(t * .21 + a.ph) * 70, Math.cos(t * .17 + a.ph * 1.3) * 55, Math.sin(t * .19 + a.ph * .7) * 70)); });
     items.forEach(n => n.p.copy(n.cell.c).add(n.rel).add(v3.set(Math.sin(t * .6 + n.ph) * 22, Math.cos(t * .5 + n.ph) * 18, Math.sin(t * .4 + n.ph * 2) * 22)));
@@ -5544,7 +5544,7 @@ async function mountBrain3(host, C){
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt);
     /* voyageurs : toutes les connaissances circulent entre elles */
     let li = 0; const seg = (a, b, c, al) => { if (li >= LN) return; lPos[li * 6] = a.x; lPos[li * 6 + 1] = a.y; lPos[li * 6 + 2] = a.z; lPos[li * 6 + 3] = b.x; lPos[li * 6 + 4] = b.y; lPos[li * 6 + 5] = b.z; const m = mix(c, al); lCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
-    const rot = t * .25;
+    const rot = t * .15;
     for (let k = 0; k < NT; k++) { const q = trav[k]; let u = (t - q.t0 - q.dw) / q.du;
       if (u >= 1) { q.a = q.b; q.b = pick(q.a); q.t0 = t; q.dw = Math.random() * 2.2; q.du = 1.4 + Math.random() * 3.4; u = 0; if (Math.random() < .02) combos++; }
       u = Math.max(0, u); const e = u * u * (3 - 2 * u), cr = Math.cos(rot + k), sr = Math.sin(rot + k), ox = q.off.x * cr - q.off.z * sr, oz = q.off.x * sr + q.off.z * cr, sq = Math.sin(Math.PI * e);
@@ -5559,7 +5559,7 @@ async function mountBrain3(host, C){
       flares.push({c, an, t0: t, d: .5 + Math.random() * .6, rad: 120 + Math.random() * 130, red: an ? !!an.bad || Math.random() < .08 : Math.random() < .08, slot: [...Array(FL).keys()].find(i => !flares.some(f => f.slot === i))}); combos += 2 + Math.floor(Math.random() * 6); }
     for (let k = flares.length - 1; k >= 0; k--) if (t - flares[k].t0 > flares[k].d) flares.splice(k, 1);
     flares.forEach(f => { const u = (t - f.t0) / f.d; f.pow = u < .15 ? u / .15 : Math.pow(1 - (u - .15) / .85, 2); f.wave = f.rad * (.3 + u * .9); });
-    for (let k = 0; k < ND; k++) { const [u, th, ph, s] = dust[k], a = th + t * s; let x = Math.sin(ph) * Math.cos(a) * u, y = Math.cos(ph) * u * .8, z = Math.sin(ph) * Math.sin(a) * u;
+    for (let k = 0; k < ND; k++) { const [u, th, ph, s] = dust[k], a = th + t * s * .6; let x = Math.sin(ph) * Math.cos(a) * u, y = Math.cos(ph) * u * .8, z = Math.sin(ph) * Math.sin(a) * u;
       if (fr === 1) dBase[k] = .3 + .45 * (1 - u / (R * 1.15)); let g = 0, red = false;
       for (let i = 0; i < flares.length; i++) { const f = flares[i], dx = x - f.c.x, dy = y - f.c.y, dz = z - f.c.z, d2 = dx * dx + dy * dy + dz * dz; if (d2 < f.rad * f.rad) { const d = Math.sqrt(d2), w = (1 - d / f.rad) * f.pow, push = w * 40 / (d || 1); x += dx * push; y += dy * push; z += dz * push; if (w > g) { g = w; red = f.red; } } }
       dPos[k * 3] = x; dPos[k * 3 + 1] = y; dPos[k * 3 + 2] = z; const m = mix(red && g > .15 ? cLS : cFG, Math.min(1, dBase[k] + g * 3)); dCol[k * 3] = m[0]; dCol[k * 3 + 1] = m[1]; dCol[k * 3 + 2] = m[2]; }
@@ -6874,7 +6874,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-65";
+const APP_VERSION = "2026-10-29-66";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
