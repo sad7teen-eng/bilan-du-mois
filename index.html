@@ -774,8 +774,14 @@ body:not(.light) .rt:hover{background:#121212!important}
 .tn-tabs{display:flex;gap:2px;min-width:0}
 .tn-tabs:first-child{justify-content:flex-end}
 /* barre du haut : l'onglet survolé grossit légèrement, en douceur */
-.tn{transition:transform .28s cubic-bezier(.2,.8,.2,1),color .2s}
-.tn:hover{transform:scale(1.12);color:#fff}
+.tn{position:relative;overflow:hidden;isolation:isolate;transition:transform .28s cubic-bezier(.2,.8,.2,1),color .2s,text-shadow .3s}
+.tn::before{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,0);background:rgba(255,255,255,0);transition:border-color .3s,background .3s,box-shadow .3s;z-index:-1}
+.tn::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,color-mix(in srgb,currentColor 18%,transparent),transparent);transform:skewX(-18deg);opacity:0;pointer-events:none}
+.tn:hover{transform:scale(1.1);color:var(--fg)}
+body:not(.light) .topnav .tn:hover,body.incerts .topnav .tn:hover{color:#fff!important;text-shadow:0 0 10px rgba(255,255,255,.45)}
+.tn:hover::before{border-color:color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,currentColor 5%,transparent);box-shadow:0 0 16px rgba(255,255,255,.07),inset 0 0 10px rgba(255,255,255,.04)}
+.tn:hover::after{animation:tnSheen .7s ease-out}
+@keyframes tnSheen{0%{left:-60%;opacity:1}100%{left:120%;opacity:0}}
 .tn{display:inline-flex;align-items:center;gap:7px;border:0!important;background:transparent!important;color:var(--muted);font-size:13px;padding:7px 11px!important;border-radius:9px!important;white-space:nowrap}
 .tn svg{width:15px;height:15px;flex:none}
 .tn:hover{color:var(--fg)}
@@ -5626,7 +5632,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-17";
+const APP_VERSION = "2026-10-29-18";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
