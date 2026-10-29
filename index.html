@@ -939,7 +939,13 @@ body:not(.light) .tn.on{background:#161616!important;box-shadow:inset 0 0 0 1px 
 .cz-btn,.cz-get{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important;font-size:14px!important;font-weight:500}
 .cz-btn{padding:11px 16px!important;border-radius:11px!important;background:rgba(255,255,255,.16)!important;border:1px solid rgba(255,255,255,.35)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(20,25,35,.3);transition:background .25s,border-color .25s,transform .28s cubic-bezier(.2,.8,.2,1)}
 .cz-btn:hover{background:rgba(255,255,255,.24)!important;border-color:rgba(255,255,255,.55)!important;transform:scale(1.03)}.cz-dlb{box-sizing:border-box}.cz-dlb,.cz-dlb:hover{cursor:default;transform:none!important;background:rgba(255,255,255,.16)!important;border-color:rgba(255,255,255,.35)!important}
-.cz-get{padding:10px 14px!important;border-radius:10px!important;background:rgba(255,255,255,.9)!important;color:#111!important}
+.cz-get{padding:10px 14px!important;border-radius:10px!important;background:rgba(255,255,255,.14)!important;color:#fff!important;border:1px solid rgba(255,255,255,.4)!important}
+.liq{position:relative;overflow:hidden;isolation:isolate;transition:color .45s ease .1s,border-color .45s!important}
+.liq::before,.liq::after{content:"";position:absolute;left:0;right:0;top:100%;height:calc(100% + 16px);z-index:-1;pointer-events:none;transition:top .9s cubic-bezier(.2,.8,.2,1);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='14' viewBox='0 0 80 14'%3E%3Cpath d='M0 7 Q20 0 40 7 T80 7 V14 H0Z'/%3E%3C/svg%3E") 0 0/80px 14px repeat-x,linear-gradient(#000,#000) 0 13px/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='14' viewBox='0 0 80 14'%3E%3Cpath d='M0 7 Q20 0 40 7 T80 7 V14 H0Z'/%3E%3C/svg%3E") 0 0/80px 14px repeat-x,linear-gradient(#000,#000) 0 13px/100% 100% no-repeat;animation:liqWave 1.4s linear infinite}
+.liq::before{background:#fff}.liq::after{background:rgba(255,255,255,.45);animation-duration:2.2s;animation-direction:reverse;transition-duration:1.1s}
+.liq:hover::before{top:-16px}.liq:hover::after{top:-22px}
+.liq:hover{color:#0b0b0d!important;text-shadow:none!important;border-color:#fff!important}
+@keyframes liqWave{to{-webkit-mask-position:80px 0,0 13px;mask-position:80px 0,0 13px}}
 .cz-prev{border-radius:11px;border-color:rgba(255,255,255,.35)}.cz-prev small{font-family:var(--display);letter-spacing:.04em;text-transform:none}
 .cz-go{position:relative;overflow:hidden;justify-content:center;padding:6px!important;height:54px;border-radius:14px!important;background:linear-gradient(135deg,rgba(190,215,245,.28),rgba(120,150,190,.12) 55%,rgba(220,235,255,.22))!important;border:1px solid rgba(230,242,255,.55)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -10px 20px rgba(120,160,210,.15),0 8px 24px rgba(20,30,50,.25)}
 .cz-go::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 120% at 50% 120%,rgba(200,230,255,.35),transparent 70%);opacity:.7;transition:opacity .3s}
@@ -1373,10 +1379,10 @@ body:not(.light) .crow{background:linear-gradient(180deg,#0d0d0d,#080808)!import
 .deck-stage{position:relative;width:100%;height:clamp(340px,46vw,500px);perspective:1400px;touch-action:pan-y;user-select:none;overflow:hidden;cursor:grab;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 62%,transparent 90%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0,#000 20%,#000 80%,transparent 100%),linear-gradient(180deg,transparent 0,#000 8%,#000 62%,transparent 90%);mask-composite:intersect}
 body.light .di-in{padding:16px 26px;border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.4));-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);border:1px solid rgba(255,255,255,.75);box-shadow:inset 0 1px 0 #fff,0 20px 50px rgba(16,18,24,.12)}
 .deck-stage:active{cursor:grabbing}
-.dcard{transform-style:preserve-3d;position:absolute;left:50%;top:50%;width:min(440px,74vw);padding:0!important;border-radius:18px!important;overflow:hidden;background:#0b0b0b!important;border:1px solid #262626!important;box-shadow:0 30px 70px rgba(0,0,0,.7);transition:transform .85s cubic-bezier(.16,.84,.24,1),filter .7s,opacity .5s,box-shadow .5s;display:flex;flex-direction:column;text-align:left;color:#fff;will-change:transform}
+.dcard{position:absolute;left:50%;top:50%;width:min(440px,74vw);padding:0!important;border-radius:18px!important;overflow:hidden;background:#0b0b0b!important;border:1px solid #262626!important;box-shadow:0 30px 70px rgba(0,0,0,.7);transition:transform .7s cubic-bezier(.22,.8,.24,1),filter .6s,opacity .5s,box-shadow .5s,z-index .7s steps(6,jump-none);display:flex;flex-direction:column;text-align:left;color:#fff;will-change:transform}
 .dcard.on{border-color:#444!important;box-shadow:0 34px 90px rgba(0,0,0,.8),0 0 60px rgba(255,255,255,.08)}
-.dcard.on.tilt{transition:transform .35s cubic-bezier(.2,.8,.2,1),filter .5s,opacity .4s}
-.dcard.on.tilt{transform:translate(-50%,-50%) perspective(900px) rotateX(var(--rx,0)) rotateY(var(--ry,0)) scale(1.02)!important}
+.dcard.on.tilt{transition:filter .5s,opacity .4s}
+.dcard.on.tilt{transform:translate(-50%,-50%) perspective(1100px) rotateX(var(--rx,0)) rotateY(var(--ry,0)) scale(var(--ts,1))!important}
 .dc-im{display:block;aspect-ratio:4/3;background:#000}
 .dc-im img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .dc-none{display:grid;place-items:center;height:100%;color:#777;font-size:12px}
@@ -1388,8 +1394,7 @@ body.light .di-in{padding:16px 26px;border-radius:20px;background:linear-gradien
 .dcard.tilt .dc-glare{opacity:1}
 .dc-edge{position:absolute;inset:0;border-radius:inherit;pointer-events:none;padding:1.5px;opacity:0;transition:opacity .4s;background:radial-gradient(260px circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.95),rgba(170,200,255,.45) 30%,transparent 60%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 .dcard.tilt .dc-edge{opacity:1}.dcard.on.tilt{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 50px rgba(160,190,255,.16)!important}
-.dc-frost{position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at var(--fx) var(--fy),rgba(255,255,255,.55),rgba(200,225,255,.28) 22%,rgba(200,225,255,.12) 45%,transparent 70%),repeating-conic-gradient(from 10deg at var(--fx) var(--fy),rgba(255,255,255,.18) 0 1.5deg,transparent 1.5deg 13deg);-webkit-backdrop-filter:blur(3px) saturate(140%);backdrop-filter:blur(3px) saturate(140%);mix-blend-mode:screen}
-.dc-ring{position:fixed;pointer-events:none;border-radius:22px;border:1.5px solid rgba(220,235,255,.8);box-shadow:0 0 30px rgba(180,210,255,.5),inset 0 0 30px rgba(180,210,255,.35);z-index:50}
+.dc-wave{position:absolute;left:50%;top:50%;border-radius:18px;border:1.2px solid rgba(245,245,247,.75);pointer-events:none;z-index:99;opacity:0}
 .deck-bar{display:flex;align-items:center;gap:14px}
 .deck-bar button{width:40px;height:40px;padding:0!important;border-radius:50%!important;font-size:18px}
 .deck-bar button:disabled{opacity:.3}
@@ -2688,16 +2693,24 @@ function drawCerts(){
     <div class="e-acts"><span class="grow"></span>${(state.certs || []).some(x => x.id === c.id) ? `<button type="button" class="mini del" id="cfDel">Supprimer</button>` : ""}
       <button type="button" class="mini ghost" id="cfCancel">Annuler</button><button type="submit" class="go save">Enregistrer</button></div></form>`;
 }
-let deckSel = 0, deckList = [], deckIntro = false;
+let deckSel = 0, deckList = [], deckIntro = false, deckMouse = null, deckTiltRun = false; const deckT = {x: 0, y: 0, gx: 50, gy: 30};
+/* inclinaison douce : calculée sur la place fixe du certificat (pas sur sa forme tournée), lissée à chaque image */
+function deckTiltLoop(){ const st = document.querySelector("#certGrid .deck-stage"), c = st && st.querySelector(".dcard.on"); if (!c || !document.body.classList.contains("incerts")) { deckTiltRun = false; return; }
+  const R = st.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, l = R.left + R.width / 2 - w / 2, t = R.top + R.height / 2 - h / 2, still = performance.now() - deckMovedAt > 700;
+  let tx = 0, ty = 0, inside = false; if (deckMouse && still) { const x = (deckMouse[0] - l) / w, y = (deckMouse[1] - t) / h; inside = x > -.08 && x < 1.08 && y > -.08 && y < 1.08; if (inside) { tx = Math.max(-1, Math.min(1, (x - .5) * 2)); ty = Math.max(-1, Math.min(1, (y - .5) * 2)); deckT.gx = x * 100; deckT.gy = y * 100; } }
+  deckT.x += (tx - deckT.x) * .08; deckT.y += (ty - deckT.y) * .08; const on = still && (inside || Math.abs(deckT.x) + Math.abs(deckT.y) > .004);
+  if (on) { c.classList.add("tilt"); c.style.setProperty("--rx", (-deckT.y * 7).toFixed(3) + "deg"); c.style.setProperty("--ry", (deckT.x * 10).toFixed(3) + "deg"); c.style.setProperty("--gx", deckT.gx.toFixed(1) + "%"); c.style.setProperty("--gy", deckT.gy.toFixed(1) + "%"); c.style.setProperty("--ts", (1 + .015 * Math.min(1, Math.hypot(deckT.x, deckT.y) * 2)).toFixed(4)); }
+  else if (c.classList.contains("tilt")) { c.classList.remove("tilt"); deckT.x = deckT.y = 0; }
+  requestAnimationFrame(deckTiltLoop); }
 let deckMovedAt = 0;
 function layoutDeck(){
   const st = document.querySelector("#certGrid .deck-stage"); if (!st) return; deckMovedAt = performance.now();
   st.querySelectorAll(".dcard.tilt").forEach(x => { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); });
   const W = st.clientWidth || 800, gap = Math.min(170, W * .17);
   st.querySelectorAll(".dcard").forEach(c => { const d = +c.dataset.ci - deckSel, a = Math.abs(d);
-    const cw = c.offsetWidth || 440; c.style.transform = `translate(-50%,-50%) translateX(${d * Math.min(gap, cw * .32)}px) translateY(${a * a * 6}px) rotateY(${-d * 9}deg) rotate(${d * 3}deg) scale(${Math.max(.6, 1 - a * .09)})`;
+    const cw = c.offsetWidth || 440; c.style.transform = `translate(-50%,-50%) translateX(${d * Math.min(gap, cw * .3)}px) translateY(${a * 10}px) scale(${Math.max(.62, 1 - a * .1)})`;
     c.style.zIndex = 100 - a; c.style.opacity = a > 4 ? 0 : 1; c.style.pointerEvents = a > 4 ? "none" : "";
-    c.style.filter = a ? `brightness(${Math.max(.35, 1 - a * .2)})` : ""; c.classList.toggle("on", !d); c.tabIndex = d ? -1 : 0; });
+    c.style.filter = a ? `brightness(${Math.max(.35, 1 - a * .2)}) blur(${Math.min(3, a * .8)}px)` : "brightness(1) blur(0px)"; c.classList.toggle("on", !d); c.tabIndex = d ? -1 : 0; });
   if (deckIntro && !matchMedia("(prefers-reduced-motion: reduce)").matches) { deckIntro = false; deckMovedAt = performance.now() + 1800;
     st.querySelectorAll(".dcard").forEach(c => { const a = Math.abs(+c.dataset.ci - deckSel); if (a > 4) return; const fin = c.style.transform, op = c.style.opacity || 1, fl = c.style.filter || "brightness(1)";
       c.animate([{transform: `translate(-50%,-50%) translateY(${70 + a * 10}px) scale(${.72 - a * .03})`, opacity: 0, filter: "blur(22px) brightness(.3)"},
@@ -2712,12 +2725,9 @@ function layoutDeck(){
   st.parentElement.querySelectorAll("[data-dkstep]").forEach(b => { b.disabled = (+b.dataset.dkstep < 0 && !deckSel) || (+b.dataset.dkstep > 0 && deckSel === deckList.length - 1); });
 }
 function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSel + k)); if (n === deckSel) return false; deckSel = n; layoutDeck(); return true; }
-function frostCard(c, e){ if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const r = c.getBoundingClientRect(), fx = ((e.clientX || r.left + r.width / 2) - r.left) / r.width * 100, fy = ((e.clientY || r.top + r.height / 2) - r.top) / r.height * 100;
-  const f = document.createElement("span"); f.className = "dc-frost"; f.style.setProperty("--fx", fx + "%"); f.style.setProperty("--fy", fy + "%"); c.appendChild(f);
-  f.animate([{clipPath: `circle(0% at ${fx}% ${fy}%)`, opacity: 1}, {clipPath: `circle(140% at ${fx}% ${fy}%)`, opacity: .9, offset: .55}, {clipPath: `circle(140% at ${fx}% ${fy}%)`, opacity: 0}], {duration: 900, easing: "cubic-bezier(.2,.8,.2,1)"}).onfinish = () => f.remove();
-  const g = document.createElement("span"); g.className = "dc-ring"; Object.assign(g.style, {left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px"}); document.body.appendChild(g);
-  g.animate([{transform: "scale(1)", opacity: .9}, {transform: "scale(1.08)", opacity: 0}], {duration: 700, easing: "cubic-bezier(.2,.8,.2,1)"}).onfinish = () => g.remove();
-  c.animate([{transform: c.style.transform + " scale(1)"}, {transform: c.style.transform + " scale(.97)", offset: .3}, {transform: c.style.transform + " scale(1)"}], {duration: 380, easing: "ease-out"}); }
+function frostCard(c){ if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const st = c.parentNode, w = c.offsetWidth, h = c.offsetHeight;
+  for (let k = 0; k < 3; k++) { const r = document.createElement("span"); r.className = "dc-wave"; Object.assign(r.style, {width: w + "px", height: h + "px"}); st.appendChild(r);
+    r.animate([{transform: "translate(-50%,-50%) scale(1)", opacity: .7}, {transform: "translate(-50%,-50%) scale(1.22)", opacity: 0}], {duration: 1000, delay: k * 130, easing: "cubic-bezier(.2,.7,.3,1)", fill: "backwards"}).onfinish = () => r.remove(); } }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) openCertZoom(c); }
 /* image à partager : le certificat pris dans la glace (cadre de glace + certificat incliné, givre et éclats), 1080×1920 */
 const certShareCache = new Map();
@@ -2766,8 +2776,8 @@ function openCertZoom(c){
   ov.innerHTML = `<button type="button" class="cz-x" aria-label="Fermer">✕</button>
     <div class="cz-row"><figure class="cz-fig"><img alt="Certificat ${esc(c.firm || "")}" src="${im}"></figure>
       <div class="cz-side">
-        <div class="cz-dd open"><div class="cz-btn cz-dlb"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span></div>
-          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div><button type="button" class="cz-get">Télécharger</button></div></div></div>
+        <div class="cz-dd open"><div class="cz-btn cz-dlb liq"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Télécharger l'image</span></div>
+          <div class="cz-panel"><div class="cz-pin"><div class="cz-prev"><img alt="Aperçu de l'image téléchargée"><small>Aperçu</small></div><button type="button" class="cz-get liq">Télécharger</button></div></div></div>
         <button type="button" class="cz-btn cz-go" aria-label="Lancer l'animation" title="Lancer l'animation"><svg class="cz-ice" viewBox="0 0 48 48" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
   <defs><linearGradient id="czIceG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f9ff" stop-opacity=".95"/><stop offset=".45" stop-color="#b9cfe8" stop-opacity=".55"/><stop offset="1" stop-color="#7d98b8" stop-opacity=".75"/></linearGradient><linearGradient id="czIceF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#cfe2f7" stop-opacity=".25"/></linearGradient></defs><g class="cz-cube"><path d="M15.5 40 12 32.5l.8-14.2 3.6-5.6 3.4.9 1.6-3.4 2.9 1.6 3.4-5.8 2.4 2.3 3.2-.6 2.2 5.1.4 13.5-2.2 10.2-4.6 2.6-7.4.2z" fill="url(#czIceG)"/><path d="M16.4 12.7 23.6 16.4l9.3-4.5-2.2-5.1-3.2.6-2.4-2.3-3.4 5.8-2.9-1.6-1.6 3.4-3.4-.9z" fill="url(#czIceF)" stroke="none"/>
     <path d="M16.4 12.7 23.6 16.4l9.3-4.5M23.6 16.4l-.8 25.4M16.4 12.7l-.9 27.3" stroke-width="1.1" opacity=".7"/>
@@ -3646,7 +3656,7 @@ function openTrophy(c){
     const go = e.target.closest("[data-dkgo]"); if (go) { deckSel = +go.dataset.dkgo; layoutDeck(); return; }
     if (e.target.closest("[data-dkopen]")) { openDeckCard(); return; }
     if (e.target.closest("[data-dkedit]")) { certEdit = {...deckList[deckSel]}; drawCerts(); return; }
-    const c = e.target.closest(".dcard"); if (c) { if (+c.dataset.ci !== deckSel) { deckSel = +c.dataset.ci; layoutDeck(); } else { frostCard(c, e); setTimeout(openDeckCard, 260); } }
+    const c = e.target.closest(".dcard"); if (c) { if (+c.dataset.ci !== deckSel) { deckSel = +c.dataset.ci; layoutDeck(); } else { frostCard(c); setTimeout(openDeckCard, 320); } }
   });
   g.addEventListener("wheel", e => { if (!e.target.closest(".deck-stage")) return; const v = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; const dir = Math.sign(v);
     if (!dir || (dir < 0 && !deckSel) || (dir > 0 && deckSel === deckList.length - 1)) return;
@@ -3654,9 +3664,7 @@ function openTrophy(c){
   g.addEventListener("pointerdown", e => { if (e.target.closest(".deck-stage")) { px = e.clientX; moved = false; } });
   g.addEventListener("pointermove", e => {
     if (px != null && Math.abs(e.clientX - px) > 50) { moved = true; stepDeck(e.clientX < px ? 1 : -1); px = e.clientX; }
-    const c = e.target.closest && e.target.closest(".dcard.on"); g.querySelectorAll(".dcard.tilt").forEach(x => { if (x !== c) { x.classList.remove("tilt"); x.style.removeProperty("--rx"); x.style.removeProperty("--ry"); } });
-    if (c && px == null && performance.now() - deckMovedAt > 650) { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-      c.classList.add("tilt"); c.style.setProperty("--rx", ((.5 - y) * 18).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 24).toFixed(2) + "deg"); c.style.setProperty("--gx", (x * 100).toFixed(1) + "%"); c.style.setProperty("--gy", (y * 100).toFixed(1) + "%"); }
+    deckMouse = [e.clientX, e.clientY]; if (!deckTiltRun) { deckTiltRun = true; requestAnimationFrame(deckTiltLoop); }
   });
   addEventListener("pointerup", () => { px = null; });
   g.addEventListener("keydown", e => { if (!e.target.closest("#deck")) return; if (e.key === "ArrowRight") { e.preventDefault(); stepDeck(1); } if (e.key === "ArrowLeft") { e.preventDefault(); stepDeck(-1); } if (e.key === "Enter" && e.target.id === "deck") openDeckCard(); });
@@ -7122,7 +7130,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-103";
+const APP_VERSION = "2026-10-29-104";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
