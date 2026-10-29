@@ -5670,15 +5670,16 @@ async function mountBrain3(host, C){
   const RH = 580, secs = F.map((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, home = new THREE.Vector3(Math.cos(th) * rr, y * .62, Math.sin(th) * rr).multiplyScalar(RH);
     const r = f.key === "trades" ? 120 : 95 + Math.min(60, f.items.length * 7); return {f, i, home, c: home.clone(), v: new THREE.Vector3(), r, col: colOf(f.key), ph: rnd() * 6.28, br: 1}; });
   const U = {uT: {value: 0}, uBirth: {value: 1}, uScale: {value: 600}, uFD: {value: 1500}, uHot: {value: -1}, uDark: {value: dark ? 1 : 0},
-    uCen: {value: Array.from({length: 8}, () => new THREE.Vector3())}, uCol: {value: Array.from({length: 8}, (_, k) => secs[k] ? secs[k].col : new THREE.Color(dark ? "#ffffff" : FG))}, uBr: {value: new Array(8).fill(1)}, uGlow: {value: new Array(8).fill(1)}, uSB: {value: new Array(8).fill(0)}, uGal: {value: new Array(8).fill(0)}, uSpin: {value: new Array(8).fill(0)}, uBH: {value: 0}, uBHSpin: {value: 0}, uHC: {value: new THREE.Vector3()}, uHCol: {value: new THREE.Color()}, uHW: {value: 0}, uHI: {value: -1}};
-  const GLC = `uniform float uSB[8]; uniform float uT, uBirth, uScale, uFD, uHot, uDark; uniform vec3 uCen[8]; uniform vec3 uCol[8]; uniform float uBr[8]; uniform float uGlow[8]; uniform float uGal[8]; uniform float uSpin[8]; uniform float uBH, uBHSpin; uniform vec3 uHC, uHCol; uniform float uHW, uHI;
+    uCen: {value: Array.from({length: 8}, () => new THREE.Vector3())}, uCol: {value: Array.from({length: 8}, (_, k) => secs[k] ? secs[k].col : new THREE.Color(dark ? "#ffffff" : FG))}, uBr: {value: new Array(8).fill(1)}, uGlow: {value: new Array(8).fill(1)}, uSB: {value: new Array(8).fill(0)}, uBT: {value: 99}, uGal: {value: new Array(8).fill(0)}, uSpin: {value: new Array(8).fill(0)}, uBH: {value: 0}, uBHSpin: {value: 0}, uHC: {value: new THREE.Vector3()}, uHCol: {value: new THREE.Color()}, uHW: {value: 0}, uHI: {value: -1}};
+  const GLC = `uniform float uSB[8]; uniform float uBT; uniform float uT, uBirth, uScale, uFD, uHot, uDark; uniform vec3 uCen[8]; uniform vec3 uCol[8]; uniform float uBr[8]; uniform float uGlow[8]; uniform float uGal[8]; uniform float uSpin[8]; uniform float uBH, uBHSpin; uniform vec3 uHC, uHCol; uniform float uHW, uHI;
     vec3 galx(int s, vec3 off, float sd){ float g = uGal[s]; if (g < .001) return off; g = g * g * (3. - 2. * g);
       float bulge = step(fract(sd * 3.7), .22), rg = (length(off) * (1.25 + .7 * g) + 6.) * mix(1., .22, bulge), arm = floor(fract(sd * 7.) * 3.) * 2.0944, w = .9 / (.25 + rg / 150.), a = arm + rg * .032 + (fract(sd * 31.) - .5) * mix(.55, 6.28, bulge) + uSpin[s] * w;
       vec3 gp = vec3(cos(a) * rg, (fract(sd * 53.) - .5) * rg * .07, sin(a) * rg); float c = cos(.75), sn = sin(.75); gp = vec3(gp.x, gp.y * c - gp.z * sn, gp.y * sn + gp.z * c);
       return mix(off * (1. + .6 * g), gp, g); }
-    float bornK(int s, float sd){ float b = clamp(uSB[s] * 1.6 - sd * .6, 0., 1.); return 1. - pow(1. - b, 3.); }
+    float bornK(int s, float sd){ float st = 1.2 + float(s) * .55 + pow(fract(sd * 3.17 + .13), .9) * 24., du = 1.7 + fract(sd * 13.) * 1.; float b = clamp((uBT - st) / du, 0., 1.); return b * b * (3. - 2. * b); }
     vec3 place(int s, vec3 off, float sd){ vec3 n = vec3(sin(uT * .31 + off.y * .021 + sd * 6.), sin(uT * .27 + off.z * .019 + sd * 4.), sin(uT * .23 + off.x * .023 + sd * 5.)) * (7. + 6. * fract(sd * 13.));
-      float b = bornK(s, sd); vec3 tg = uCen[s] + galx(s, off, sd) * uBr[s] + n * (1. - uGal[s] * .7), d = tg - uCen[7]; vec3 sw = normalize(cross(d + vec3(.001), vec3(0., 1., 0.)) + vec3(0., .3, 0.)) * length(d) * .28 * sin(3.14159 * b) * (fract(sd * 17.) - .5) * 2.; return mix(uCen[7], tg, b) + sw; }
+      float b = bornK(s, sd); vec3 tg = uCen[s] + galx(s, off, sd) * uBr[s] + n * (1. - uGal[s] * .7), d = tg - uCen[7]; float ln = floor(fract(sd * 7.31) * 4.), L = length(d); vec3 sd1 = normalize(cross(d + vec3(.001), vec3(0., 1., 0.))), up = normalize(cross(sd1, d + vec3(.001))); vec3 bend = (sd1 * (ln - 1.5) * .42 + up * (mod(ln, 2.) - .5) * .5) * L + vec3(sin(sd * 91.), cos(sd * 57.), sin(sd * 33.)) * 5.;
+      vec3 p0 = uCen[7], p2 = tg, p1 = mix(p0, uCen[s], .5) + bend; float w = 1. - b; return w * w * p0 + 2. * w * b * p1 + b * b * p2; }
     float hotK(int s){ return uGlow[s]; }`;
   const blend = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
   /* ---- nébuleuses : des milliers de particules rangées en filaments ---- */
@@ -5717,7 +5718,7 @@ async function mountBrain3(host, C){
         gl_Position = projectionMatrix * mv;
         float coc = clamp(abs(-mv.z - uFD) / uFD, 0., 1.5), flick = .65 + .35 * sin(uT * (1. + aD * 2.) + aD * 40.);
         gl_PointSize = max(1., aZ * (1. + coc * 1.6) * (1. + bk * (bRad * .45 + bHot * .2)) * uScale / -mv.z * 1.9);
-        float bb = s == 7 ? 1. : bornK(s, aD), flash = s == 7 ? 1. : (1. + 6. * bb * (1. - bb)) * smoothstep(0., .04, bb);
+        float bb = s == 7 ? 1. : bornK(s, aD), flash = s == 7 ? 1. : (1. + 2.5 * bb * (1. - bb)) * step(.001, bb);
         vA = (uDark > .5 ? .55 : .5) * flick / (1. + coc * 2.2) * hotK(s) * flash * (s == 7 ? 1.3 : 1.); vC = mix(mix(mix(vec3(1.), uCol[s], smoothstep(.15, .85, bb)), uHCol, pull * .6), (kP > .5 ? vec3(.72, .88, 1.) : kH > .5 ? mix(vec3(1., .72, .7), vec3(.85, .92, 1.), clamp(bHot - .6, 0., 1.)) : mix(mix(vec3(.95, .25, .2), vec3(1., .62, .55), clamp(bOut, 0., 1.)), vec3(1., .9, .86), clamp(max(0., bRad - 1.) * .6, 0., 1.))), bk * .92); vA *= mix(1., (bOut > 0. ? bOut * bRad : 1.) * (1.3 + bHot * 1.3), bk); }`,
     fragmentShader: `uniform float uDark; varying vec3 vC; varying float vA; void main(){ vec2 c = gl_PointCoord * 2. - 1.; float r2 = dot(c, c); if (r2 > 1.) discard; float g = exp(-r2 * 3.2);
       gl_FragColor = uDark > .5 ? vec4(vC * g * vA, 1.) : vec4(vC, g * vA * .9); }`});
@@ -5849,7 +5850,7 @@ async function mountBrain3(host, C){
   const A1 = new THREE.Vector3(), A2 = new THREE.Vector3(), white = new THREE.Color(dark ? "#ffffff" : FG);
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
     const t = window.__b3T != null ? window.__b3T : (now - t0) / 1000, dt = Math.min(.05, Math.max(0, t - lastT)); lastT = t; fr++; idle += dt; U.uT.value = t;
-    const tb = t, bu = Math.max(0, Math.min(1, (tb - 5.1) / 1.1)); U.uBirth.value = Math.min(1, tb / 3); for (let i = 0; i < 8; i++) U.uSB.value[i] = Math.max(0, Math.min(1, (tb - .55 - i * .62) / 1.3));
+    const tb = t, bu = Math.max(0, Math.min(1, (tb - 9) / 3)); U.uBirth.value = Math.min(1, tb / 9); U.uBT.value = tb; for (let i = 0; i < 8; i++) U.uSB.value[i] = Math.max(0, Math.min(1, (tb - 8 - i * .6) / 10));
     /* forces : les sections respirent, dérivent, se repoussent */
     if (!coreN.drag) { coreN.vel.addScaledVector(coreN.p, -dt * 9).multiplyScalar(.9); coreN.p.addScaledVector(coreN.vel, dt * 3); } U.uCen.value[7].copy(coreN.p);
     secs.forEach(a => { const f = v3.set(Math.sin(t * .13 + a.ph) * 60, Math.cos(t * .11 + a.ph * 1.4) * 40, Math.sin(t * .09 + a.ph * .6) * 60).add(v3.clone().copy(a.home).multiplyScalar((1 + .5 * U.uGal.value[a.i]) * (1 - .82 * U.uBH.value))).add(coreN.p).sub(a.c).multiplyScalar(coreN.drag || coreN.p.lengthSq() > 4 ? 6 + (a.ph % 1) * 4 : .5);
@@ -7206,7 +7207,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-119";
+const APP_VERSION = "2026-10-29-120";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
