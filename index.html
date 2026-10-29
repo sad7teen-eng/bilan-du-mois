@@ -5318,8 +5318,8 @@ function stratBrainBuild(C){
     f.nodes = cl; f.hub = hub;
     /* nuage de fond : particules reliées à leurs voisines */
     const ext = Math.max(70, ...cl.map(x => Math.hypot(x.x - hx, x.y - hy))) * .85, P = [];
-    for (let k = 0; k < 90; k++) { const ang = rnd() * Math.PI * 2, rr = Math.sqrt(rnd()) * ext; P.push({x: hx + Math.cos(ang) * rr, y: hy + Math.sin(ang) * rr * .9, ph: rnd() * 6.28}); }
-    const E = []; P.forEach((p, i) => { const d = P.map((q, j) => [j, (q.x - p.x) ** 2 + (q.y - p.y) ** 2]).filter(x => x[0] !== i).sort((u, v) => u[1] - v[1]).slice(0, 2); d.forEach(([j]) => { if (j > i) E.push([i, j]); }); });
+    for (let k = 0; k < 190; k++) { const ang = rnd() * Math.PI * 2, rr = Math.sqrt(rnd()) * ext * 1.1; P.push({x: hx + Math.cos(ang) * rr, y: hy + Math.sin(ang) * rr * .9, ph: rnd() * 6.28}); }
+    const E = []; P.forEach((p, i) => { const d = P.map((q, j) => [j, (q.x - p.x) ** 2 + (q.y - p.y) ** 2]).filter(x => x[0] !== i).sort((u, v) => u[1] - v[1]).slice(0, 3); d.forEach(([j]) => { if (j > i) E.push([i, j]); }); });
     f.cloud = {P, E}; });
   const byF = k => (F.find(f => f.key === k) || {nodes: []}).nodes;
   const seq = byF("seq"); seq.forEach((x, i) => { if (seq[i + 1]) L.push({a: x, b: seq[i + 1], k: "flow"}); });
@@ -5336,30 +5336,50 @@ function stratBrainBuild(C){
 function stratBrainDraw(g, w, h, t, B, cam, C, hov){
   const A2 = (cc, a) => { if (cc[0] === "#") { let x = cc.slice(1); if (x.length === 3) x = x.split("").map(y => y + y).join(""); const n = parseInt(x, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; } const m = cc.match(/\d+(\.\d+)?/g); return m ? `rgba(${m[0]},${m[1]},${m[2]},${a})` : cc; };
   const cr = Math.cos(cam.rot || 0), sr = Math.sin(cam.rot || 0), P = (x, y) => { const X = x * cr - y * sr, Y = x * sr + y * cr; return [(X - cam.x) * cam.z + w / 2, (Y - cam.y) * cam.z + h / 2]; };
-  const lit = hov ? new Set([hov, ...hov.links.flatMap(l => [l.a, l.b])]) : null, dim = n => lit && !lit.has(n);
+  const lit = hov ? new Set([hov, ...hov.links.flatMap(l => [l.a, l.b])]) : null, dim = n => lit && !lit.has(n), Z = Math.max(.5, Math.min(2.2, cam.z));
+  if (!B.init) { B.init = true; let sd = 11; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    B.L.forEach(l => { const n = l.k === "core" ? 18 : l.k === "flow" ? 12 : l.k === "branch" ? 5 : 7; l.st = Array.from({length: n}, () => ({o: (rnd() - .5) * (l.k === "core" ? 70 : 40), ph: rnd() * 6.28, f: .4 + rnd() * .8})); });
+    const pts = B.F.flatMap((f, fi) => f.cloud.P.map(p => Object.assign(p, {fi}))); B.fib = [];
+    for (let k = 0; k < 260; k++) { const a = pts[Math.floor(rnd() * pts.length)], b = pts[Math.floor(rnd() * pts.length)]; if (a.fi !== b.fi) B.fib.push({a, b, ph: rnd() * 6.28, f: .3 + rnd() * 1.2, c: (rnd() - .5) * 260}); }
+    B.tests = []; B.nextTest = 0; }
   /* noyau : particules en orbite */
-  { const [cx, cy] = P(0, 0); for (let k = 0; k < 140; k++) { const ph = k * 2.39996, rr = (14 + (k % 17) * 2.6) * Math.max(.6, cam.z), a = ph + t * (.25 + (k % 5) * .06) * (k % 2 ? 1 : -1), x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * .8, s = .8 + (k % 3) * .5;
-      g.fillStyle = A2(C.fg, .25 + (Math.sin(t * 3 + k) + 1) * .2); g.fillRect(x - s / 2, y - s / 2, s, s); } }
-  /* nuages */
-  B.F.forEach(f => { const {P: Q, E} = f.cloud, sp = Q.map(q => P(q.x + Math.sin(t * .7 + q.ph) * 4, q.y + Math.cos(t * .6 + q.ph) * 4)), fa = lit && !lit.has(f.hub) && !f.nodes.some(x => lit.has(x)) ? .25 : 1;
-    g.strokeStyle = A2(C.mu, .18 * fa); g.lineWidth = .6; g.beginPath(); E.forEach(([i, j]) => { g.moveTo(sp[i][0], sp[i][1]); g.lineTo(sp[j][0], sp[j][1]); }); g.stroke();
-    g.fillStyle = A2(C.fg, .35 * fa); sp.forEach(([x, y], i) => { const s = 1 + (Math.sin(t * 2 + i) + 1) * .5; g.fillRect(x - s / 2, y - s / 2, s, s); }); });
-  /* liens */
-  B.L.forEach(l => { const [x1, y1] = P(l.a.x, l.a.y), [x2, y2] = P(l.b.x, l.b.y), on = lit && lit.has(l.a) && lit.has(l.b) && (l.a === hov || l.b === hov), bad = l.b.bad || l.a.bad;
-    const base = l.k === "core" ? .5 : l.k === "branch" ? .28 : l.k === "flow" ? .7 : .16, al = lit ? (on ? .95 : base * .2) : base;
-    g.strokeStyle = A2(bad && (l.k === "cross" || on) ? C.ls : C.fg, al); g.lineWidth = (l.k === "flow" ? 1.6 : l.k === "core" ? 1.2 : .7) * (on ? 1.6 : 1);
-    const mx = (x1 + x2) / 2 - (y2 - y1) * .12 + l.c * cam.z * .3, my = (y1 + y2) / 2 + (x2 - x1) * .12; g.beginPath(); g.moveTo(x1, y1); g.quadraticCurveTo(mx, my, x2, y2); g.stroke(); l._q = [x1, y1, mx, my, x2, y2]; });
-  /* impulsions qui circulent */
-  if (B.pulses.length < 46 && Math.random() < .5) { const l = B.L[Math.floor(Math.random() * B.L.length)]; if (l.k !== "branch" || Math.random() < .3) B.pulses.push({l, p: 0, v: .006 + Math.random() * .012}); }
-  B.pulses = B.pulses.filter(pu => (pu.p += pu.v) < 1);
-  B.pulses.forEach(pu => { const q = pu.l._q; if (!q) return; const u = pu.p, x = (1 - u) ** 2 * q[0] + 2 * (1 - u) * u * q[2] + u * u * q[4], y = (1 - u) ** 2 * q[1] + 2 * (1 - u) * u * q[3] + u * u * q[5];
-    if (lit && !(lit.has(pu.l.a) && lit.has(pu.l.b))) return; g.fillStyle = A2(pu.l.b.bad ? C.ls : C.fg, .9); g.beginPath(); g.arc(x, y, 1.8, 0, 7); g.fill(); });
-  /* noeuds + étiquettes */
+  { const [cx, cy] = P(0, 0); for (let k = 0; k < 220; k++) { const ph = k * 2.39996, rr = (12 + (k % 23) * 2.2) * Z, a = ph + t * (.2 + (k % 7) * .07) * (k % 2 ? 1 : -1), x = cx + Math.cos(a) * rr, y = cy + Math.sin(a) * rr * .8, s = .7 + (k % 3) * .5;
+      g.fillStyle = A2(C.fg, .2 + (Math.sin(t * 3 + k) + 1) * .22); g.fillRect(x - s / 2, y - s / 2, s, s); } }
+  /* fibres entre les nuages : des centaines de fils qui ondulent et clignotent */
+  B.fib.forEach(fb => { const a = fb.a, b = fb.b, al = (lit ? .015 : .07) * (.35 + .65 * Math.max(0, Math.sin(t * fb.f + fb.ph))); if (al < .01) return;
+    const [x1, y1] = P(a.x, a.y), [x2, y2] = P(b.x, b.y), wob = Math.sin(t * .5 + fb.ph) * 40 * Z;
+    g.strokeStyle = A2(C.fg, al); g.lineWidth = .6; g.beginPath(); g.moveTo(x1, y1); g.bezierCurveTo(x1 + (x2 - x1) * .3 + fb.c * .3 * Z, y1 + wob, x2 - (x2 - x1) * .3 - fb.c * .3 * Z, y2 - wob, x2, y2); g.stroke(); });
+  /* nuages des familles : réseau dense qui respire */
+  B.F.forEach(f => { const {P: Q, E} = f.cloud, sp = Q.map(q => P(q.x + Math.sin(t * .9 + q.ph) * 5, q.y + Math.cos(t * .8 + q.ph) * 5)), fa = lit && !lit.has(f.hub) && !f.nodes.some(x => lit.has(x)) ? .2 : 1;
+    E.forEach(([i, j], k) => { const al = (.08 + .14 * Math.max(0, Math.sin(t * 1.3 + k * .7))) * fa; g.strokeStyle = A2(C.fg, al); g.lineWidth = .5; g.beginPath(); g.moveTo(sp[i][0], sp[i][1]); g.lineTo(sp[j][0], sp[j][1]); g.stroke(); });
+    sp.forEach(([x, y], i) => { const s = .8 + (Math.sin(t * 2.4 + i) + 1) * .7; g.fillStyle = A2(C.fg, (.25 + .3 * ((i * 7) % 3) / 2) * fa); g.fillRect(x - s / 2, y - s / 2, s, s); }); });
+  /* liens en faisceaux de fils */
+  B.L.forEach(l => { const [x1, y1] = P(l.a.x, l.a.y), [x2, y2] = P(l.b.x, l.b.y), on = lit && lit.has(l.a) && lit.has(l.b) && (l.a === hov || l.b === hov), bad = (l.b.bad || l.a.bad) && l.k !== "core";
+    const base = l.k === "core" ? .2 : l.k === "branch" ? .16 : l.k === "flow" ? .3 : .09, al = lit ? (on ? .55 : base * .15) : base, nx = -(y2 - y1), ny = x2 - x1, nl = Math.hypot(nx, ny) || 1;
+    g.strokeStyle = A2(bad ? C.ls : C.fg, al); g.lineWidth = on ? .9 : .6;
+    l.st.forEach(s => { const o = s.o * Z * (.6 + .4 * Math.sin(t * s.f + s.ph)), mx = (x1 + x2) / 2 + nx / nl * o + l.c * Z * .2, my = (y1 + y2) / 2 + ny / nl * o; g.beginPath(); g.moveTo(x1, y1); g.quadraticCurveTo(mx, my, x2, y2); g.stroke(); });
+    const mx = (x1 + x2) / 2 + l.c * Z * .2, my = (y1 + y2) / 2; l._q = [x1, y1, mx, my, x2, y2]; });
+  /* tests de trades : une impulsion parcourt le déroulé étape par étape, puis finit au TP… ou au SL */
+  const seqF = B.F.find(f => f.key === "seq"), gest = B.F.find(f => f.key === "gest");
+  if (seqF && t > B.nextTest) { B.nextTest = t + .9 + Math.random() * .8; const win = Math.random() < .7, stop = win ? seqF.nodes.length : 1 + Math.floor(Math.random() * Math.max(1, seqF.nodes.length - 1));
+    B.tests.push({t0: t, win, stop}); }
+  B.tests = B.tests.filter(ts => t - ts.t0 < 6);
+  B.tests.forEach(ts => { const ns = [B.core, ...seqF.nodes.slice(0, ts.stop)], end = gest && gest.nodes.find(x => ts.win && ts.stop >= seqF.nodes.length ? x.tp : x.sl); if (end) ns.push(end);
+    const prog = (t - ts.t0) * 2.2; for (let k = 0; k < ns.length - 1; k++) { const u = prog - k; if (u < 0) break; const a = ns[k], b = ns[k + 1], [x1, y1] = P(a.x, a.y), [x2, y2] = P(b.x, b.y), e = Math.min(1, u), fade = Math.max(0, 1 - (prog - k - 1) / 3), red = k === ns.length - 2 && !(ts.win && ts.stop >= seqF.nodes.length);
+      g.strokeStyle = A2(red ? C.ls : C.fg, .75 * fade); g.lineWidth = 1.6; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 + (x2 - x1) * e, y1 + (y2 - y1) * e); g.stroke();
+      if (u >= 1 && u < 1.15) b.flash = red ? -1 : 1; } });
+  /* impulsions sur les fils, avec traînée */
+  if (B.pulses.length < 260) for (let k = 0; k < 6; k++) { const l = B.L[Math.floor(Math.random() * B.L.length)]; B.pulses.push({l, p: 0, v: .005 + Math.random() * .014, s: l.st ? l.st[Math.floor(Math.random() * l.st.length)] : null}); }
+  B.pulses = B.pulses.filter(pu => { pu.p += pu.v; if (pu.p >= 1) { pu.l.b.flash = Math.max(pu.l.b.flash || 0, .5); return false; } return true; });
+  B.pulses.forEach(pu => { const q = pu.l._q; if (!q) return; if (lit && !(lit.has(pu.l.a) && lit.has(pu.l.b))) return; const pt = u => [(1 - u) ** 2 * q[0] + 2 * (1 - u) * u * q[2] + u * u * q[4], (1 - u) ** 2 * q[1] + 2 * (1 - u) * u * q[3] + u * u * q[5]];
+    const [x, y] = pt(pu.p), [xb, yb] = pt(Math.max(0, pu.p - .06)); g.strokeStyle = A2(pu.l.b.bad ? C.ls : C.fg, .8); g.lineWidth = 1.2; g.beginPath(); g.moveTo(xb, yb); g.lineTo(x, y); g.stroke(); g.fillStyle = A2(pu.l.b.bad ? C.ls : C.fg, 1); g.fillRect(x - 1, y - 1, 2, 2); });
+  /* noeuds + étiquettes (les noeuds « s'allument » quand une impulsion arrive) */
   const showLab = cam.z > .75;
-  B.N.forEach(nd => { const [x, y] = P(nd.x, nd.y); nd._s = [x, y]; const d = dim(nd), r = nd.r * Math.max(.7, Math.min(1.6, cam.z)) * (nd === hov ? 1.5 : 1);
-    if (nd.kind === "core") { const pr = r + 6 + Math.sin(t * 2) * 3; g.strokeStyle = A2(C.fg, .35); g.beginPath(); g.arc(x, y, pr, 0, 7); g.stroke(); g.beginPath(); g.arc(x, y, pr + 10 + Math.sin(t * 1.3) * 4, 0, 7); g.strokeStyle = A2(C.fg, .15); g.stroke(); }
+  B.N.forEach(nd => { const [x, y] = P(nd.x, nd.y); nd._s = [x, y]; const d = dim(nd), r = nd.r * Math.max(.7, Math.min(1.6, cam.z)) * (nd === hov ? 1.5 : 1), fl = nd.flash || 0;
+    if (fl) { const red = fl < 0, a = Math.abs(fl); g.strokeStyle = A2(red ? C.ls : C.fg, a * .7); g.lineWidth = 1; g.beginPath(); g.arc(x, y, r + (1 - a) * 22 + 3, 0, 7); g.stroke(); nd.flash = red ? Math.min(0, fl + .03) : Math.max(0, fl - .03); }
+    if (nd.kind === "core") { for (let k = 0; k < 3; k++) { const pr = r + 8 + k * 10 + Math.sin(t * 2 + k) * 3; g.strokeStyle = A2(C.fg, .3 - k * .08); g.beginPath(); g.arc(x, y, pr, t * (k + 1) * .6, t * (k + 1) * .6 + 4.6); g.stroke(); } }
     g.fillStyle = nd.bad ? A2(C.ls, d ? .3 : .95) : nd.kind === "item" && nd.fam === "trades" && !nd.win ? A2(C.mu, d ? .3 : .9) : A2(C.fg, d ? .25 : 1);
-    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (nd.kind !== "item") { g.strokeStyle = A2(C.fg, d ? .2 : .6); g.beginPath(); g.arc(x, y, r + 4, 0, 7); g.stroke(); }
+    g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); if (nd.kind === "hub") { g.strokeStyle = A2(C.fg, d ? .2 : .6); g.lineWidth = 1; g.beginPath(); g.arc(x, y, r + 4, t + nd.fi, t + nd.fi + 4.2); g.stroke(); g.beginPath(); g.arc(x, y, r + 9, -t * .7, -t * .7 + 2); g.stroke(); }
     const want = nd.kind !== "item" || nd === hov || (showLab && nd.fam !== "trades") || (lit && lit.has(nd) && nd.fam !== "trades") || (cam.z > 1.6);
     if (want) { g.font = (nd.kind !== "item" ? "600 " : "") + (nd.kind === "core" ? 15 : nd.kind === "hub" ? 11 : 10) + "px " + C.mono; g.textAlign = "center";
       const lb = nd.kind === "hub" ? nd.l.toUpperCase() : nd.l.length > 34 && nd !== hov ? nd.l.slice(0, 33) + "…" : nd.l;
@@ -6678,7 +6698,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-56";
+const APP_VERSION = "2026-10-29-57";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
