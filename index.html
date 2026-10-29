@@ -5717,7 +5717,7 @@ async function mountBrain3(host, C){
       const al = (l.k === "path" ? .34 : .18) * (nb ? (on ? 3 : .25) : 1) + lit * .9, c = white; let prev = l.a.p;
       for (let k = 1; k <= 14; k++) { const p = bez(l.a.p, l.b.p, bend, k / 14 * grow, new THREE.Vector3()); seg(prev, p, c, al); prev = p; } });
     /* connexions éphémères : elles naissent, poussent, vivent, se retirent, d'autres repoussent ailleurs */
-    if (bu >= 1) { const want = 260; let born = 0; while (syn.length < want && born < 6) { born++; const pt = () => { const r = Math.random(); if (r < .55 && nodes.length) return nodes[Math.floor(Math.random() * nodes.length)].p; if (r < .9) { const S = secs[Math.floor(Math.random() * nF)]; return {S, o: new THREE.Vector3((Math.random() - .5) * S.r * 1.6, (Math.random() - .5) * S.r * 1.2, (Math.random() - .5) * S.r * 1.6)}; } return coreN.p; };
+    if (bu >= 1) { const want = 60; let born = 0; while (syn.length < want && born < 6) { born++; const pt = () => { const r = Math.random(); if (r < .55 && nodes.length) return nodes[Math.floor(Math.random() * nodes.length)].p; if (r < .9) { const S = secs[Math.floor(Math.random() * nF)]; return {S, o: new THREE.Vector3((Math.random() - .5) * S.r * 1.6, (Math.random() - .5) * S.r * 1.2, (Math.random() - .5) * S.r * 1.6)}; } return coreN.p; };
       syn.push({a: pt(), b: pt(), t0: t, g: .4 + Math.random() * 1.2, h: .8 + Math.random() * 4, r: .3 + Math.random() * 1, bend: new THREE.Vector3((Math.random() - .5) * 120, (Math.random() - .5) * 120, (Math.random() - .5) * 120), w: .12 + Math.random() * .22, out: Math.random() < .5}); } }
     const PP = (q, o) => q.S ? o.copy(q.S.c).addScaledVector(q.o, q.S.br) : o.copy(q);
     for (let k = syn.length - 1; k >= 0; k--) { const y = syn[k], age = t - y.t0, end = y.g + y.h + y.r; if (age > end) { syn.splice(k, 1); continue; }
@@ -7025,7 +7025,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-73";
+const APP_VERSION = "2026-10-29-74";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
