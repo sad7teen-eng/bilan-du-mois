@@ -5686,7 +5686,7 @@ async function mountBrain3(host, C){
     info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.cell.f.label)}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}${lk.length ? `<small>RELIÉ À</small><ul>${lk.map(x => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}`; info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; };
   /* ---- boucle ---- */
   const t0 = performance.now(); let run = true, fr = 0, lastT = 0, combos = 0, nextPath = 3, pathT = -9, birthT0 = b3Born ? -99 : 0; b3Born = true;
-  const BGL = new THREE.Color(getComputedStyle(document.body).backgroundColor || "#f3f4f6"), lcol = (c, a) => { a = Math.min(1, a); return dark ? [c.r * a, c.g * a, c.b * a] : [BGL.r + (c.r - BGL.r) * a, BGL.g + (c.g - BGL.g) * a, BGL.b + (c.b - BGL.b) * a]; }; let li = 0;
+  const BGL = new THREE.Color(getComputedStyle(document.body).backgroundColor || "#f3f4f6"), lcol = (c, a) => { a = Math.min(1, dark ? a : a * 1.9); return dark ? [c.r * a, c.g * a, c.b * a] : [BGL.r + (c.r - BGL.r) * a, BGL.g + (c.g - BGL.g) * a, BGL.b + (c.b - BGL.b) * a]; }; let li = 0;
   const seg = (a, b, c, al) => { if (li >= LKN || al < .012) return; kPos[li * 6] = a.x; kPos[li * 6 + 1] = a.y; kPos[li * 6 + 2] = a.z; kPos[li * 6 + 3] = b.x; kPos[li * 6 + 4] = b.y; kPos[li * 6 + 5] = b.z; const m = lcol(c, al); kCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
   const bez = (a, b, bend, u, out) => { const m = v3.copy(a).lerp(b, .5).add(bend); const w = 1 - u; return out.set(a.x * w * w + 2 * m.x * w * u + b.x * u * u, a.y * w * w + 2 * m.y * w * u + b.y * u * u, a.z * w * w + 2 * m.z * w * u + b.z * u * u); };
   const A1 = new THREE.Vector3(), A2 = new THREE.Vector3(), white = new THREE.Color(dark ? "#ffffff" : FG);
@@ -5709,12 +5709,12 @@ async function mountBrain3(host, C){
     /* liens qui travaillent */
     li = 0; const hotN = hovN, nb = hotN ? new Set(links.filter(l => l.a === hotN || l.b === hotN).flatMap(l => [l.a, l.b])) : null, pathOn = t - pathT, grow = Math.max(0, Math.min(1, (bu - .6) / .35));
     if (t > nextPath && bu >= 1) { nextPath = t + 4 + Math.random() * 3; pathT = t; combos += 120 + Math.floor(Math.random() * 400); }
-    secs.forEach(S => { for (let q = 0; q < 3; q++) { const bend = A1.set(Math.sin(t * .3 + q * 2 + S.ph) * 60, (q - 1) * 40, Math.cos(t * .25 + q + S.ph) * 60).clone(); let prev = coreN.p; for (let k = 1; k <= 16; k++) { const p = bez(coreN.p, S.c, bend, k / 16 * grow, new THREE.Vector3()); seg(prev, p, S.col, .1 * (nb ? .4 : 1)); prev = p; } } });
+    secs.forEach(S => { for (let q = 0; q < 3; q++) { const bend = A1.set(Math.sin(t * .3 + q * 2 + S.ph) * 60, (q - 1) * 40, Math.cos(t * .25 + q + S.ph) * 60).clone(); let prev = coreN.p; for (let k = 1; k <= 16; k++) { const p = bez(coreN.p, S.c, bend, k / 16 * grow, new THREE.Vector3()); seg(prev, p, white, .1 * (nb ? .4 : 1)); prev = p; } } });
     links.forEach(l => { const bend = A2.set(0, 30 + 20 * Math.sin(t * .4 + l.ph), 0).clone(), on = nb && nb.has(l.a) && nb.has(l.b) && (l.a === hotN || l.b === hotN), ia = pathChain.indexOf(l.a), ib = pathChain.indexOf(l.b);
       let lit = 0; if (ia >= 0 && ib >= 0 && pathOn < 3.5) { const ph = pathOn * 3 - Math.min(ia, ib); lit = ph > 0 ? Math.max(0, 1 - Math.max(0, ph - 1) / 2.5) : 0; }
-      const al = (l.k === "path" ? .3 : .16) * (nb ? (on ? 3 : .25) : 1) + lit * .9, c = lit > .1 || on ? white : l.a.sec.col; let prev = l.a.p;
+      const al = (l.k === "path" ? .34 : .18) * (nb ? (on ? 3 : .25) : 1) + lit * .9, c = white; let prev = l.a.p;
       for (let k = 1; k <= 14; k++) { const p = bez(l.a.p, l.b.p, bend, k / 14 * grow, new THREE.Vector3()); seg(prev, p, c, al); prev = p; } });
-    nodes.forEach(n => seg(n.sec.c, n.p, n.sec.col, .12 * grow * (nb ? (nb.has(n) ? 2 : .3) : 1)));
+    nodes.forEach(n => seg(n.sec.c, n.p, white, .14 * grow * (nb ? (nb.has(n) ? 2 : .3) : 1)));
     kg.setDrawRange(0, li * 2); kg.attributes.position.needsUpdate = true; kg.attributes.color.needsUpdate = true;
     /* impulsions de lumière le long des liens */
     if (bu >= 1) for (let k = 0; k < 4 && pulses.length < PU; k++) { const l = links.length && Math.random() < .6 ? links[Math.floor(Math.random() * links.length)] : null; if (l) pulses.push({a: l.a.p, b: l.b.p, bend: new THREE.Vector3(0, 30, 0), u: 0, v: .25 + Math.random() * .5, c: l.a.sec.col}); else { const S = secs[Math.floor(Math.random() * nF)]; pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40), u: 0, v: .2 + Math.random() * .35, c: S.col}); } }
@@ -5730,8 +5730,9 @@ async function mountBrain3(host, C){
     if (fr % 5 === 0) kTxt.textContent = (combos += Math.floor((2 + Math.random() * 6) * (idle < 2 ? 3 : 1))).toLocaleString("fr-FR") + " combinaisons explorées";
     /* étiquettes */
     const placed = []; labs.forEach(({n, d}) => { const sp = proj(n.p); if (sp[2] > 1) { d.style.opacity = 0; return; } let op = 1;
-      if (n.kind === "item") { const dc = cam.position.distanceTo(n.p); op = n === hovN || (nb && nb.has(n)) || n.sec.i === focusI ? 1 : n.cell.f.key === "trades" ? 0 : dc < 700 ? .85 : hovS === n.sec.i ? .7 : 0; op *= grow; }
-      else if (n.kind === "hub") op = (focusI >= 0 && n.i !== focusI ? .35 : 1) * Math.max(0, (bu - .5) * 2); else op = Math.min(1, bu * 3);
+      const dc = cam.position.distanceTo(n.p), zf = k => Math.max(0, Math.min(1, (k - dc) / 160));
+      if (n.kind === "item") { op = n === hovN || (nb && nb.has(n)) ? 1 : n.sec.i === focusI ? zf(1150) : n.cell.f.key === "trades" ? zf(420) : zf(720); op *= grow; }
+      else if (n.kind === "hub") op = n.i === focusI ? 1 : zf(950) * Math.max(0, (bu - .5) * 2); else op = zf(800);
       if (n.kind !== "core" && op > 0) { const ww = d.offsetWidth || 60, hh = d.offsetHeight || 16, x0 = sp[0] - ww / 2, y0 = sp[1] + (n.kind === "hub" ? -30 : 10), hit = placed.some(q => x0 < q[2] && x0 + ww > q[0] && y0 < q[3] && y0 + hh > q[1]); if (hit && n !== hovN) op = n.kind === "hub" ? Math.min(op, .25) : 0; else placed.push([x0 - 3, y0 - 2, x0 + ww + 3, y0 + hh + 2]); }
       d.style.opacity = op; d.style.pointerEvents = op > .3 ? "auto" : "none"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "34px" : n.kind === "hub" ? "-30px" : "10px"})`; }); };
   requestAnimationFrame(loop);
@@ -7015,7 +7016,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-70";
+const APP_VERSION = "2026-10-29-71";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
