@@ -5479,41 +5479,42 @@ async function mountBrain3(host, C){
   const cFG = new THREE.Color(FG), cLS = new THREE.Color(LS), cBG = new THREE.Color(BGc);
   const dotTex = (() => { const k = document.createElement("canvas"); k.width = k.height = 64; const x = k.getContext("2d"), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, "#fff"); gr.addColorStop(.6, "#fff"); gr.addColorStop(.72, "rgba(255,255,255,0)"); x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(k); })();
   const PM = o => new THREE.PointsMaterial(Object.assign({map: dotTex, alphaTest: .2, sizeAttenuation: true, transparent: true, depthWrite: false, vertexColors: true, fog: true}, o));
-  /* ---- cellules : une sphère de points rangés en couches par famille, taille selon le contenu ---- */
-  const caps = F.map(f => f.key === "trades" ? 700 + f.items.length * 60 : 1000 + f.items.length * 150), rads = caps.map(c => 30 + Math.sqrt(c) * 1.7), RH = 170 + Math.max(...rads) * 2.3;
-  const cells = F.map((f, i) => { const m = f.items.length, cap = caps[i], r = rads[i];
-    const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, home = new THREE.Vector3(Math.cos(th) * rr, y * .75, Math.sin(th) * rr).multiplyScalar(RH);
-    const rel = [], S = 5; const per = [.05, .09, .16, .27, .43];
-    per.forEach((w, s) => { const n = Math.max(8, Math.round(cap * w)), rad = r * (s + 1) / S; for (let k = 0; k < n; k++) { const yy = 1 - (k + .5) / n * 2, q = Math.sqrt(1 - yy * yy), a = k * 2.39996 + s; const j = 1 + (rnd() - .5) * .35; rel.push(new THREE.Vector3(Math.cos(a) * q * rad * j, yy * rad * j, Math.sin(a) * q * rad * j)); } });
-    const life = rel.map(() => rnd() < .85 ? 1 : 0), vel = rel.map(() => 0);
-    const syn = Array.from({length: 70}, () => ({a: Math.floor(rnd() * rel.length), b: Math.floor(rnd() * rel.length), t0: -rnd() * 3, d: .8 + rnd() * 2})); return {f, i, r, home, c: home.clone(), v: new THREE.Vector3(), rel, life, vel, syn, wp: [], ph: rnd() * 6.28}; });
-  /* éléments nommés : au coeur de chaque cellule */
-  const items = []; cells.forEach(cl => { const m = cl.f.items.length; cl.items = cl.f.items.map((it, k) => { const yy = 1 - (k + .5) / Math.max(1, m) * 2, q = Math.sqrt(Math.max(0, 1 - yy * yy)), a = k * 2.39996, rad = m > 1 ? cl.r * .45 : 0;
-    const nd = Object.assign({cell: cl, kind: "item", rel: new THREE.Vector3(Math.cos(a) * q * rad, yy * rad * .8, Math.sin(a) * q * rad), p: new THREE.Vector3()}, it); items.push(nd); return nd; }); });
+  /* ---- l'amas : une seule masse de connaissances ; chaque famille est une région, chaque élément une étoile ---- */
+  const R = 560, cells = F.map((f, i) => { const y = 1 - (i + .5) / nF * 2, rr = Math.sqrt(1 - y * y), th = i * 2.39996, home = new THREE.Vector3(Math.cos(th) * rr, y * .8, Math.sin(th) * rr).multiplyScalar(R * .52);
+    const r = R * .3, rel = Array.from({length: 40}, () => new THREE.Vector3(rnd() - .5, rnd() - .5, rnd() - .5).multiplyScalar(r * 1.2));
+    return {f, i, r, home, c: home.clone(), v: new THREE.Vector3(), rel, ph: rnd() * 6.28}; });
+  const items = []; cells.forEach(cl => { const m = cl.f.items.length; cl.items = cl.f.items.map((it, k) => { const yy = 1 - (k + .5) / Math.max(1, m) * 2, q = Math.sqrt(Math.max(0, 1 - yy * yy)), a = k * 2.39996, rad = m > 1 ? cl.r * (.55 + rnd() * .35) : 0;
+    const nd = Object.assign({cell: cl, kind: "item", rel: new THREE.Vector3(Math.cos(a) * q * rad, yy * rad * .8, Math.sin(a) * q * rad), p: new THREE.Vector3(), ph: rnd() * 6.28}, it); items.push(nd); return nd; }); });
   const core = {kind: "core", l: C.market === "_" ? (C.marketOther || "Stratégie") : C.market, p: new THREE.Vector3()};
-  /* ---- buffers ---- */
-  const nDots = cells.reduce((a, c) => a + c.rel.length, 0), dg = new THREE.BufferGeometry(), dPos = new Float32Array(nDots * 3), dCol = new Float32Array(nDots * 3);
-  dg.setAttribute("position", new THREE.BufferAttribute(dPos, 3)); dg.setAttribute("color", new THREE.BufferAttribute(dCol, 3)); scene.add(new THREE.Points(dg, PM({size: 6.8})));
+  /* ancres = toutes les connaissances (éléments, centres de famille, noyau) */
+  const anchors = [core, ...cells.map(c => ({kind: "c", cell: c, p: c.c})), ...items]; const famA = cells.map(c => anchors.filter(a => a.cell === c));
+  const pick = from => { const r = Math.random(), cl = from.cell || cells[Math.floor(Math.random() * cells.length)];
+    if (r < .45) { const L = famA[cl.i]; return L[Math.floor(Math.random() * L.length)]; } if (r < .88) { const L = famA[Math.floor(Math.random() * cells.length)]; return L[Math.floor(Math.random() * L.length)]; } return core; };
+  /* voyageurs : chaque point est un bout de connaissance qui va d'une étoile à l'autre */
+  const NT = 11000, tPos = new Float32Array(NT * 3), tCol = new Float32Array(NT * 3), trav = Array.from({length: NT}, () => { const a = anchors[Math.floor(rnd() * anchors.length)], g = () => (rnd() + rnd() + rnd() - 1.5);
+    return {a, b: pick(a), t0: -rnd() * 4, dw: rnd() * 2.5, du: 1.5 + rnd() * 3.5, off: new THREE.Vector3(g(), g(), g()).multiplyScalar(a === core ? 40 : 55 + rnd() * 45), bend: new THREE.Vector3(rnd() - .5, rnd() - .5, rnd() - .5).multiplyScalar(260), red: rnd() < .03, sh: .62 + rnd() * .38}; });
+  const tg = new THREE.BufferGeometry(); tg.setAttribute("position", new THREE.BufferAttribute(tPos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tCol, 3)); scene.add(new THREE.Points(tg, PM({size: 6.6})));
+  /* poussière : la forme de l'amas */
+  const ND = 5000, dPos = new Float32Array(ND * 3), dCol = new Float32Array(ND * 3), dust = Array.from({length: ND}, () => { const u = Math.pow(rnd(), .55) * R * 1.15, th = rnd() * 6.28, ph = Math.acos(2 * rnd() - 1); return [u, th, ph, (.02 + rnd() * .08) * (rnd() < .5 ? 1 : -1)]; });
+  const dg = new THREE.BufferGeometry(); dg.setAttribute("position", new THREE.BufferAttribute(dPos, 3)); dg.setAttribute("color", new THREE.BufferAttribute(dCol, 3)); scene.add(new THREE.Points(dg, PM({size: 4.4})));
   const ig = new THREE.BufferGeometry(), iPos = new Float32Array((items.length + cells.length + 1) * 3), iCol = new Float32Array((items.length + cells.length + 1) * 3);
-  ig.setAttribute("position", new THREE.BufferAttribute(iPos, 3)); ig.setAttribute("color", new THREE.BufferAttribute(iCol, 3)); scene.add(new THREE.Points(ig, PM({size: 11})));
-  /* bourgeons : petites cellules qui naissent, voyagent d'une cellule à l'autre et disparaissent */
-  const BUD = 110, BN = 30, bg = new THREE.BufferGeometry(), bPos = new Float32Array(BUD * BN * 3), bCol = new Float32Array(BUD * BN * 3); bg.setAttribute("position", new THREE.BufferAttribute(bPos, 3)); bg.setAttribute("color", new THREE.BufferAttribute(bCol, 3));
-  scene.add(new THREE.Points(bg, PM({size: 3.2}))); const buds = []; const budRel = Array.from({length: BN}, (_, k) => { const yy = 1 - (k + .5) / BN * 2, q = Math.sqrt(1 - yy * yy), a = k * 2.39996; return new THREE.Vector3(Math.cos(a) * q, yy, Math.sin(a) * q); });
-  /* liens : noyau ↔ cellules, cellules ↔ cellules, trades testés */
-  const LN = 7000, lg = new THREE.BufferGeometry(), lPos = new Float32Array(LN * 6), lCol = new Float32Array(LN * 6); lg.setAttribute("position", new THREE.BufferAttribute(lPos, 3)); lg.setAttribute("color", new THREE.BufferAttribute(lCol, 3));
+  ig.setAttribute("position", new THREE.BufferAttribute(iPos, 3)); ig.setAttribute("color", new THREE.BufferAttribute(iCol, 3)); scene.add(new THREE.Points(ig, PM({size: 13})));
+  const LN = 9000, lg = new THREE.BufferGeometry(), lPos = new Float32Array(LN * 6), lCol = new Float32Array(LN * 6); lg.setAttribute("position", new THREE.BufferAttribute(lPos, 3)); lg.setAttribute("color", new THREE.BufferAttribute(lCol, 3));
   scene.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({vertexColors: true, transparent: true, opacity: 1, depthWrite: false, fog: true})));
-  const coreN = 700, cg = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cCol = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 8 + Math.pow(rnd(), .6) * 40, .2 + rnd() * .8]);
-  cg.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); cg.setAttribute("color", new THREE.BufferAttribute(cCol, 3)); for (let k = 0; k < coreN; k++) { cCol[k * 3] = cFG.r; cCol[k * 3 + 1] = cFG.g; cCol[k * 3 + 2] = cFG.b; } scene.add(new THREE.Points(cg, PM({size: 2.6})));
+  const coreN = 900, cg = new THREE.BufferGeometry(), cPos = new Float32Array(coreN * 3), cCol = new Float32Array(coreN * 3), cSeed = Array.from({length: coreN}, () => [rnd() * 6.28, Math.acos(2 * rnd() - 1), 6 + Math.pow(rnd(), .6) * 46, .2 + rnd() * .8]);
+  cg.setAttribute("position", new THREE.BufferAttribute(cPos, 3)); cg.setAttribute("color", new THREE.BufferAttribute(cCol, 3)); for (let k = 0; k < coreN; k++) { cCol[k * 3] = cFG.r; cCol[k * 3 + 1] = cFG.g; cCol[k * 3 + 2] = cFG.b; } scene.add(new THREE.Points(cg, PM({size: 2.8})));
   const mix = (c, a) => [cBG.r + (c.r - cBG.r) * a, cBG.g + (c.g - cBG.g) * a, cBG.b + (c.b - cBG.b) * a];
-  const seqC = cells.find(c => c.f.key === "seq"), gestC = cells.find(c => c.f.key === "gest"), tests = []; let nextTest = 0, nextBud = 0, combos = 0;
+  const seqC = cells.find(c => c.f.key === "seq"), gestC = cells.find(c => c.f.key === "gest"), tests = []; let nextTest = 0, combos = 0;
+  const syn = Array.from({length: 260}, () => ({a: null, b: null, t0: -9, d: 1}));
+  const RH = R * .6;
   /* ---- étiquettes ---- */
   const labs = []; const addLab = (n, cls, txt) => { const d = document.createElement("div"); d.className = "b3lab " + cls + (n.bad ? " r" : ""); d.textContent = txt; labL.appendChild(d); labs.push({n, d}); return d; };
   addLab(core, "core", core.l); cells.forEach(cl => { cl.kind = "hub"; cl.p = cl.c; addLab(cl, "hub", cl.f.label.toUpperCase()).onclick = () => focus(cl.i); });
   items.forEach(n => { addLab(n, "item" + (n.cell.f.key === "trades" ? " tr" : ""), n.l).onclick = () => show(n); });
   const READ = 9, reads = Array.from({length: READ}, () => { const d = document.createElement("div"); d.className = "b3read"; labL.appendChild(d); return {d, cl: null, k: 0}; });
   /* ---- caméra ---- */
-  const D0 = RH * 3.4 + 300; scene.fog.near = D0 * .9; scene.fog.far = D0 * 2.6; const st = {th: .6, ph: 1.15, dist: D0, tgt: new THREE.Vector3(), th0: .6, ph0: 1.15, dist0: D0, tgt0: new THREE.Vector3()}; let focusI = -1, idle = 0, drag = null; const ptrs = new Map();
-  const focus = i => { focusI = i; host.querySelectorAll(".b3nav button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.dist0 = D0; info.hidden = true; } else st.dist0 = cells[i].r * 5.4 + 280; };
+  const D0 = R * 2.25 + 120; scene.fog.near = D0 * .9; scene.fog.far = D0 * 2.6; const st = {th: .6, ph: 1.15, dist: D0, tgt: new THREE.Vector3(), th0: .6, ph0: 1.15, dist0: D0, tgt0: new THREE.Vector3()}; let focusI = -1, idle = 0, drag = null; const ptrs = new Map();
+  const focus = i => { focusI = i; host.querySelectorAll(".b3nav button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.dist0 = D0; info.hidden = true; } else st.dist0 = cells[i].r * 3.6 + 260; };
   host.querySelector(".b3nav").onclick = e => { const b = e.target.closest("button"); if (b) focus(+b.dataset.f); };
   const size = () => { const w = host.clientWidth, h = host.clientHeight; ren.setSize(w, h, false); cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }; size(); const ro = new ResizeObserver(size); ro.observe(host);
   cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); drag = {x: e.clientX, y: e.clientY, moved: false}; idle = 0; });
@@ -5528,50 +5529,40 @@ async function mountBrain3(host, C){
     info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(n.cell.f.label)}</small><h3>${esc(n.l)}</h3>${n.s ? `<p>Rôle : ${esc(n.s)}</p>` : ""}${extra}`; info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; focus(n.cell.i); };
   const RDF = {ut: ["H4 ▲", "H1 ▲", "M15 ▼", "align", "Δ UT"], bias: ["HH", "HL", "p(▲)", "structure", "BOS ✓"], zones: ["OB", "Fibo 50 %", "FVG", "liq ×3", "zone ✓"], seq: ["shift ✓", "corps ✓", "retest", "étape", "délai"], gest: ["RR", "SL 1R", "TP1 ✓", "BE", "risque"], rules: ["session ✓", "news ✗", "max 1", "nuit ✗", "OK"], trades: ["R", "réussite", "n", "Δ", "série"]};
   /* ---- boucle ---- */
-  const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0, lastT = 0;
+  const v3 = new THREE.Vector3(), t0 = performance.now(); let run = true, fr = 0, lastRead = 0, lastT = 0; const A = new THREE.Vector3(), B = new THREE.Vector3(), M = new THREE.Vector3(), P = new THREE.Vector3();
   const loop = now => { if (!run) return; requestAnimationFrame(loop); if (!host.isConnected || !document.body.classList.contains("instrat")) { b3Remove(); return; } if (document.hidden) return;
     const t = (now - t0) / 1000, dt = Math.min(.05, t - lastT); lastT = t; fr++; idle += dt;
     if (focusI < 0 && idle > 2 && !ptrs.size) st.th0 += .0016;
-    /* les cellules se déplacent : ressort vers leur place, répulsion entre elles, petite dérive */
-    cells.forEach(a => { const f = a.home.clone().add(new THREE.Vector3(Math.sin(t * .31 + a.ph) * 90, Math.cos(t * .27 + a.ph * 1.3) * 70, Math.sin(t * .23 + a.ph * .7) * 90)).sub(a.c).multiplyScalar(.6);
-      cells.forEach(b => { if (a === b) return; const d = a.c.clone().sub(b.c), L = d.length() || 1, m = a.r + b.r + 90; if (L < m) f.add(d.multiplyScalar((m - L) / L * 14)); });
-      const dc = a.c.length(), mc = a.r + 70; if (dc < mc) f.add(a.c.clone().multiplyScalar((mc - dc) / (dc || 1) * 3));
-      a.v.add(f.multiplyScalar(dt)).multiplyScalar(.92); a.c.add(a.v.clone().multiplyScalar(dt * 1.8)); });
+    /* les régions dérivent doucement dans l'amas */
+    cells.forEach(a => { a.c.copy(a.home).add(v3.set(Math.sin(t * .21 + a.ph) * 70, Math.cos(t * .17 + a.ph * 1.3) * 55, Math.sin(t * .19 + a.ph * .7) * 70)); });
+    items.forEach(n => n.p.copy(n.cell.c).add(n.rel).add(v3.set(Math.sin(t * .6 + n.ph) * 22, Math.cos(t * .5 + n.ph) * 18, Math.sin(t * .4 + n.ph * 2) * 22)));
     st.tgt0.copy(focusI >= 0 ? cells[focusI].c : core.p);
     st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * .07; st.tgt.lerp(st.tgt0, .08);
     cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt);
-    /* points : naissent, vivent, meurent */
-    let o = 0; cells.forEach(cl => { const n = cl.rel.length, rot = t * .08 + cl.ph, cr = Math.cos(rot), sr = Math.sin(rot), breathe = 1 + Math.sin(t * 1.1 + cl.ph) * .03;
-      for (let b = 0; b < Math.ceil(n / 60); b++) { const k = Math.floor(Math.random() * n); if (cl.life[k] <= 0 && cl.vel[k] === 0) cl.vel[k] = 1.4; else if (cl.life[k] >= 1 && cl.vel[k] === 0 && Math.random() < .55) cl.vel[k] = -1.1; }
-      for (let k = 0; k < n; k++) { if (cl.vel[k]) { cl.life[k] = Math.max(0, Math.min(1, cl.life[k] + cl.vel[k] * dt)); if (cl.life[k] === 0 || cl.life[k] === 1) cl.vel[k] = 0; }
-        const q = cl.rel[k], l = cl.life[k], s = (.3 + .7 * l) * breathe * (1 + Math.sin(t * 2.3 + k) * .04), x = (q.x * cr - q.z * sr) * s, z = (q.x * sr + q.z * cr) * s;
-        dPos[o * 3] = cl.c.x + x; dPos[o * 3 + 1] = cl.c.y + q.y * s; dPos[o * 3 + 2] = cl.c.z + z; cl.wp[k] = o; const m = mix(cFG, Math.min(1, l * (.72 + .28 * ((k * 13) % 7) / 6) * (1.25 - q.length() / cl.r * .45))); dCol[o * 3] = m[0]; dCol[o * 3 + 1] = m[1]; dCol[o * 3 + 2] = m[2]; o++; } });
-    dg.attributes.position.needsUpdate = true; dg.attributes.color.needsUpdate = true;
-    /* éléments nommés + centres */
+    /* voyageurs : toutes les connaissances circulent entre elles */
+    let li = 0; const seg = (a, b, c, al) => { if (li >= LN) return; lPos[li * 6] = a.x; lPos[li * 6 + 1] = a.y; lPos[li * 6 + 2] = a.z; lPos[li * 6 + 3] = b.x; lPos[li * 6 + 4] = b.y; lPos[li * 6 + 5] = b.z; const m = mix(c, al); lCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
+    const rot = t * .25;
+    for (let k = 0; k < NT; k++) { const q = trav[k]; let u = (t - q.t0 - q.dw) / q.du;
+      if (u >= 1) { q.a = q.b; q.b = pick(q.a); q.t0 = t; q.dw = Math.random() * 2.2; q.du = 1.4 + Math.random() * 3.4; u = 0; if (Math.random() < .02) combos++; }
+      u = Math.max(0, u); const e = u * u * (3 - 2 * u), cr = Math.cos(rot + k), sr = Math.sin(rot + k), ox = q.off.x * cr - q.off.z * sr, oz = q.off.x * sr + q.off.z * cr, sq = Math.sin(Math.PI * e);
+      A.copy(q.a.p); B.copy(q.b.p); M.copy(A).lerp(B, .5).addScaledVector(q.bend, Math.min(1, A.distanceTo(B) / 400));
+      const w0 = (1 - e) * (1 - e), w1 = 2 * (1 - e) * e, w2 = e * e, spread = 1 - sq * .85;
+      P.set(A.x * w0 + M.x * w1 + B.x * w2 + ox * spread, A.y * w0 + M.y * w1 + B.y * w2 + q.off.y * spread, A.z * w0 + M.z * w1 + B.z * w2 + oz * spread);
+      tPos[k * 3] = P.x; tPos[k * 3 + 1] = P.y; tPos[k * 3 + 2] = P.z; const al = q.sh * (.75 + .25 * sq), c = q.red || (q.b.bad && sq > .2) ? cLS : cFG, m = mix(c, al); tCol[k * 3] = m[0]; tCol[k * 3 + 1] = m[1]; tCol[k * 3 + 2] = m[2];
+      if (k % 7 === 0 && sq > .25) { const u2 = Math.max(0, e - .05), x0 = (1 - u2) * (1 - u2), x1 = 2 * (1 - u2) * u2, x2 = u2 * u2; v3.set(A.x * x0 + M.x * x1 + B.x * x2 + ox * spread, A.y * x0 + M.y * x1 + B.y * x2 + q.off.y * spread, A.z * x0 + M.z * x1 + B.z * x2 + oz * spread); seg(v3, P, c, .35 * sq * q.sh); } }
+    tg.attributes.position.needsUpdate = true; tg.attributes.color.needsUpdate = true;
+    /* poussière */
+    for (let k = 0; k < ND; k++) { const [u, th, ph, s] = dust[k], a = th + t * s; dPos[k * 3] = Math.sin(ph) * Math.cos(a) * u; dPos[k * 3 + 1] = Math.cos(ph) * u * .8; dPos[k * 3 + 2] = Math.sin(ph) * Math.sin(a) * u; if (fr === 1) { const m = mix(cFG, .3 + .45 * (1 - u / (R * 1.15))); dCol.set(m, k * 3); } }
+    dg.attributes.position.needsUpdate = true; if (fr === 1) dg.attributes.color.needsUpdate = true;
+    /* étoiles nommées + centres */
     let j = 0; const setI = (p, c) => { iPos[j * 3] = p.x; iPos[j * 3 + 1] = p.y; iPos[j * 3 + 2] = p.z; iCol[j * 3] = c.r; iCol[j * 3 + 1] = c.g; iCol[j * 3 + 2] = c.b; j++; };
-    setI(core.p, cFG); cells.forEach(cl => setI(cl.c, cFG)); items.forEach(n => { n.p.copy(n.cell.c).add(n.rel); setI(n.p, n.bad ? cLS : cFG); }); ig.attributes.position.needsUpdate = true; ig.attributes.color.needsUpdate = true;
-    /* noyau */
+    setI(core.p, cFG); cells.forEach(cl => setI(cl.c, cFG)); items.forEach(n => setI(n.p, n.bad ? cLS : cFG)); ig.attributes.position.needsUpdate = true; ig.attributes.color.needsUpdate = true;
     for (let k = 0; k < coreN; k++) { const [a, b, r, s] = cSeed[k], aa = a + t * s * (k % 2 ? 1 : -1) * .6; cPos[k * 3] = Math.sin(b) * Math.cos(aa) * r; cPos[k * 3 + 1] = Math.cos(b) * r * .9; cPos[k * 3 + 2] = Math.sin(b) * Math.sin(aa) * r; } cg.attributes.position.needsUpdate = true;
-    /* bourgeons : une petite cellule se détache, traverse et va se fondre dans une autre */
-    if (t > nextBud && buds.length < BUD) { nextBud = t + .06 + Math.random() * .12; const a = cells[Math.floor(Math.random() * cells.length)], b = cells[Math.floor(Math.random() * cells.length)]; if (a !== b) { const big = Math.random() < .2; buds.push({a, b, t0: t, d: big ? 5 + Math.random() * 3 : 1.8 + Math.random() * 2, s: big ? 22 + Math.random() * 18 : 5 + Math.random() * 8, red: Math.random() < .12, lift: (Math.random() - .5) * 220}); combos += 3; } }
-    for (let k = buds.length - 1; k >= 0; k--) if (t - buds[k].t0 > buds[k].d) buds.splice(k, 1);
-    bPos.fill(0); bCol.fill(0); buds.forEach((bd, k) => { const u = (t - bd.t0) / bd.d, e = u * u * (3 - 2 * u), from = bd.a.c.clone().add(bd.b.c.clone().sub(bd.a.c).normalize().multiplyScalar(bd.a.r)), to = bd.b.c.clone().add(bd.a.c.clone().sub(bd.b.c).normalize().multiplyScalar(bd.b.r));
-      const mid = from.clone().lerp(to, .5).add(new THREE.Vector3(0, bd.lift, 0)), p = from.clone().multiplyScalar((1 - e) ** 2).add(mid.multiplyScalar(2 * (1 - e) * e)).add(to.clone().multiplyScalar(e * e)), grow = Math.sin(Math.PI * u), c = bd.red ? cLS : cFG;
-      budRel.forEach((q, i) => { const idx = (k * BN + i) * 3, s = bd.s * grow; bPos[idx] = p.x + q.x * s; bPos[idx + 1] = p.y + q.y * s; bPos[idx + 2] = p.z + q.z * s; const m = mix(c, .9 * grow); bCol[idx] = m[0]; bCol[idx + 1] = m[1]; bCol[idx + 2] = m[2]; }); });
-    bg.attributes.position.needsUpdate = true; bg.attributes.color.needsUpdate = true;
-    /* liens */
-    let li = 0; const seg = (a, b, c, al) => { if (li >= LN) return; lPos.set([a.x, a.y, a.z, b.x, b.y, b.z], li * 6); const m = mix(c, al); lCol.set([m[0], m[1], m[2], m[0], m[1], m[2]], li * 6); li++; };
-    const curve = (a, b, c, al, n, lift) => { const mid = a.clone().lerp(b, .5).add(new THREE.Vector3(0, lift, 0)); let prev = a; for (let k = 1; k <= n; k++) { const u = k / n, p = a.clone().multiplyScalar((1 - u) ** 2).add(mid.clone().multiplyScalar(2 * (1 - u) * u)).add(b.clone().multiplyScalar(u * u)); seg(prev, p, c, al); prev = p; } };
-    cells.forEach((cl, i) => { for (let s = 0; s < 6; s++) curve(core.p, cl.c, cFG, .16, 14, (s - 2.5) * 14 + Math.sin(t + s + i) * 10); });
-    for (let a = 0; a < cells.length; a++) for (let b = a + 1; b < cells.length; b++) curve(cells[a].c, cells[b].c, cFG, .05 + .05 * Math.max(0, Math.sin(t * .8 + a * 2 + b)), 12, 40 + 20 * Math.sin(t * .5 + a + b));
-    items.forEach(n => seg(n.cell.c, n.p, n.bad ? cLS : cFG, .35));
-    const dp = o => v3.set(dPos[o * 3], dPos[o * 3 + 1], dPos[o * 3 + 2]).clone();
-    cells.forEach(cl => cl.syn.forEach(sy => { let u = (t - sy.t0) / sy.d; if (u > 1) { sy.a = Math.floor(Math.random() * cl.rel.length); sy.b = Math.floor(Math.random() * cl.rel.length); sy.t0 = t; sy.d = .6 + Math.random() * 1.8; u = 0; }
-      const al = Math.sin(Math.PI * u) * .45 * Math.min(cl.life[sy.a], cl.life[sy.b]); if (al > .03) seg(dp(cl.wp[sy.a]), dp(cl.wp[sy.b]), cFG, al); }));
-    for (let k = 0; k < 160; k++) { const a = cells[(k * 7 + fr) % cells.length], b = cells[(k * 3 + 1) % cells.length]; if (a === b) continue; const ia = (k * 131 + Math.floor(t * 2) * 17) % a.rel.length, ib = (k * 97 + Math.floor(t * 2) * 29) % b.rel.length, al = .12 * Math.max(0, Math.sin(t * 1.7 + k));
-      if (al > .02) seg(dp(a.wp[ia]), dp(b.wp[ib]), k % 23 ? cFG : cLS, al); }
-    /* trades testés : le trait parcourt le déroulé jusqu'au TP… ou s'arrête en rouge */
-    if (seqC && t > nextTest) { nextTest = t + .45 + Math.random() * .45; const win = Math.random() < .68, stop = win ? seqC.items.length : 1 + Math.floor(Math.random() * Math.max(1, seqC.items.length - 1)); tests.push({t0: t, stop, win: win && stop >= seqC.items.length}); combos += 7 + Math.floor(Math.random() * 30); }
+    /* constellation : des liens entre connaissances qui s'allument et s'éteignent */
+    syn.forEach(sy => { let u = (t - sy.t0) / sy.d; if (u > 1 || !sy.a) { sy.a = anchors[Math.floor(Math.random() * anchors.length)]; sy.b = pick(sy.a); sy.t0 = t; sy.d = .8 + Math.random() * 2.5; u = 0; } const al = Math.sin(Math.PI * u) * .3; if (al > .02 && sy.a !== sy.b) seg(sy.a.p, sy.b.p, sy.b.bad ? cLS : cFG, al); });
+    items.forEach(n => seg(n.cell.c, n.p, n.bad ? cLS : cFG, .22));
+    /* trades testés */
+    if (seqC && seqC.items.length && t > nextTest) { nextTest = t + .45 + Math.random() * .45; const win = Math.random() < .68, stop = win ? seqC.items.length : 1 + Math.floor(Math.random() * Math.max(1, seqC.items.length - 1)); tests.push({t0: t, stop, win: win && stop >= seqC.items.length}); combos += 7 + Math.floor(Math.random() * 30); }
     while (tests.length && t - tests[0].t0 > 4) tests.shift();
     tests.forEach(ts => { const path = [core.p, ...seqC.items.slice(0, ts.stop).map(x => x.p)], end = gestC && gestC.items.find(x => ts.win ? x.tp : x.sl); if (end) path.push(end.p); const prog = (t - ts.t0) * 3;
       for (let k = 0; k < path.length - 1; k++) { const u = prog - k; if (u <= 0) break; const e = Math.min(1, u), fade = Math.max(0, 1 - (prog - k - 1) / 3), last = k === path.length - 2; seg(path[k], path[k].clone().lerp(path[k + 1], e), last && !ts.win ? cLS : cFG, .85 * fade); } });
@@ -5579,7 +5570,7 @@ async function mountBrain3(host, C){
     ren.render(scene, cam);
     /* étiquettes */
     const w = host.clientWidth, h = host.clientHeight, proj = p => { v3.copy(p).project(cam); return [(v3.x + 1) / 2 * w, (1 - v3.y) / 2 * h, v3.z]; };
-    const placed = []; labs.forEach(({n, d}) => { const pp = n.kind === "hub" ? n.c.clone().add(new THREE.Vector3(0, -n.r - 14, 0)) : n.p, sp = proj(pp); if (n.kind !== "core") n.sp = proj(n.kind === "hub" ? n.c : n.p);
+    const placed = []; labs.forEach(({n, d}) => { const pp = n.kind === "hub" ? n.c.clone().add(new THREE.Vector3(0, -n.r * .55, 0)) : n.p, sp = proj(pp); if (n.kind !== "core") n.sp = proj(n.kind === "hub" ? n.c : n.p);
       const dc = cam.position.distanceTo(n.kind === "hub" ? n.c : n.p), near = n.kind !== "item" || (focusI >= 0 ? n.cell.i === focusI : dc < 420);
       if (sp[2] > 1 || !near || (n.kind === "item" && n.cell.f.key === "trades" && dc > 330)) { d.style.opacity = 0; d.style.pointerEvents = "none"; return; }
       let op = n.kind === "item" ? (focusI >= 0 ? .95 : Math.min(1, (620 - dc) / 220)) : 1;
@@ -6870,7 +6861,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-63";
+const APP_VERSION = "2026-10-29-64";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
