@@ -5618,16 +5618,25 @@ async function mountBrain3(host, C){
   const pMat = new THREE.ShaderMaterial({uniforms: U, transparent: true, depthWrite: false, blending: blend,
     vertexShader: GLC + `attribute float aS, aD, aZ; varying vec3 vC; varying float vA;
       void main(){ int s = int(aS + .5); vec3 o = position; if (s == 7) o *= 1. + .12 * sin(uT * 1.3) + .05 * sin(uT * 3.1 + aD * 9.);
-        vec3 p = s == 7 ? uCen[7] + mix(vec3(0.), o, clamp(uBirth * 6., 0., 1.)) : place(s, o, aD); float pull = abs(float(s) - uHI) > .5 ? uHW : 0.; p += (uHC - p) * pull * (.1 + .12 * fract(aD * 17.)); vec4 mv = modelViewMatrix * vec4(p, 1.); float bk = uBH * uBH * (3. - 2. * uBH), bOut = 0.;
-        if (bk > .001) { vec3 cw = uCen[7]; float ringP = s == 7 ? 1. : step(fract(aD * 5.3), .17), rd = 78. + pow(fract(aD * 13.7), .75) * 470. + (fract(aD * 7.1) - .5) * 34., w = 1.7 / (.3 + rd / 110.), ang = fract(aD * 91.) * 6.2832 + uBHSpin * w;
-          vec3 dk = vec3(cos(ang) * rd, (fract(aD * 37.) - .5) * (4. + rd * .05), sin(ang) * rd); bOut = (1. - ringP) * rd / 550.; float c = cos(.16), sn = sin(.16); dk = vec3(dk.x, dk.y * c - dk.z * sn, dk.y * sn + dk.z * c);
-          vec4 mvD = modelViewMatrix * vec4(cw + dk, 1.), cv = modelViewMatrix * vec4(cw, 1.); float rr = 66. + pow(fract(aD * 17.), 2.5) * 46., ra = fract(aD * 61.) * 6.2832 + uBHSpin * 1.6;
-          vec4 mvR = vec4(cv.xyz + vec3(cos(ra) * rr * 1.04, sin(ra) * rr, 0.), 1.); float lag = clamp(bk * 1.25 - fract(aD * 23.) * .25, 0., 1.); mv = mix(mv, mix(mvD, mvR, ringP), lag); }
+        vec3 p = s == 7 ? uCen[7] + mix(vec3(0.), o, clamp(uBirth * 6., 0., 1.)) : place(s, o, aD); float pull = abs(float(s) - uHI) > .5 ? uHW : 0.; p += (uHC - p) * pull * (.1 + .12 * fract(aD * 17.)); vec4 mv = modelViewMatrix * vec4(p, 1.); float bk = uBH * uBH * (3. - 2. * uBH), bOut = 0., bHot = 0., bRad = 1.;
+        if (bk > .001) { vec3 cw = uCen[7]; vec4 cv = modelViewMatrix * vec4(cw, 1.); float sc = 1.15; vec3 hp = position + aD * 17.; float h1 = fract(sin(dot(hp, vec3(12.9898, 78.233, 37.719))) * 43758.5453), h2 = fract(sin(dot(hp, vec3(39.346, 11.135, 83.155))) * 24634.6345), h3 = fract(sin(dot(hp, vec3(73.156, 52.235, 9.151))) * 35791.1173), h4 = fract(h1 * 7.13 + h2 * 3.71);
+          /* 3 populations : disque fin vu presque de profil, halo lentillé (dessus / dessous du trou), anneau de photons serré */
+          float pk = h4, ringP = s == 7 ? 1. : 0.; float isHalo = step(pk, .36) * (1. - ringP), isPh = step(.36, pk) * step(pk, .46) * (1. - ringP);
+          float rd = (82. + pow(h2, 1.15) * 430. + (h4 - .5) * 22.) * sc, w = 1.7 / (.3 + rd / 120.), ang = h1 * 6.2832 + uBHSpin * w;
+          vec3 dk = vec3(cos(ang) * rd, (h3 - .5) * (2. + rd * .016), sin(ang) * rd); float tl = .42, c = cos(tl), sn = sin(tl); dk = vec3(dk.x, dk.y * c - dk.z * sn, dk.y * sn + dk.z * c);
+          vec4 mvD = vec4(cv.xyz + dk, 1.);
+          float hr = (74. + pow(h2, 1.6) * 105.) * sc, ha = h1 * 6.2832 + uBHSpin * .9, hy = sin(ha), hx = cos(ha);
+          vec4 mvH = vec4(cv.xyz + vec3(hx * hr * (1. + .12 * abs(hy)), hy * hr * (.82 + .1 * h3), -2.), 1.);
+          float pr = (68. + h2 * 5.) * sc, pa = h1 * 6.2832 + uBHSpin * 2.;
+          vec4 mvP = vec4(cv.xyz + vec3(cos(pa) * pr, sin(pa) * pr, -1.), 1.);
+          vec4 tgt = mvD; if (isHalo > .5) tgt = mvH; if (isPh > .5 || ringP > .5) tgt = mvP;
+          bOut = (1. - isHalo - isPh - ringP) * (1. + .5 * cos(ang + 1.2)); bRad = mix(2.4, .22, pow(clamp((rd / sc - 80.) / 430., 0., 1.), .55)); bHot = isHalo * .8 + isPh * 1.5 + ringP;
+          float lag = clamp(bk * 1.25 - h3 * .25, 0., 1.); vec4 mx = mix(mv, tgt, lag); vec2 dv = mx.xy - cv.xy; float sw = lag * (1. - lag) * 7. * (1. - .5 * h2), cs4 = cos(sw), sn4 = sin(sw); mx.xy = cv.xy + vec2(dv.x * cs4 - dv.y * sn4, dv.x * sn4 + dv.y * cs4) * (1. - lag * (1. - lag) * .9); mv = mx; }
         gl_Position = projectionMatrix * mv;
         float coc = clamp(abs(-mv.z - uFD) / uFD, 0., 1.5), flick = .65 + .35 * sin(uT * (1. + aD * 2.) + aD * 40.);
-        gl_PointSize = max(1., aZ * (1. + coc * 1.6) * (1. + bk * bOut * 1.6) * uScale / -mv.z * 1.9);
+        gl_PointSize = max(1., aZ * (1. + coc * 1.6) * (1. + bk * (bRad * .45 + bHot * .2)) * uScale / -mv.z * 1.9);
         float flash = s == 7 ? 1. : 1. + 2.5 * exp(-pow((uBirth - .12 - aD * .3) * 9., 2.));
-        vA = (uDark > .5 ? .55 : .5) * flick / (1. + coc * 2.2) * hotK(s) * flash * (s == 7 ? 1.3 : 1.); vC = mix(mix(uCol[s], uHCol, pull * .6), vec3(1., .8, .58), bk * .8); vA *= 1. + bk * (.7 + bOut * 1.2); }`,
+        vA = (uDark > .5 ? .55 : .5) * flick / (1. + coc * 2.2) * hotK(s) * flash * (s == 7 ? 1.3 : 1.); vC = mix(mix(uCol[s], uHCol, pull * .6), mix(vec3(1., .62, .34), vec3(1., .93, .84), clamp(bHot * .7 + max(0., bRad - 1.) * .5, 0., 1.)), bk * .92); vA *= mix(1., (bOut > 0. ? bOut * bRad : 1.) * (1.3 + bHot * 1.3), bk); }`,
     fragmentShader: `uniform float uDark; varying vec3 vC; varying float vA; void main(){ vec2 c = gl_PointCoord * 2. - 1.; float r2 = dot(c, c); if (r2 > 1.) discard; float g = exp(-r2 * 3.2);
       gl_FragColor = uDark > .5 ? vec4(vC * g * vA, 1.) : vec4(vC, g * vA * .9); }`});
   scene.add(new THREE.Points(pg, pMat));
@@ -5679,7 +5688,7 @@ async function mountBrain3(host, C){
   nodes.forEach(n => addLab(n, "item b3card" + (n.cell.f.key === "trades" ? " tr" : "") + (n.red ? " r" : ""), n.l).onclick = () => show(n));
   /* ---- caméra ---- */
   const D0 = 2050, st = {th: .5, ph: 1.2, dist: b3Born ? D0 : 420, th0: .5, ph0: 1.2, dist0: D0, tgt: new THREE.Vector3(), tgt0: new THREE.Vector3()}; let focusI = -1, hovS = -1, hovN = null, dragN = null, idle = 0, drag = null; const ptrs = new Map(), mouse = new THREE.Vector2(-9, -9);
-  let hovCore = false; const pan = new THREE.Vector3(), keys = new Set(), fly = {on: false, pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, locked: false}, helpEl = host.querySelector(".b3help"), helpTxt = helpEl.textContent;
+  let hovCore = false, eaten = false; const pan = new THREE.Vector3(), keys = new Set(), fly = {on: false, pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, locked: false}, helpEl = host.querySelector(".b3help"), helpTxt = helpEl.textContent;
   const flyStart = () => { if (fly.on) return; const d = cam.getWorldDirection(new THREE.Vector3()); fly.on = true; fly.pos.copy(cam.position); fly.vel.set(0, 0, 0); fly.yaw = Math.atan2(d.x, d.z); fly.pitch = Math.asin(Math.max(-1, Math.min(1, d.y))); info.hidden = true;
     try { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} helpEl.textContent = "ZQSD · AVANCER — SOURIS · REGARDER — MAJ · PLUS VITE — ESPACE / CTRL · MONTER / DESCENDRE — ÉCHAP · SORTIR"; };
   const flyStop = () => { if (!fly.on) return; fly.on = false; keys.clear(); try { if (document.pointerLockElement === cv) document.exitPointerLock(); } catch (e) {} helpEl.textContent = helpTxt;
@@ -5725,7 +5734,7 @@ async function mountBrain3(host, C){
   const BGL = new THREE.Color(getComputedStyle(document.body).backgroundColor || "#f3f4f6"), lcol = (c, a) => { a = Math.min(1, dark ? a : a * 1.9); return dark ? [c.r * a, c.g * a, c.b * a] : [BGL.r + (c.r - BGL.r) * a, BGL.g + (c.g - BGL.g) * a, BGL.b + (c.b - BGL.b) * a]; }; let li = 0;
   let curMul = 1, curA = null, curB = null, hotLast = -1; const G = new Array(8).fill(1), LM = new Array(8).fill(1), CC = new THREE.Color();
   const colI = i => i >= 0 && i < nF ? secs[i].col : white;
-  const seg = (a, b, c, al, u) => { al *= curMul; if (li >= LKN || al < .012) return; const T = lastT, aa = Math.min(1, (dark ? al : al * 1.5) * 2.4);
+  const seg = (a, b, c, al, u) => { al *= curMul * (1 - U.uBH.value); if (li >= LKN || al < .012) return; const T = lastT, aa = Math.min(1, (dark ? al : al * 1.5) * 2.4);
     for (let j = 0; j < DP; j++) { const k = li * DP + j, f = (j + .5) / DP, J = 6 + (k % 5) * 2; if (curA) CC.copy(curA).lerp(curB, Math.min(1, Math.max(0, (u == null ? .5 : u) - (1 - f) / 14))); else CC.copy(c); if (U.uHW.value > .01) CC.lerp(U.uHCol.value, U.uHW.value * .85);
       kPos[k * 3] = a.x + (b.x - a.x) * f + Math.sin(k * 12.99 + T * .9) * J; kPos[k * 3 + 1] = a.y + (b.y - a.y) * f + Math.sin(k * 7.31 + T * .8) * J; kPos[k * 3 + 2] = a.z + (b.z - a.z) * f + Math.sin(k * 4.17 + T * .7) * J;
       kCol[k * 3] = CC.r; kCol[k * 3 + 1] = CC.g; kCol[k * 3 + 2] = CC.b; kAl[k] = aa; } li++; };
@@ -5740,7 +5749,10 @@ async function mountBrain3(host, C){
       secs.forEach(b => { if (a === b) return; const d = a.c.clone().sub(b.c), Ld = d.length() || 1, m = a.r + b.r + 140; if (Ld < m) f.add(d.multiplyScalar((m - Ld) / Ld * 6)); });
       a.v.add(f.multiplyScalar(dt)).multiplyScalar(coreN.drag ? .82 : .93); a.c.add(a.v.clone().multiplyScalar(dt * 1.5)); a.br = 1 + .08 * Math.sin(t * .55 + a.ph * 3); U.uCen.value[a.i].copy(a.c); U.uBr.value[a.i] = a.br; });
     U.uHot.value = hovN ? hovN.sec.i : focusI >= 0 ? focusI : hovS; { const h = U.uHot.value, k = Math.min(1, dt * 3.2);
-      for (let i = 0; i < 8; i++) { const tg = h < 0 ? 1 : i === h ? 2.3 : i === 7 ? .7 : .35, tl = h < 0 ? 1 : i === h ? 1.8 : .1; G[i] += (tg - G[i]) * k; LM[i] += (tl - LM[i]) * k; } for (let i = 0; i < nF; i++) { const gv = U.uGal.value; gv[i] = Math.max(0, Math.min(1, gv[i] + (i === h ? dt / 4 : -dt / 2.5))); const sv = U.uSpin.value; if (gv[i] <= 0) sv[i] = 0; else sv[i] += dt * (.15 + 2.6 * gv[i] * gv[i] * gv[i]); } { const b = U.uBH.value; U.uBH.value = Math.max(0, Math.min(1, b + (hovCore && !coreN.drag ? dt / 4.5 : -dt / 2.2))); if (U.uBH.value <= 0) U.uBHSpin.value = 0; else U.uBHSpin.value += dt * (.25 + 3.2 * Math.pow(U.uBH.value, 3)); bhM.visible = U.uBH.value > .01; bhM.position.copy(coreN.p); bhM.scale.setScalar(Math.max(.01, 60 * Math.min(1, U.uBH.value * 1.4))); }
+      for (let i = 0; i < 8; i++) { const tg = h < 0 ? 1 : i === h ? 2.3 : i === 7 ? .7 : .35, tl = h < 0 ? 1 : i === h ? 1.8 : .1; G[i] += (tg - G[i]) * k; LM[i] += (tl - LM[i]) * k; } for (let i = 0; i < nF; i++) { const gv = U.uGal.value; gv[i] = Math.max(0, Math.min(1, gv[i] + (i === h ? dt / 4 : -dt / 2.5))); const sv = U.uSpin.value; if (gv[i] <= 0) sv[i] = 0; else sv[i] += dt * (.15 + 2.6 * gv[i] * gv[i] * gv[i]); } { if (hovCore && !coreN.drag && !fly.on) { st.ph0 += (1.47 - st.ph0) * .015; st.dist0 += (D0 - st.dist0) * .015; pan.multiplyScalar(.97); } const b = U.uBH.value; U.uBH.value = Math.max(0, Math.min(1, b + (hovCore && !coreN.drag ? dt / 6 : -dt / 2.6))); if (U.uBH.value <= 0) U.uBHSpin.value = 0; else U.uBHSpin.value += dt * (.25 + 3.2 * Math.pow(U.uBH.value, 3)); bhM.visible = U.uBH.value > .01; { const want = U.uBH.value > .45; if (want !== eaten) { eaten = want; const cs3 = proj(coreN.p), r0 = host.getBoundingClientRect();
+        document.querySelectorAll(".topnav, #stratView .vhead, #stratView .sbar, .b3hud, .b3nav, .b3help, .b3info, .b3l").forEach((el, i) => { const r = el.getBoundingClientRect(), dx = r0.left + cs3[0] - (r.left + r.width / 2), dy = r0.top + cs3[1] - (r.top + r.height / 2);
+          el.style.transition = want ? `transform ${1.6 + i * .18}s cubic-bezier(.55,0,.85,.35), opacity ${1.4 + i * .18}s ease-in, filter 1.4s` : "transform 1.2s cubic-bezier(.2,.8,.2,1), opacity 1s ease, filter 1s"; el.style.transformOrigin = "center";
+          el.style.transform = want ? `translate(${dx}px,${dy}px) scale(.02) rotate(${(i % 2 ? 1 : -1) * 220}deg)` : ""; el.style.opacity = want ? "0" : ""; el.style.filter = want ? "blur(6px)" : ""; el.style.pointerEvents = want ? "none" : ""; }); } } bhM.position.copy(coreN.p); bhM.scale.setScalar(Math.max(.01, 80 * Math.min(1, U.uBH.value * 1.4))); }
       U.uGlow.value = G; if (h >= 0 && h < nF) { hotLast = h; U.uHI.value = h; } U.uHW.value += ((h >= 0 && h < nF ? 1 : 0) - U.uHW.value) * k; if (hotLast >= 0) { U.uHC.value.copy(secs[hotLast].c); U.uHCol.value.copy(secs[hotLast].col); } }
     /* nœuds : ressort vers leur place, liens élastiques */
     nodes.forEach(n => { if (n.drag) return; const target = v3.copy(n.sec.c).addScaledVector(n.anc, n.sec.br * (1 + .8 * U.uGal.value[n.sec.i])).add(A1.set(Math.sin(t * .4 + n.sd * 20) * 6, Math.cos(t * .35 + n.sd * 17) * 6, 0)); const f = target.sub(n.p).multiplyScalar(4);
@@ -5773,18 +5785,18 @@ async function mountBrain3(host, C){
     { if (bu >= 1) while (wls.length < WL) { const pick = () => Math.random() < .7 && nodes.length ? {N: nodes[Math.floor(Math.random() * nodes.length)]} : {N: {p: coreN.p}}; wls.push({a: pick(), b: pick(), t0: fr < 3 ? t - 1.6 - Math.random() * 1.5 : t + Math.random() * 2, g: .5 + Math.random(), h: 1 + Math.random() * 3, r: .6 + Math.random(), bend: new THREE.Vector3((Math.random() - .5) * 140, (Math.random() - .5) * 140, (Math.random() - .5) * 140)}); }
       let wi = 0; wPos.fill(0); wAl.fill(0); for (let k = wls.length - 1; k >= 0; k--) { const y = wls[k], age = t - y.t0; if (age > y.g + y.h + y.r) { wls.splice(k, 1); continue; } if (age < 0 || y.a.N === y.b.N) continue;
         let u1 = Math.min(1, age / y.g), al = age > y.g + y.h ? 1 - (age - y.g - y.h) / y.r : 1; al *= .32 * (nb ? .4 : 1) * Math.max(LM[y.a.N.sec ? y.a.N.sec.i : 7], LM[y.b.N.sec ? y.b.N.sec.i : 7]);
-        let prev = y.a.N.p.clone(); for (let q = 1; q <= 12; q++) { const pp = bez(y.a.N.p, y.b.N.p, y.bend, u1 * q / 12, new THREE.Vector3()); if (wi < WL * 12) { wPos.set([prev.x, prev.y, prev.z, pp.x, pp.y, pp.z], wi * 6); wAl[wi * 2] = wAl[wi * 2 + 1] = Math.max(0, Math.min(1, al)); wi++; } prev = pp; } }
+        let prev = y.a.N.p.clone(); for (let q = 1; q <= 12; q++) { const pp = bez(y.a.N.p, y.b.N.p, y.bend, u1 * q / 12, new THREE.Vector3()); if (wi < WL * 12) { wPos.set([prev.x, prev.y, prev.z, pp.x, pp.y, pp.z], wi * 6); wAl[wi * 2] = wAl[wi * 2 + 1] = Math.max(0, Math.min(1, al * (1 - U.uBH.value))); wi++; } prev = pp; } }
       wg.setDrawRange(0, wi * 2); wg.attributes.position.needsUpdate = true; wg.attributes.aA.needsUpdate = true; }
     kg.setDrawRange(0, li * DP); kg.attributes.position.needsUpdate = true; kg.attributes.color.needsUpdate = true; kg.attributes.aA.needsUpdate = true; curA = curB = null;
     /* impulsions de lumière le long des liens */
     if (bu >= 1 && U.uHW.value > .5 && hotLast >= 0) for (let k = 0; k < 5 && pulses.length < PU; k++) { const hs = secs[hotLast], src = Math.random() < .2 ? coreN.p : (nodes[Math.floor(Math.random() * nodes.length)] || {p: coreN.p}).p; pulses.push({a: src, b: hs.c, bend: new THREE.Vector3(Math.random() * 160 - 80, Math.random() * 160 - 80, Math.random() * 160 - 80), u: 0, v: .35 + Math.random() * .4, c: hs.col}); }
     if (bu >= 1) for (let k = 0; k < 4 && pulses.length < PU; k++) { const l = links.length && Math.random() < .6 ? links[Math.floor(Math.random() * links.length)] : null; if (l) pulses.push({a: l.a.p, b: l.b.p, bend: new THREE.Vector3(0, 30, 0), u: 0, v: .25 + Math.random() * .5, c: l.a.sec.col}); else { const S = secs[Math.floor(Math.random() * nF)]; pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40), u: 0, v: .2 + Math.random() * .35, c: S.col}); } }
     for (let k = pulses.length - 1; k >= 0; k--) { pulses[k].u += pulses[k].v * dt; if (pulses[k].u >= 1) pulses.splice(k, 1); }
-    uSz.fill(0); pulses.forEach((pu, k) => { const p = bez(pu.a, pu.b, pu.bend, pu.u, A1); uPos.set([p.x, p.y, p.z], k * 3); const m = dark ? [pu.c.r * .9 + .1, pu.c.g * .9 + .1, pu.c.b * .9 + .1] : [pu.c.r, pu.c.g, pu.c.b]; uCol.set(m, k * 3); uSz[k] = 10 * Math.sin(Math.PI * pu.u); });
+    uSz.fill(0); pulses.forEach((pu, k) => { const p = bez(pu.a, pu.b, pu.bend, pu.u, A1); uPos.set([p.x, p.y, p.z], k * 3); const m = dark ? [pu.c.r * .9 + .1, pu.c.g * .9 + .1, pu.c.b * .9 + .1] : [pu.c.r, pu.c.g, pu.c.b]; uCol.set(m, k * 3); uSz[k] = 10 * Math.sin(Math.PI * pu.u) * (1 - U.uBH.value); });
     ug.attributes.position.needsUpdate = true; ug.attributes.color.needsUpdate = true; ug.attributes.aZ.needsUpdate = true;
     /* nœuds lumineux */
     nodes.forEach((n, k) => { nPos.set([n.p.x, n.p.y, n.p.z], k * 3); const c = n.red ? new THREE.Color(dark ? "#ff6b8a" : "#c0284e") : n.sec.col, ip = pathChain.indexOf(n), lit = ip >= 0 && pathOn < 3.5 ? Math.max(0, 1 - Math.abs(pathOn * 3 - ip) / 1.5) : 0;
-      const gk = dark ? Math.min(1, .25 + G[n.sec.i] * .75) : 1; nCol.set([c.r * gk, c.g * gk, c.b * gk], k * 3); nSz[k] = (n.cell.f.key === "trades" ? 16 : 26) * grow * (1 + lit * .8 + (n === hovN ? .6 : 0)) * (nb && !nb.has(n) ? .7 : 1); });
+      const gk = dark ? Math.min(1, .25 + G[n.sec.i] * .75) : 1; nCol.set([c.r * gk, c.g * gk, c.b * gk], k * 3); nSz[k] = (1 - U.uBH.value) * (n.cell.f.key === "trades" ? 16 : 26) * grow * (1 + lit * .8 + (n === hovN ? .6 : 0)) * (nb && !nb.has(n) ? .7 : 1); });
     const kc = nodes.length; nPos.set([coreN.p.x, coreN.p.y, coreN.p.z], kc * 3); nCol.set([white.r, white.g, white.b], kc * 3); nSz[kc] = 46 * (1 + .15 * Math.sin(t * 1.3)) * Math.min(1, bu * 5) * (1 - U.uBH.value);
     ng.attributes.position.needsUpdate = true; ng.attributes.color.needsUpdate = true; ng.attributes.aZ.needsUpdate = true;
     ren.render(scene, cam);
@@ -5797,7 +5809,7 @@ async function mountBrain3(host, C){
       if (n.kind !== "core" && op > 0) { const ww = d.offsetWidth || 60, hh = d.offsetHeight || 16, x0 = sp[0] - ww / 2, y0 = sp[1] + (n.kind === "hub" ? -30 : 10), hit = placed.some(q => x0 < q[2] && x0 + ww > q[0] && y0 < q[3] && y0 + hh > q[1]); if (hit && n !== hovN) op = n.kind === "hub" ? Math.min(op, .25) : 0; else placed.push([x0 - 3, y0 - 2, x0 + ww + 3, y0 + hh + 2]); }
       d.style.opacity = op; d.style.pointerEvents = op > .3 ? "auto" : "none"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "34px" : n.kind === "hub" ? "-30px" : "10px"})`; }); };
   requestAnimationFrame(loop);
-  const destroy = () => { removeEventListener("keydown", onKey); removeEventListener("keyup", onKey); removeEventListener("mousemove", onLook); document.removeEventListener("pointerlockchange", onLock); try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
+  const destroy = () => { document.querySelectorAll(".topnav, #stratView .vhead, #stratView .sbar").forEach(el => { el.style.transform = el.style.opacity = el.style.filter = el.style.pointerEvents = el.style.transition = ""; }); removeEventListener("keydown", onKey); removeEventListener("keyup", onKey); removeEventListener("mousemove", onLook); document.removeEventListener("pointerlockchange", onLock); try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
   brain3 = {host, destroy};
 }
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
@@ -7077,7 +7089,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-91";
+const APP_VERSION = "2026-10-29-96";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
