@@ -5820,7 +5820,7 @@ async function mountBrain3(host, C){
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(40, Math.min(3400, st.dist0 * Math.pow(d1 / d2, .8))); return; }
     if (dragN) { const ndc = new THREE.Vector3(x / W() * 2 - 1, -(y / H()) * 2 + 1, .5).unproject(cam).sub(cam.position).normalize(), pl = new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()), dragN.p), hit = new THREE.Vector3();
       if (new THREE.Ray(cam.position, ndc).intersectPlane(pl, hit)) dragN.p.copy(hit); return; }
-    if (fly.on) return; st.th0 -= (e.clientX - pr[0]) * .004; st.ph0 = Math.max(.35, Math.min(2.8, st.ph0 - (e.clientY - pr[1]) * .004)); });
+    if (fly.on) return; st.th0 += (e.clientX - pr[0]) * .004; st.ph0 = Math.max(.35, Math.min(2.8, st.ph0 - (e.clientY - pr[1]) * .004)); });
   cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     if (dragN) { dragN.drag = false; if (!drag.moved && dragN !== coreN) show(dragN); dragN = null; } else if (drag && !drag.moved) { const s = pickSec(x, y); if (s >= 0) focus(s); } drag = null; });
   cv.addEventListener("pointerleave", () => { mouse.set(-9, -9); hovN = null; hovS = -1; hovCore = false; });
@@ -7205,7 +7205,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-117";
+const APP_VERSION = "2026-10-29-118";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
