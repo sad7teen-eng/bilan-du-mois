@@ -2545,7 +2545,7 @@ async function openGlassRun(c0, forceLite){
     <div class="ig-lab ig-t"><b data-s=""></b><b class="ig-tv" data-s=""></b><b>TEMP</b><b class="ig-tv ig-temp">-18.42</b></div>
     <div class="ig-lab ig-d"><b data-s=""></b><b class="ig-go" data-s="CLICK TO EXPLORE"></b></div>
     <div class="ig-corner">CERTIFICATS<small class="ig-count"></small></div>
-    <div class="ig-melt" aria-label="Fonte du glaçon"><button type="button" class="ig-mmode" title="Maintenez le clic sur le glaçon"><i></i><span>FONTE</span></button><div class="ig-mbar"><i class="ig-mfill"></i><b class="ig-m70" title="70 %"></b></div><span class="ig-mpct">0%</span></div>
+    <div class="ig-melt" aria-label="Fonte du glaçon"><button type="button" class="ig-mmode" title="Fonte ou récupération : cliquez sur le glaçon"><i></i><span>FONTE</span></button><div class="ig-mbar"><i class="ig-mfill"></i><b class="ig-m70" title="70 %"></b></div><span class="ig-mpct">0%</span></div>
     <div class="ig-hint"><button type="button" class="ig-snd" aria-label="Son d'ambiance"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="w1" d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path class="w2" d="M18.5 7a7 7 0 0 1 0 10"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></svg><span>Sound: Off</span></button><input class="ig-vol" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Volume"></div>
     <div class="ig-col"><button type="button" class="ig-colbtn" aria-label="Couleur de la glace" title="Couleur de la glace"><i></i></button>
       <div class="ig-colpop" hidden><small>COULEUR</small><div class="ig-sws">${[["", "Glace"], ["#6fa8dc", "Bleu"], ["#5ccfd4", "Cyan"], ["#4fbf87", "Vert"], ["#e05555", "Rouge"], ["#e58bbf", "Rose"], ["#9b7be0", "Violet"], ["#e2b85c", "Or"], ["#3f4249", "Noir"]].map(([c, n]) => `<button type="button" class="ig-sw" data-c="${c}" title="${n}" style="background:${c || "linear-gradient(135deg,#eef1f4,#9ea3aa)"}"></button>`).join("")}<label class="ig-sw ig-cust" title="Autre couleur"><input type="color" value="#6fa8dc"></label></div></div></div>
@@ -2735,11 +2735,11 @@ async function openGlassRun(c0, forceLite){
   float vClear = max((1. - smoothstep(.85, 1.25, cin)) * smoothstep(.35, .7, abs(dn)), vHoleF), vMilk = (1. - vClear) * (.6 + .4 * dCl);
   float mTilt = sin(meltY * 1.7 + 1.2) * .45, mLobe = sin(vLoc.x * 2.3 + meltY * 1.1) * .22 + sin(vLoc.z * 3.1 - meltY * .8) * .14;
   float mEdge = meltY + vLoc.x * mTilt + mLobe + (dVn(vLoc * .9 + vec3(0., meltY * .3, 0.)) - .5) * .75 + (dCl - .5) * .3 - length(vLoc.xz) * .28;
-  if (vLoc.y > mEdge) discard; float mWet = smoothstep(.35, 0., mEdge - vLoc.y); vMilk *= 1. - mWet * .65;`)
+  if (vLoc.y > mEdge) discard; float mWet = smoothstep(.35, 0., mEdge - vLoc.y); vMilk *= 1. - mWet * .65; float mRim = smoothstep(.2, 0., mEdge - vLoc.y) * (.55 + .45 * dVn(vLoc * 9. + vec3(0., meltY * 2., 0.)));`)
       .replace("#include <roughnessmap_fragment>", "#include <roughnessmap_fragment>\n  roughnessFactor = mix(mix(mix(roughnessFactor, .5, vMilk * .75), .02, vHoleF), .38, vRim); roughnessFactor = mix(roughnessFactor, .04, mWet);")
       .replace("#include <normal_fragment_maps>", "#include <normal_fragment_maps>\n  normal = normalize(mix(normal, nonPerturbedNormal, max(vHoleF * (1. - vRim), vClear * .45)));")
       .replace("#include <transmission_fragment>", THREE.ShaderChunk.transmission_fragment.replace("material.thickness = thickness;", "material.thickness = thickness * (1. - vHoleF * .85) * (1. - vClear * .35 + vMilk * .9);").replace("material.attenuationDistance = attenuationDistance;", "material.attenuationDistance = attenuationDistance * (1. + vHoleF * 5. + vClear * 1.4) * (1. - vMilk * .76);"))
-      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.21, .27, .37), vMilk * .7) * (1. - (1. - vClear) * .2); gl_FragColor.a = mix(.8, .16, vClear * (1. - vMilk)); if (!gl_FrontFacing) { gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.32, .4, .5), .45); gl_FragColor.a = max(gl_FragColor.a, .78); } float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
+      .replace("#include <opaque_fragment>", "#include <opaque_fragment>\n  gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.21, .27, .37), vMilk * .7) * (1. - (1. - vClear) * .2); gl_FragColor.a = mix(.8, .16, vClear * (1. - vMilk)); gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.9, .94, .98), mRim * .8); gl_FragColor.a = max(gl_FragColor.a, mRim * .95); if (!gl_FrontFacing) { gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.32, .4, .5), .45); gl_FragColor.a = max(gl_FragColor.a, .78); } float iceFr = pow(1. - abs(dot(normal, normalize(-vViewPosition))), 3.); gl_FragColor.rgb += vec3(.84, .9, .98) * iceFr * .2; gl_FragColor.rgb += vec3(.86, .92, 1.) * vRim * .28;"); };
   const dig = (hl, dl) => { const r = .8;
     for (let i = 0; i < PC.count; i++) { vT.fromBufferAttribute(PC, i).sub(hl); const tt = vT.dot(dl); if (tt < -r * .6) continue; const d2 = vT.lengthSq() - tt * tt; if (d2 > r * r) continue;
       const f = Math.pow(1 - Math.sqrt(Math.max(0, d2)) / r, 1.2) * (tt > D * .5 ? .8 : 1); if (f <= 0) continue; carve[i] = Math.min(1, carve[i] + .48 * f); carved.add(i); }
@@ -2951,7 +2951,7 @@ async function openGlassRun(c0, forceLite){
         .to(s.position, {x: o.x, z: o.z, duration: .9, ease: "power1.out"}, 0).to(s.position, {y: p.y + .18 + rnd() * .12, duration: .25, ease: "power2.out"}, 0).to(s.position, {y: p.y - 1.4, duration: .65, ease: "power2.in"}, .25)
         .to(s.rotation, {x: "+=" + (rnd() * 6 - 3), y: "+=" + (rnd() * 6 - 3), duration: .9}, 0).to(s.scale, {x: 0, y: 0, z: 0, duration: .3}, .6); } };
   const burst = (hl, dl) => { dig(hl, dl); chips(hl, dl); S.kick = 1; };
-  const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit) return; const hl = ice.worldToLocal(hit.point.clone()), dl = ice.worldToLocal(hit.point.clone().add(ray.ray.direction)).sub(hl).normalize(); burst(hl, dl); };
+  const clickAt = (x, y) => { ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam); const hit = ray.intersectObject(iceMesh, false)[0]; if (!hit && MELT.v < .7) return; addMelt(meltDir * .25); S.kick = .5; ov._sfx && ov._sfx("shard"); };
   explore = () => { if (busy) return; const [bx, by] = scr(new V3(0, CB.y, 0), innerWidth, innerHeight); clickAt(bx, by); };
   /* ---- jauge de fonte : la glace fond du haut vers le bas ; à 70 % le certificat est libéré (molette = zoom) ---- */
   const MELT = {v: 0, s: 0, z: 1, zt: 1}; const mFill = ov.querySelector(".ig-mfill"), mPct = ov.querySelector(".ig-mpct");
@@ -2969,7 +2969,7 @@ async function openGlassRun(c0, forceLite){
   [[-1, 1, 3], [1, 1, 3], [1, -1, 4]].forEach(([sx, sy, n]) => { for (let i = 0; i < n; i++) { const m = new THREE.Mesh(shardGeos[(i * 3 + n) % shardGeos.length], thawM); m.userData = {sx, sy, ox: .01 + rnd() * .09, oy: .01 + rnd() * .09, s: .02 + rnd() * .035}; m.rotation.set((rnd() - .5) * .3, (rnd() - .5) * .3, rnd() * 6); thaw.add(m); thawBits.push(m); } });
   const placeThaw = () => { const {PW, PH} = cert.userData; thawBits.forEach(m => { const u = m.userData; m.position.set(u.sx * (PW / 2 - u.ox), u.sy * (PH / 2 - u.oy), .085); m.scale.set(u.s, u.s * .75, u.s * .18); }); };
   cert.add(thaw); placeThaw();
-  const stepMelt = dt => { if (holdIce && rot.moved < 8 && !busy) addMelt(meltDir * dt * .2); { const k = 1 - Math.max(0, Math.min(1, (MELT.s - .45) / .25)); ptU.k.value *= k; lines.visible = dots.visible = k > .01; }
+  const stepMelt = dt => { { const k = 1 - Math.max(0, Math.min(1, (MELT.s - .45) / .25)); ptU.k.value *= k; lines.visible = dots.visible = k > .01; }
     MELT.s += (MELT.v - MELT.s) * Math.min(1, dt * 2); MELT.z += (MELT.zt - MELT.z) * Math.min(1, dt * 5);
     densU.meltY.value = H / 2 + .9 - MELT.s * (H + 1.6); ov._meltS = MELT.s; ice.scale.setScalar(MELT.z);
     thawM.opacity = Math.max(0, Math.min(.75, (MELT.s - .55) * 3));
@@ -5547,7 +5547,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-08";
+const APP_VERSION = "2026-10-29-09";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
