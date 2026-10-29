@@ -5575,7 +5575,7 @@ async function mountBrain3(host, C){
   host.innerHTML = `<canvas class="b3c"></canvas><div class="b3l"></div>
     <div class="b3hud"><div><b class="b3t">${esc(mkt)}</b><span class="b3k">0 combinaisons explorées</span></div></div>
     <div class="b3nav">${F.map((f, i) => `<button type="button" data-f="${i}">${esc(f.label)}</button>`).join("")}<button type="button" data-f="-1" class="on">Vue d'ensemble</button></div>
-    <div class="b3help">GLISSER · ORBITE — MOLETTE OU PINCER · ZOOM — GLISSER UN NŒUD · TIRER — DOUBLE-CLIC · RECENTRER</div><aside class="b3info" hidden></aside>`;
+    <div class="b3help">GLISSER · ORBITE — MOLETTE OU PINCER · ZOOM — GLISSER UN NŒUD · TIRER — Z · VOLER — DOUBLE-CLIC · RECENTRER</div><aside class="b3info" hidden></aside>`;
   const cv = host.querySelector(".b3c"), labL = host.querySelector(".b3l"), info = host.querySelector(".b3info"), kTxt = host.querySelector(".b3k"), nav = host.querySelector(".b3nav");
   { const r = $("stratView").getBoundingClientRect(), sb = $("stratView").querySelector(".sbar"); host.querySelector(".b3hud").style.left = r.left + "px"; info.style.right = Math.max(16, innerWidth - r.right) + "px"; if (sb) { const y = sb.getBoundingClientRect().bottom + 22; host.querySelector(".b3hud").style.top = y + "px"; info.style.top = y + "px"; } }
   if (!THREE) { kTxt.textContent = "La 3D n'est pas disponible sur cet appareil."; return; }
@@ -5669,7 +5669,18 @@ async function mountBrain3(host, C){
   nodes.forEach(n => addLab(n, "item b3card" + (n.cell.f.key === "trades" ? " tr" : "") + (n.red ? " r" : ""), n.l).onclick = () => show(n));
   /* ---- caméra ---- */
   const D0 = 2050, st = {th: .5, ph: 1.2, dist: b3Born ? D0 : 420, th0: .5, ph0: 1.2, dist0: D0, tgt: new THREE.Vector3(), tgt0: new THREE.Vector3()}; let focusI = -1, hovS = -1, hovN = null, dragN = null, idle = 0, drag = null; const ptrs = new Map(), mouse = new THREE.Vector2(-9, -9);
-  const pan = new THREE.Vector3(); const focus = i => { focusI = i; pan.set(0, 0, 0); nav.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.dist0 = D0; info.hidden = true; return; }
+  const pan = new THREE.Vector3(), keys = new Set(), fly = {on: false, pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, locked: false}, helpEl = host.querySelector(".b3help"), helpTxt = helpEl.textContent;
+  const flyStart = () => { if (fly.on) return; const d = cam.getWorldDirection(new THREE.Vector3()); fly.on = true; fly.pos.copy(cam.position); fly.vel.set(0, 0, 0); fly.yaw = Math.atan2(d.x, d.z); fly.pitch = Math.asin(Math.max(-1, Math.min(1, d.y))); info.hidden = true;
+    try { const r = cv.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} helpEl.textContent = "ZQSD · AVANCER — SOURIS · REGARDER — MAJ · PLUS VITE — ESPACE / CTRL · MONTER / DESCENDRE — ÉCHAP · SORTIR"; };
+  const flyStop = () => { if (!fly.on) return; fly.on = false; keys.clear(); try { if (document.pointerLockElement === cv) document.exitPointerLock(); } catch (e) {} helpEl.textContent = helpTxt;
+    pan.set(0, 0, 0); focusI = -1; const rel = fly.pos.clone(), d = Math.max(60, rel.length()); st.tgt.set(0, 0, 0); st.dist = d; st.dist0 = Math.min(d, D0); st.ph = st.ph0 = Math.acos(Math.max(-1, Math.min(1, rel.y / d))); st.th = st.th0 = Math.atan2(rel.z, rel.x); };
+  const onKey = e => { if (!document.body.classList.contains("instrat") || /INPUT|TEXTAREA|SELECT/.test((document.activeElement || {}).tagName || "") || document.querySelector(".swz, .modal:not([hidden]), .cmodal:not([hidden])")) return; const k = e.key.toLowerCase();
+    if (e.type === "keydown") { if (k === "escape") { flyStop(); return; } if (["z", "q", "s", "d", "w", "a", " ", "shift", "control"].includes(k)) { if (!fly.on && ["z", "w"].includes(k)) flyStart(); if (fly.on) { keys.add(k); e.preventDefault(); } } }
+    else keys.delete(k); if (!e.shiftKey) keys.delete("shift"); };
+  const onLook = e => { if (!fly.on) return; const mx = document.pointerLockElement === cv ? e.movementX : e.movementX || 0, my = document.pointerLockElement === cv ? e.movementY : e.movementY || 0; if (Math.abs(mx) > 150 || Math.abs(my) > 150) return; fly.yaw -= mx * .0022; fly.pitch = Math.max(-1.45, Math.min(1.45, fly.pitch - my * .0022)); };
+  const onLock = () => { if (fly.on && document.pointerLockElement !== cv && fly.locked) flyStop(); fly.locked = document.pointerLockElement === cv; };
+  addEventListener("keydown", onKey); addEventListener("keyup", onKey); addEventListener("mousemove", onLook); document.addEventListener("pointerlockchange", onLock);
+  const focus = i => { focusI = i; pan.set(0, 0, 0); nav.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.f === i)); if (i < 0) { st.dist0 = D0; info.hidden = true; return; }
     const S = secs[i]; st.dist0 = S.r * 4.2 + 160; info.innerHTML = `<button type="button" class="b3x">✕</button><small>${esc(S.f.label)}</small><ul>${S.nodes.slice(0, 30).map(n => `<li class="${n.red ? "r" : ""}">${esc(n.l)}</li>`).join("")}</ul>`; info.hidden = false; info.querySelector(".b3x").onclick = () => { info.hidden = true; }; };
   nav.onclick = e => { const b = e.target.closest("button"); if (b) focus(+b.dataset.f); };
   const size = () => { const w = host.clientWidth, h = host.clientHeight; ren.setSize(w, h, false); cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); U.uScale.value = h * PR / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2))); }; size(); const ro = new ResizeObserver(size); ro.observe(host);
@@ -5684,7 +5695,7 @@ async function mountBrain3(host, C){
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], o = [...ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d1 = Math.hypot(pr[0] - o[0], pr[1] - o[1]), d2 = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d1 > 0) st.dist0 = Math.max(40, Math.min(3400, st.dist0 * Math.pow(d1 / d2, .8))); return; }
     if (dragN) { const ndc = new THREE.Vector3(x / W() * 2 - 1, -(y / H()) * 2 + 1, .5).unproject(cam).sub(cam.position).normalize(), pl = new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()), dragN.p), hit = new THREE.Vector3();
       if (new THREE.Ray(cam.position, ndc).intersectPlane(pl, hit)) dragN.p.copy(hit); return; }
-    st.th0 -= (e.clientX - pr[0]) * .004; st.ph0 = Math.max(.35, Math.min(2.8, st.ph0 - (e.clientY - pr[1]) * .004)); });
+    if (fly.on) return; st.th0 -= (e.clientX - pr[0]) * .004; st.ph0 = Math.max(.35, Math.min(2.8, st.ph0 - (e.clientY - pr[1]) * .004)); });
   cv.addEventListener("pointerup", e => { ptrs.delete(e.pointerId); const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
     if (dragN) { dragN.drag = false; if (!drag.moved && dragN !== coreN) show(dragN); dragN = null; } else if (drag && !drag.moved) { const s = pickSec(x, y); if (s >= 0) focus(s); } drag = null; });
   cv.addEventListener("pointerleave", () => { mouse.set(-9, -9); hovN = null; hovS = -1; });
@@ -5694,7 +5705,7 @@ async function mountBrain3(host, C){
     const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, dir = new THREE.Vector3(x / W() * 2 - 1, -(y / H()) * 2 + 1, .5).unproject(cam).sub(cam.position).normalize(), pl = new THREE.Plane().setFromNormalAndCoplanarPoint(cam.getWorldDirection(new THREE.Vector3()), st.tgt), hit = new THREE.Vector3();
     if (k > 0 && new THREE.Ray(cam.position, dir).intersectPlane(pl, hit)) pan.addScaledVector(hit.sub(st.tgt), k * .9); else if (k < 0) pan.multiplyScalar(Math.max(0, 1 + k * 2));
     if (pan.length() > RH * 1.4) pan.setLength(RH * 1.4); }, {passive: false});
-  cv.addEventListener("dblclick", () => focus(-1));
+  cv.addEventListener("dblclick", () => { if (fly.on) flyStop(); focus(-1); });
   const show = n => { const all = allTrades(); let extra = ""; if (n.ses) { const ts = all.filter(t => t.time && sessionOf(t) === n.ses), wn = ts.filter(t => t.pnl > 0).length; extra = `<p><b>${ts.length}</b> trade${pl(ts.length)} · <b>${ts.length ? Math.round(wn / ts.length * 100) : 0} %</b> de réussite</p>`; }
     if (n.t) extra = `<p>${esc(n.t.time || "")} · ${esc(n.ses || "")}</p><p><b class="${n.win ? "" : "r"}">${n.win ? "Gagnant" : "Perdant"}</b> · ${esc(money(n.t.pnl))}</p>${n.v && n.v.length ? `<p class="r">Hors stratégie : ${esc(n.v.join(", "))}</p>` : "<p>Conforme à la stratégie</p>"}`;
     const lk = links.filter(l => l.a === n || l.b === n).map(l => (l.a === n ? l.b : l.a).l);
@@ -5727,7 +5738,11 @@ async function mountBrain3(host, C){
     /* caméra */
     if (focusI < 0 && idle > 4 && !ptrs.size) st.th0 += .00056; st.tgt0.copy(focusI >= 0 ? secs[focusI].c : ORG).add(pan);
     st.th += (st.th0 - st.th) * .08; st.ph += (st.ph0 - st.ph) * .08; st.dist += (st.dist0 - st.dist) * (bu < 1 ? .025 : .06); st.tgt.lerp(st.tgt0, .06);
-    cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt); U.uFD.value = st.dist;
+    if (fly.on) { const sp = (keys.has("shift") ? 1500 : 450), dir = A1.set(Math.sin(fly.yaw) * Math.cos(fly.pitch), Math.sin(fly.pitch), Math.cos(fly.yaw) * Math.cos(fly.pitch)), rt = A2.set(Math.cos(fly.yaw), 0, -Math.sin(fly.yaw)), want = new THREE.Vector3();
+      if (keys.has("z") || keys.has("w")) want.add(dir); if (keys.has("s")) want.sub(dir); if (keys.has("d")) want.sub(rt); if (keys.has("q") || keys.has("a")) want.add(rt); if (keys.has(" ")) want.y += 1; if (keys.has("control")) want.y -= 1;
+      if (want.lengthSq()) want.normalize().multiplyScalar(sp); fly.vel.lerp(want, Math.min(1, dt * 6)); fly.pos.addScaledVector(fly.vel, dt); if (fly.pos.length() > RH * 4) fly.pos.setLength(RH * 4);
+      cam.position.copy(fly.pos); cam.lookAt(v3.copy(fly.pos).add(dir)); U.uFD.value = 500; }
+    else { cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt); U.uFD.value = st.dist; }
     /* liens qui travaillent */
     li = 0; const hotN = hovN, nb = hotN ? new Set(links.filter(l => l.a === hotN || l.b === hotN).flatMap(l => [l.a, l.b])) : null, pathOn = t - pathT, grow = Math.max(0, Math.min(1, (bu - .6) / .35));
     if (t > nextPath && bu >= 1) { nextPath = t + 4 + Math.random() * 3; pathT = t; combos += 120 + Math.floor(Math.random() * 400); }
@@ -5771,7 +5786,7 @@ async function mountBrain3(host, C){
       if (n.kind !== "core" && op > 0) { const ww = d.offsetWidth || 60, hh = d.offsetHeight || 16, x0 = sp[0] - ww / 2, y0 = sp[1] + (n.kind === "hub" ? -30 : 10), hit = placed.some(q => x0 < q[2] && x0 + ww > q[0] && y0 < q[3] && y0 + hh > q[1]); if (hit && n !== hovN) op = n.kind === "hub" ? Math.min(op, .25) : 0; else placed.push([x0 - 3, y0 - 2, x0 + ww + 3, y0 + hh + 2]); }
       d.style.opacity = op; d.style.pointerEvents = op > .3 ? "auto" : "none"; d.style.transform = `translate(${sp[0]}px,${sp[1]}px) translate(-50%,${n.kind === "core" ? "34px" : n.kind === "hub" ? "-30px" : "10px"})`; }); };
   requestAnimationFrame(loop);
-  const destroy = () => { run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
+  const destroy = () => { removeEventListener("keydown", onKey); removeEventListener("keyup", onKey); removeEventListener("mousemove", onLook); document.removeEventListener("pointerlockchange", onLock); try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) {} run = false; ro.disconnect(); ren.dispose(); scene.traverse(x => { if (x.geometry) x.geometry.dispose(); if (x.material) x.material.dispose(); }); };
   brain3 = {host, destroy};
 }
 /* ---------- Animations : tout est généré à partir de la configuration ---------- */
@@ -7051,7 +7066,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-29-86";
+const APP_VERSION = "2026-10-29-87";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
