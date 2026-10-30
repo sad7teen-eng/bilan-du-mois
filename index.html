@@ -4687,7 +4687,11 @@ const mkSBP = () => ({
   async function enter(u, greet){ if (!window.SBP) window.SBP = mkSBP();
     if (inside === u.id) return; inside = u.id; SB.user = u;
     let prev = null; try { prev = localStorage.getItem("bdm-uid"); } catch(e) {}
-    if (prev && prev !== u.id) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem("bdm-owner"); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; }
+    const own = String(u.email || "").toLowerCase() === "sad7teen@gmail.com";
+    /* premier compte connecté sur cet appareil : les données déjà présentes ne lui appartiennent que si c'est le propriétaire */
+    if (!prev && !own) { let had = false; try { had = !!localStorage.getItem(KEY); } catch(e) {}
+      if (had) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); ["bdm-owner", "cap-gh-token", "bdm-s1-kael"].forEach(k => localStorage.removeItem(k)); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; } }
+    if (prev && prev !== u.id) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem("bdm-owner"); localStorage.removeItem("bdm-s1-kael"); if (!own) localStorage.removeItem("cap-gh-token"); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; }
     try { localStorage.setItem("bdm-uid", u.id); if (String(u.email || "").toLowerCase() === "sad7teen@gmail.com") localStorage.setItem("bdm-owner", "1"); } catch(e) {}
     SB.uid = u.id; BSync.reset(); BSync.soon(0);
     /* profil : prénom + @pseudo obligatoires la première fois */
@@ -7462,7 +7466,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-140";
+const APP_VERSION = "2026-10-30-141";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
