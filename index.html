@@ -7175,11 +7175,11 @@ function drawTradeCard(ctx, W, H, t, cv, p){
   ctx.textAlign = "left"; ctx.fillStyle = ink; ctx.font = `700 ${30 * u}px ${F}`; ctx.fillText(brand, fx, fy);
   ctx.fillStyle = mute; ctx.fillText("·", fx + bw + 14 * u, fy);
   ctx.fillStyle = ink; ctx.font = `500 ${30 * u}px ${F}`; ctx.fillText(nm, fx + bw + 40 * u, fy);
-  const bx = fx + bw + 40 * u + nw + 22 * u; ctx.beginPath(); ctx.arc(bx, fy, 13 * u, 0, 7); ctx.fillStyle = "#2ea060"; ctx.fill();
-  ctx.strokeStyle = "#fff"; ctx.lineWidth = 3 * u; ctx.beginPath(); ctx.moveTo(bx - 6 * u, fy); ctx.lineTo(bx - 1.5 * u, fy + 5 * u); ctx.lineTo(bx + 6.5 * u, fy - 5 * u); ctx.stroke();
+  if (state.verified) { const mt = ctx.measureText(nm), cy = fy - (mt.actualBoundingBoxAscent - mt.actualBoundingBoxDescent) / 2, bx = fx + bw + 40 * u + nw + 22 * u, r = 9.5 * u; ctx.save();
+    ctx.strokeStyle = "rgba(29,155,240,.6)"; ctx.lineWidth = 1.5 * u; ctx.beginPath(); ctx.arc(bx, cy, r * 1.28, 0, 7); ctx.stroke(); ctx.fillStyle = "#1d9bf0"; ctx.beginPath(); ctx.arc(bx, cy, r, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.4 * u; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(bx - 4.1 * u, cy + .1 * u); ctx.lineTo(bx - 1.2 * u, cy + 3 * u); ctx.lineTo(bx + 4.3 * u, cy - 2.8 * u); ctx.stroke(); ctx.restore(); }
   if (state.handle) { ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = `500 ${22 * u}px ${F}`; ctx.fillText(state.handle, W / 2, fy + 40 * u);
-    if (state.verified) { const tw = ctx.measureText(state.handle).width, bx = W / 2 + tw / 2 + 16 * u, by = fy + 32 * u, r = 10 * u; ctx.save(); ctx.strokeStyle = "rgba(29,155,240,.6)"; ctx.lineWidth = 1.3 * u; ctx.beginPath(); ctx.arc(bx, by, r * 1.1, 0, 7); ctx.stroke(); ctx.fillStyle = "#1d9bf0"; ctx.beginPath(); ctx.arc(bx, by, r * .86, 0, 7); ctx.fill();
-      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.2 * u; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(bx - 3.7 * u, by + .1 * u); ctx.lineTo(bx - 1.1 * u, by + 2.7 * u); ctx.lineTo(bx + 3.8 * u, by - 2.5 * u); ctx.stroke(); ctx.restore(); } }
+ }
 }
 function tcDraw(i, p){
   const c = document.querySelector(`#tcStrip canvas[data-i="${i}"]`), t = tcList[i]; if (!c || !t) return;
@@ -7359,7 +7359,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-130";
+const APP_VERSION = "2026-10-30-131";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
