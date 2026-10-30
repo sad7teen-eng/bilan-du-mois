@@ -4880,7 +4880,7 @@ function spOpen(kind, from){ if (!boardPop) return; const {s, sc, L} = boardPop,
   const close = () => { ov.classList.remove("on"); card.animate([{transform: "none", opacity: 1}, {transform: "scale(.94)", opacity: 0}], {duration: 220, easing: "ease-in", fill: "forwards"}); setTimeout(() => ov.remove(), 230); removeEventListener("keydown", esc2); };
   const esc2 = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc2);
   ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".sp-x")) close(); }); }
-document.addEventListener("click", e => { const t = e.target.closest("[data-pop]"); if (!t || e.target.closest(".info,button,a,.cv-plot")) return; spOpen(t.dataset.pop, t); });
+document.addEventListener("click", e => { const t = e.target.closest("[data-pop]"); if (!t || e.target.closest(".info,button,a")) return; spOpen(t.dataset.pop, t); });
 function radarSVG(ax){
   const C = [110, 98], R = 66, n = ax.length, lab = ["Réussite", "Profit factor", "R moyen", "Discipline", "Régularité"];
   const P = (k, f) => { const a = -Math.PI / 2 + k / n * 2 * Math.PI; return [C[0] + Math.cos(a) * R * f, C[1] + Math.sin(a) * R * f]; };
@@ -7475,7 +7475,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-143";
+const APP_VERSION = "2026-10-30-144";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
