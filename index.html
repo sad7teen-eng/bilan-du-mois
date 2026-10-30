@@ -2258,10 +2258,10 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pc-holo{position:absolute;inset:-20%;opacity:.22;mix-blend-mode:color-dodge;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(90,190,255,.55) 40%,rgba(200,120,255,.5) 46%,rgba(255,140,190,.45) 52%,rgba(255,225,140,.5) 58%,transparent 68%);background-size:220% 220%;background-position:var(--mx) var(--my);animation:bcIdle 9s ease-in-out infinite alternate}
 .pcard.hov .pc-holo{opacity:.4;animation:none}
 .pc-top{position:absolute;left:7%;right:7%;top:9%;display:flex;justify-content:space-between;align-items:baseline}
-.pc-brand{font-size:clamp(11px,3cqi,15px);font-weight:700;letter-spacing:-.01em}.pc-mem{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,2cqi,11px);letter-spacing:.22em;color:var(--sub)}
-.pc-chip.acc-av{position:absolute;left:7%;top:27%;width:15%;height:auto;aspect-ratio:1.25;border-radius:18%!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 0 0 3px rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.35);background:linear-gradient(135deg,#efefef,#9a9da3 45%,#e1e2e5 60%,#7f8288)}
+.pc-brand{font-size:clamp(11px,3cqi,15px);font-weight:700;letter-spacing:-.01em}.pc-mem{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,2cqi,11px);letter-spacing:.22em;color:var(--sub)}.pc-mem.fd{color:var(--ink);font-weight:600;padding:4px 10px;border:1px solid currentColor;border-radius:99px;letter-spacing:.26em}
+.pc-chip.acc-av{position:absolute;left:7%;top:24%;width:17%;height:auto;aspect-ratio:1;border-radius:50%!important;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 0 4px rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.35);background:linear-gradient(135deg,#efefef,#9a9da3 45%,#e1e2e5 60%,#7f8288)}
 .pc-chip.acc-av b{font-size:clamp(14px,5cqi,26px);color:#222}
-.pc-id{position:absolute;left:7%;right:7%;top:56%;display:flex;flex-direction:column;gap:4px}
+.pc-id{position:absolute;left:7%;right:7%;top:55%;display:flex;flex-direction:column;gap:4px}
 .pc-name{font-size:clamp(18px,6.4cqi,32px);font-weight:650;letter-spacing:-.02em;line-height:1.05;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc-name .vbadge{width:.62em;height:.62em}
 .pc-handle{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(10px,2.8cqi,14px);letter-spacing:.08em;color:var(--sub);cursor:text}
 .pc-edit{font:inherit;font-size:clamp(18px,6.4cqi,32px)!important;font-weight:650;letter-spacing:-.02em;background:rgba(255,255,255,.12)!important;color:var(--ink)!important;border:1px solid rgba(255,255,255,.35)!important;border-radius:8px!important;padding:2px 8px!important;width:80%;outline:none}
@@ -4478,12 +4478,13 @@ function pcPaint(){ const c = $("pcard"); if (!c) return; const d = pcDraft || s
 function openSettings(){
   $("fName").value = state.name || ""; $("fHandle").value = cleanHandle(state.handle); $("fBio").value = state.bio || ""; $("fCur").value = state.currency;
   $("handleHint").textContent = ""; handleOk = true; $("setErr").hidden = true; pcDraft = state.card ? {...state.card} : null;
+  $("pcMem").textContent = cleanHandle(state.handle) === "kael" ? "FONDATEUR" : "MEMBRE"; $("pcMem").classList.toggle("fd", cleanHandle(state.handle) === "kael");
   $("pcSw").innerHTML = PC_THEMES.map(([n, a, b]) => `<button type="button" title="${n}" data-c1="${a}" data-c2="${b}" style="background:linear-gradient(135deg,${a},${b})"></button>`).join("");
   const all = allTrades(), syms = [...new Set(all.map(t => (t.sym || "").toUpperCase()).filter(Boolean))].slice(0, 3);
   $("pcBot").innerHTML = `<span><small>Actifs</small>${esc(syms.join(" · ") || (stratCfg().market || "—"))}</span><span><small>Trades</small>${all.length}</span><span class="pc-since"><small>Depuis</small><em id="pcSince">—</em></span>`;
   paintAvatar(); pcPaint(); $("setModal").hidden = false; const pc = $("pcard"); pc.classList.remove("in"); void pc.offsetWidth; pc.classList.add("in");
   (async () => { try { const me = await window.SBP?.load(); if (!me || !me.created_at) return; const d = new Date(me.created_at); $("pcSince").textContent = d.toLocaleDateString("fr-FR", {month: "short", year: "numeric"});
-    const r = await SB.cli.from("profiles").select("id", {count: "exact", head: true}).lte("created_at", me.created_at); if (!r.error && r.count) $("pcMem").textContent = "MEMBRE N° " + String(r.count).padStart(4, "0"); } catch (e) {} })();
+    const r = await SB.cli.from("profiles").select("id", {count: "exact", head: true}).lte("created_at", me.created_at); if (!r.error && r.count && !$("pcMem").classList.contains("fd")) $("pcMem").textContent = "MEMBRE N° " + String(r.count).padStart(4, "0"); } catch (e) {} })();
 }
 /* double-clic sur le nom ou le pseudo : on l'édite directement sur la carte */
 ["pcName", "pcHandle"].forEach(id => $(id).addEventListener("dblclick", () => { const el = $(id), isH = id === "pcHandle", src = $(isH ? "fHandle" : "fName");
@@ -7856,7 +7857,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-160";
+const APP_VERSION = "2026-10-30-161";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
