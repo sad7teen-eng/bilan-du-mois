@@ -4852,14 +4852,14 @@ function renderBoard(){
   bindCurve(L);
 
   /* Session du jour + trades récents */
-  const p = plan(), today = all.filter(t => dkey(t.at) === dkey(now)), ts = bstats(today), rk = p.rules[dkey(now)];
+  const p = plan(), wk0 = (() => { const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; })(), today = all.filter(t => t.at >= wk0 && t.at - wk0 < 7 * 864e5), ts = bstats(today), rk = p.rules[dkey(now)];
   const recent = all.slice(-8).reverse();
   const open = k => closedSecs.has(k) ? "" : " open";
   $("planLive").innerHTML = `
-    <details class="psec" data-sec="sess"${open("sess")}><summary><span class="ph"><i class="chev"></i>Session du jour</span><em class="cnt">${ts.wins}G / ${ts.losses}P</em></summary>
+    <details class="psec" data-sec="sess"${open("sess")}><summary><span class="ph"><i class="chev"></i>Session de la semaine</span><em class="cnt">${ts.wins}G / ${ts.losses}P</em></summary>
       <div class="pbody"><div class="sessv mv${ts.net < 0 ? " r" : ""}">${money(ts.net)}</div>
         <div class="prow"><small>Règles respectées</small><div class="yn"><button type="button" data-act="rule" data-v="1" class="${rk === true ? "on" : ""}">Oui</button><button type="button" data-act="rule" data-v="0" class="${rk === false ? "on no" : ""}">Non</button></div></div>
-        ${ts.n ? "" : `<p class="pempty">Aucun trade aujourd'hui.</p>`}</div></details>
+        ${ts.n ? "" : `<p class="pempty">Aucun trade cette semaine.</p>`}</div></details>
     <details class="psec" data-sec="recent"${open("recent")}><summary><span class="ph"><i class="chev"></i>Trades récents</span><em class="cnt">${all.length}</em></summary>
       <div class="pbody rts">${recent.length ? recent.map(t => `<button type="button" class="rt" data-act="openT" data-y="${t.y}" data-m="${t.m}" data-d="${t.day}">
         <span class="arr${t.side === "Short" ? " s" : ""}">${t.side === "Short" ? "↘" : "↗"}</span>
@@ -7385,7 +7385,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-137";
+const APP_VERSION = "2026-10-30-138";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
