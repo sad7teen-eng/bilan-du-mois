@@ -2109,6 +2109,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 .ag-mail{display:flex;gap:8px}.ag-mail input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid #2a2a2a;background:#0e0e10;color:#fff;font:inherit;font-size:14px}.ag-mail input:focus{outline:none;border-color:#555}
 .ag-send{padding:12px 14px;border-radius:12px;border:1px solid #333;background:#151517;color:#eee;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.ag-send:hover{border-color:#666}
 .ag-msg{margin:4px 0 0;font-size:13px;color:#9aa}.ag-msg.err{color:#e5484d}
+.vbadge{width:.95em;height:.95em;vertical-align:-.12em;margin-left:.3em;display:inline-block;flex:none}
 .tn-help{width:34px;height:34px;padding:0!important;border-radius:50%!important;font-weight:600;font-size:14px!important;display:grid;place-items:center}
 .tn-av{width:34px;height:34px;padding:0!important;border-radius:50%!important;overflow:hidden;display:grid;place-items:center}
 .tn-av span,.acc-av span{width:100%;height:100%;display:grid;place-items:center}.tn-av img,.acc-av img{width:100%;height:100%;object-fit:cover;display:block}.tn-av b{font-size:14px}
@@ -2568,7 +2569,7 @@ function weekdayHTML(ws, big){
 }
 function renderDash(){
   const s = stats(state.trades);
-  $("hello").innerHTML = `${esc(greetNow())} <span class="name">${esc(state.name || "")}</span>`;
+  $("hello").innerHTML = `${esc(greetNow())} <span class="name">${esc(state.name || "")}</span>${state.name ? vb() : ""}`;
   $("meta").innerHTML = `${s.n} trades · ${s.days.length} jours de trading · <span class="live">● journal à jour</span>`;
   $("monthLabel").textContent = monthName();
   $("readyTitle").textContent = state.ready;
@@ -2638,7 +2639,7 @@ function renderDash(){
   $("days").classList.toggle("weekv", !monthOpen);
   $("btnMonth").hidden = true;
   $("certCount").textContent = (state.certs || []).length ? (state.certs.length + " certificat" + (state.certs.length > 1 ? "s" : "")) : "";
-  $("sHandle").textContent = state.handle || "";
+  $("sHandle").innerHTML = esc(state.handle || "") + (state.handle ? vb() : "");
   const ss = $("saveSt"); setTimeout(() => { $("sSaved").textContent = ss.textContent; }, 0);
   showSaved(true);
   renderBoard();
@@ -4222,9 +4223,10 @@ $("addRow").onclick = () => { startNew(); drawDay(); };
 $("dayClose").onclick = () => { $("dayModal").hidden = true; editId = null; edit = null; if (state.trades.some(t => t.day === dayOpen)) openJournal(dayOpen); };
 
 /* ---------- Mon compte ---------- */
+const VBADGE = '<svg class="vbadge" viewBox="0 0 24 24" aria-label="Compte certifié"><path fill="#1d9bf0" d="M12 1.5l2.6 1.9 3.2-.2 1 3.1 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3.1-3.2-.2L12 22.5l-2.6-1.9-3.2.2-1-3.1L2.6 15.8l1-3.1-1-3.1 2.6-1.9 1-3.1 3.2.2z"/><path d="M7.6 12.3l3 3 5.8-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>', vb = () => state.verified ? VBADGE : "", cleanName = v => String(v || "").replace(/[^\p{L}\p{M} '’-]/gu, "").replace(/\s+/g, " ").trimStart().slice(0, 30);
 const HANDLE_RE = /^[a-z0-9_.]{3,20}$/, cleanHandle = v => String(v || "").trim().replace(/^@+/, "").toLowerCase().replace(/[^a-z0-9_.]/g, "");
 function avatarHTML(){ const n = (state.name || state.handle || "?").replace(/^@/, ""); return state.avatar ? `<img src="${esc(state.avatar)}" alt="">` : `<b>${esc(n.charAt(0).toUpperCase() || "?")}</b>`; }
-function paintAvatar(){ ["tnAv", "accAv"].forEach(id => { const e = $(id); if (e) e.innerHTML = avatarHTML(); }); if ($("accName")) { $("accName").textContent = state.name || "Mon compte"; $("accHandle").textContent = state.handle || ""; } }
+function paintAvatar(){ ["tnAv", "accAv"].forEach(id => { const e = $(id); if (e) e.innerHTML = avatarHTML(); }); if ($("accName")) { $("accName").innerHTML = esc(state.name || "Mon compte") + vb(); $("accHandle").textContent = state.handle || ""; } }
 let handleOk = true, handleT = null;
 async function checkHandle(){ const h = cleanHandle($("fHandle").value), cur = cleanHandle(state.handle), hint = $("handleHint");
   if ($("fHandle").value !== h) $("fHandle").value = h;
@@ -4240,13 +4242,14 @@ function openSettings(){
 }
 $("btnSettings").onclick = openSettings;
 $("setCancel").onclick = () => { $("setModal").hidden = true; };
+$("fName").addEventListener("input", e => { const v = cleanName(e.target.value); if (v !== e.target.value) e.target.value = v; });
 $("fHandle").addEventListener("input", () => { clearTimeout(handleT); handleT = setTimeout(checkHandle, 350); });
 $("fAvatar").addEventListener("change", async e => { const f = e.target.files && e.target.files[0]; if (!f) return; e.target.value = "";
   const url = await shrinkTo(f, 512); if (!url) return; state.avatar = url; paintAvatar();
   try { const pub = await window.SBP?.uploadAvatar(url); if (pub) { state.avatar = pub; save(); paintAvatar(); } } catch (er) { $("setErr").textContent = "Photo non envoyée : " + er.message; $("setErr").hidden = false; } });
 $("setForm").addEventListener("submit", async e => {
   e.preventDefault(); await checkHandle(); if (!handleOk) return;
-  const prof = {first_name: $("fName").value.trim(), handle: cleanHandle($("fHandle").value), bio: $("fBio").value.trim()};
+  const prof = {first_name: cleanName($("fName").value).trim(), handle: cleanHandle($("fHandle").value), bio: $("fBio").value.trim()};
   try { if (window.SBP) await window.SBP.saveProfile(prof); } catch (er) { $("setErr").textContent = /duplicate|23505/.test(er.message + er.code) ? "Ce pseudo vient d'être pris, choisissez-en un autre." : "Enregistrement impossible : " + er.message; $("setErr").hidden = false; return; }
   Object.assign(state, {name: prof.first_name, handle: "@" + prof.handle, bio: prof.bio, currency: $("fCur").value.trim() || "€"});
   save(); renderDash(); paintAvatar(); $("setModal").hidden = true;
@@ -4308,7 +4311,7 @@ function buildSlides(){
     <div class="moral rise" style="--d:3">Chaque mois a le sien. Ce qui compte, c'est ce qu'il t'apprend.</div></div>`);
   out.push(`<div class="inner"><span class="pill rise">${esc(monthName())}</span>
     <div class="title rise" style="--d:1">Au mois suivant.</div>
-    ${state.handle ? `<div class="handle rise" style="--d:2">${esc(state.handle)}</div>` : ""}</div>`);
+    ${state.handle ? `<div class="handle rise" style="--d:2">${esc(state.handle)}${vb()}</div>` : ""}</div>`);
   return out;
 }
 
@@ -4332,7 +4335,7 @@ function buildTradeSlides(t, imgs, monthNet, main){
   out.push(`<div class="inner"${monthNet < 0 ? " data-red" : ""}><span class="pill rise${monthNet < 0 ? " red" : ""}">${esc(monthName())}</span>
     <div class="sub rise" style="--d:1">Total du mois</div>
     <div class="big ${monthNet < 0 ? "loss" : "gain"} rise" style="--d:2" data-count="${monthNet}">${money(monthNet)}</div>
-    ${state.handle ? `<div class="handle rise" style="--d:3">${esc(state.handle)}</div>` : ""}</div>`);
+    ${state.handle ? `<div class="handle rise" style="--d:3">${esc(state.handle)}${vb()}</div>` : ""}</div>`);
   return out;
 }
 
@@ -4614,12 +4617,14 @@ window.BSync = (() => {
 const mkSBP = () => ({
   async load(){ const r = await SB.cli.from("profiles").select("*").eq("id", SB.uid).maybeSingle(); if (r.error) throw r.error; return r.data; },
   async isFree(h){ try { const r = await SB.cli.from("profiles").select("id").eq("handle", h).neq("id", SB.uid || "").limit(1); if (r.error) return null; return !r.data.length; } catch(e) { return null; } },
-  async saveProfile(p, isNew){ const row = {id: SB.uid, handle: p.handle, first_name: p.first_name, bio: p.bio || "", updated_at: new Date().toISOString()}; if (state.avatar && /^https?:/.test(state.avatar)) row.avatar_url = state.avatar;
-    const r = await SB.cli.from("profiles").upsert(row).select().single(); if (r.error) { const e = new Error(r.error.message); e.code = r.error.code; throw e; } return r.data; },
+  async saveProfile(p){ const row = {handle: p.handle, first_name: p.first_name, bio: p.bio || "", updated_at: new Date().toISOString()}; if (state.avatar && /^https?:/.test(state.avatar)) row.avatar_url = state.avatar;
+    const bad = r => { const e = new Error(r.error.message); e.code = r.error.code; throw e; };
+    const u = await SB.cli.from("profiles").update(row).eq("id", SB.uid).select(); if (u.error) bad(u); if (u.data && u.data.length) return u.data[0];
+    const r = await SB.cli.from("profiles").insert({id: SB.uid, ...row}).select().single(); if (r.error) bad(r); return r.data; },
   async uploadAvatar(dataUrl){ if (!SB.uid) return null; const blob = await (await fetch(dataUrl)).blob(), path = SB.uid + "/avatar-" + Date.now() + ".jpg";
     const u = await SB.cli.storage.from("avatars").upload(path, blob, {contentType: "image/jpeg", upsert: true}); if (u.error) throw u.error;
     const pub = SB.cli.storage.from("avatars").getPublicUrl(path).data.publicUrl; const r = await SB.cli.from("profiles").update({avatar_url: pub, updated_at: new Date().toISOString()}).eq("id", SB.uid); if (r.error) throw r.error; return pub; },
-  toState(p){ if (!p) return; state.name = p.first_name || state.name; state.handle = p.handle ? "@" + p.handle : state.handle; state.bio = p.bio || ""; if (p.avatar_url) state.avatar = p.avatar_url; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+  toState(p){ if (!p) return; state.name = p.first_name || state.name; state.handle = p.handle ? "@" + p.handle : state.handle; state.bio = p.bio || ""; if (p.avatar_url) state.avatar = p.avatar_url; state.verified = !!p.verified; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
 });
 /* ===== Page de connexion ===== */
 (() => {
@@ -4647,16 +4652,17 @@ const mkSBP = () => ({
           if (!HANDLE_RE.test(h)) { ok = false; hint.textContent = h ? "3 à 20 caractères : lettres, chiffres, point ou tiret bas." : ""; hint.className = "acc-hint err"; return; }
           hint.textContent = "Vérification…"; hint.className = "acc-hint"; const free = await SBP.isFree(h); if (cleanHandle($("agHandle").value) !== h) return;
           ok = free !== false; hint.textContent = ok ? "@" + h + " est disponible ✓" : "@" + h + " est déjà pris."; hint.className = "acc-hint " + (ok ? "ok" : "err"); };
+        $("agFirst").oninput = () => { const v = cleanName($("agFirst").value); if (v !== $("agFirst").value) $("agFirst").value = v; };
         $("agHandle").oninput = () => { clearTimeout(t); t = setTimeout(chk, 350); }; if ($("agHandle").value) chk();
         $("agProf").onsubmit = async e => { e.preventDefault(); await chk(); if (!ok || !$("agFirst").value.trim()) return; $("agGo").disabled = true;
-          try { const p = await SBP.saveProfile({first_name: $("agFirst").value.trim(), handle: cleanHandle($("agHandle").value), bio: ""}, true); SBP.toState(p); save(); done(); }
+          try { const p = await SBP.saveProfile({first_name: cleanName($("agFirst").value).trim(), handle: cleanHandle($("agHandle").value), bio: ""}, true); SBP.toState(p); save(); done(); }
           catch (er) { hint.textContent = /duplicate|23505/.test(er.message + er.code) ? "Ce pseudo vient d'être pris." : "Erreur : " + er.message; hint.className = "acc-hint err"; }
           $("agGo").disabled = false; }; });
       $("agProf").hidden = true; greet = true; }
     try { paintAvatar(); renderDash(); } catch(e) {}
     if (returning) try { history.replaceState(null, "", back() + location.hash); } catch(e) {}
     if (!greet || g.hidden) { g.hidden = true; return; }
-    const n = first(u); $("agHi").textContent = hello() + (n ? ", " + n : ""); $("agSub").textContent = "Votre journal se charge…"; g.classList.add("done");
+    const n = state.name || first(u); $("agHi").innerHTML = esc(hello() + (n ? ", " + n : "")) + vb(); $("agSub").textContent = "Votre journal se charge…"; g.classList.add("done");
     setTimeout(() => { g.classList.add("out"); setTimeout(() => { g.hidden = true; g.classList.remove("out", "done"); }, 950); }, 1500); }
   SB.cli.auth.onAuthStateChange((ev, ses) => { if (ses && ses.user) setTimeout(() => enter(ses.user, ev === "SIGNED_IN"), 0);
     if (ev === "SIGNED_OUT") { inside = null; SB.uid = SB.user = null; $("agHi").textContent = hello(); $("agSub").textContent = "Connectez-vous pour retrouver votre journal."; $("agBox").style.opacity = ""; $("agBox").hidden = false; $("agProf").hidden = true; g.hidden = false; } });
@@ -7171,7 +7177,9 @@ function drawTradeCard(ctx, W, H, t, cv, p){
   ctx.fillStyle = ink; ctx.font = `500 ${30 * u}px ${F}`; ctx.fillText(nm, fx + bw + 40 * u, fy);
   const bx = fx + bw + 40 * u + nw + 22 * u; ctx.beginPath(); ctx.arc(bx, fy, 13 * u, 0, 7); ctx.fillStyle = "#2ea060"; ctx.fill();
   ctx.strokeStyle = "#fff"; ctx.lineWidth = 3 * u; ctx.beginPath(); ctx.moveTo(bx - 6 * u, fy); ctx.lineTo(bx - 1.5 * u, fy + 5 * u); ctx.lineTo(bx + 6.5 * u, fy - 5 * u); ctx.stroke();
-  if (state.handle) { ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = `500 ${22 * u}px ${F}`; ctx.fillText(state.handle, W / 2, fy + 40 * u); }
+  if (state.handle) { ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = `500 ${22 * u}px ${F}`; ctx.fillText(state.handle, W / 2, fy + 40 * u);
+    if (state.verified) { const tw = ctx.measureText(state.handle).width, bx = W / 2 + tw / 2 + 16 * u, by = fy + 32 * u, r = 10 * u; ctx.save(); ctx.fillStyle = "#1d9bf0"; ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, rr = i % 2 ? r * .86 : r; ctx.lineTo(bx + Math.cos(a) * rr, by + Math.sin(a) * rr); } ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.2 * u; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(bx - 4.4 * u, by + .3 * u); ctx.lineTo(bx - 1.3 * u, by + 3.3 * u); ctx.lineTo(bx + 4.6 * u, by - 3 * u); ctx.stroke(); ctx.restore(); } }
 }
 function tcDraw(i, p){
   const c = document.querySelector(`#tcStrip canvas[data-i="${i}"]`), t = tcList[i]; if (!c || !t) return;
@@ -7351,7 +7359,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-127";
+const APP_VERSION = "2026-10-30-128";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
