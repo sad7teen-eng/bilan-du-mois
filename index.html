@@ -1611,7 +1611,35 @@ body:not(.light) .ctx,body.instrat .ctx,.inmacro .ctx{background:rgba(20,21,24,.
 @keyframes ctxShake{30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 .ctx-sep{display:block;height:1px;margin:4px 8px;background:rgba(127,127,127,.18)}
 .ctx-in{width:100%;margin:2px 0;padding:8px 10px!important;border-radius:8px!important;border:1px solid rgba(127,127,127,.35)!important;background:rgba(127,127,127,.08)!important;color:inherit!important;font:inherit;font-size:13px!important;outline:none}
-.cpop{position:fixed;inset:0;z-index:85;display:grid;place-items:center;padding:24px;background:rgba(10,10,12,0);transition:background .3s,backdrop-filter .3s}.cpop.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+/* ===== carte black ===== */
+.dcard{width:min(520px,80vw)!important;aspect-ratio:1.586;background:transparent!important;border:0!important;border-radius:20px!important;overflow:visible!important;box-shadow:none!important}
+.dcard.on{box-shadow:none!important}
+.bc{--mx:30%;--my:20%;position:absolute;inset:0;display:block;border-radius:20px;overflow:hidden;color:#e9ebef;text-align:left;container-type:inline-size;
+  background:radial-gradient(130% 150% at 0% 0%,#2b2c31 0%,#121215 48%,#060607 100%);box-shadow:0 30px 60px rgba(16,18,24,.32),0 8px 18px rgba(16,18,24,.18),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.07);
+  transform:perspective(1100px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .4s}
+.bc.hov{transition:transform .12s linear,box-shadow .4s;box-shadow:0 40px 80px rgba(16,18,24,.38),0 10px 22px rgba(16,18,24,.2),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
+.bc-tex{position:absolute;inset:0;opacity:.55;background:repeating-linear-gradient(90deg,rgba(255,255,255,.022) 0 1px,transparent 1px 3px),repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 4px)}
+.bc-holo{position:absolute;inset:-20%;opacity:.28;mix-blend-mode:color-dodge;background:linear-gradient(115deg,transparent 30%,rgba(90,190,255,.55) 40%,rgba(200,120,255,.5) 46%,rgba(255,140,190,.45) 52%,rgba(255,225,140,.5) 58%,transparent 68%);background-size:220% 220%;background-position:var(--mx) var(--my);transition:opacity .4s,background-position .5s cubic-bezier(.2,.8,.2,1);animation:bcIdle 9s ease-in-out infinite alternate}
+.bc.hov .bc-holo{opacity:.42;animation:none;transition:opacity .3s,background-position .08s linear}
+@keyframes bcIdle{from{background-position:10% 20%}to{background-position:90% 80%}}
+.bc-glow{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.2),transparent 42%)}.bc.hov .bc-glow{opacity:1}
+.bc-top{position:absolute;left:7%;right:7%;top:9%;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.bc-top b{font-size:clamp(9px,2.3cqi,12px);font-weight:600;letter-spacing:.3em;color:#d6d8de}.bc-top em{font-style:normal;font-size:clamp(8px,1.8cqi,10px);letter-spacing:.28em;color:#8d9099;padding:4px 9px;border:1px solid rgba(255,255,255,.16);border-radius:99px}
+.bc-chip{position:absolute;left:7%;top:31%;width:11%;aspect-ratio:1.3;border-radius:16%;background:linear-gradient(135deg,#efefef 0%,#9a9da3 45%,#e1e2e5 60%,#7f8288 100%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.25);overflow:hidden}
+.bc-chip i{position:absolute;background:rgba(0,0,0,.22)}.bc-chip i:nth-child(1){left:0;right:0;top:33%;height:1px}.bc-chip i:nth-child(2){left:0;right:0;top:66%;height:1px}.bc-chip i:nth-child(3){top:0;bottom:0;left:50%;width:1px}
+.bc-amt{position:absolute;left:7%;right:7%;top:47%;font-size:clamp(24px,8.6cqi,52px);font-weight:650;letter-spacing:-.03em;line-height:1;white-space:nowrap;background:linear-gradient(180deg,#ffffff 20%,#a6aab3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.bc-bot{position:absolute;left:7%;right:7%;bottom:9%;display:flex;gap:9%;align-items:flex-end;font-size:clamp(9px,2.4cqi,13px);letter-spacing:.14em;color:#d3d6dc;font-variant-numeric:tabular-nums}
+.bc-bot>span{display:flex;flex-direction:column;gap:4px}.bc-bot small{font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:#7c8089}.bc-bot .bc-no{margin-left:auto;text-align:right}
+/* fenêtre : la carte se retourne et montre le certificat */
+.cflip{width:min(760px,92vw,calc((100dvh - 150px) * 1.586));aspect-ratio:1.586;perspective:1800px;cursor:pointer;transform:scale(.9) translateY(14px);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s}
+.cpop.on .cflip{transform:none;opacity:1}.cpop.out .cflip{transform:scale(.95);opacity:0}
+.cflip-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,.9,.25,1)}.cflip.back .cflip-in{transform:rotateY(180deg)}
+.cpf-f,.cpf-b{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:22px}
+.cpf-f .bc{border-radius:22px}
+.cpf-b{transform:rotateY(180deg);background:#0b0b0c;display:grid;place-items:center;overflow:hidden;box-shadow:0 40px 90px rgba(16,18,24,.4),inset 0 0 0 1px rgba(255,255,255,.08)}.cpf-b img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.cpf-b span{color:#9a9da3;font-size:13px}
+.cpop .cpop-a{opacity:0;transform:translateY(8px);transition:opacity .4s .15s,transform .4s .15s}.cpop.on .cpop-a{opacity:1;transform:none}
+.cpop .cpop-a button{background:rgba(255,255,255,.9)!important;color:#0b0b0c!important;border:1px solid rgba(11,11,12,.1)!important}.cpop .cpop-a .pri{background:#0b0b0c!important;color:#fff!important}
+.cpop{position:fixed;inset:0;z-index:85;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;background:rgba(10,10,12,0);transition:background .3s,backdrop-filter .3s}.cpop.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .cpop-c{display:flex;flex-direction:column;gap:14px;max-width:min(980px,100%);max-height:calc(100dvh - 48px);padding:14px;border-radius:22px;background:#fff;color:#0b0b0c;border:1px solid rgba(0,0,0,.08);box-shadow:0 40px 100px rgba(16,18,24,.3);transform:scale(.94) translateY(8px);opacity:0;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .3s}
 .cpop.on .cpop-c{transform:none;opacity:1}body:not(.light) .cpop-c{background:#121214;color:#f2f2f2;border-color:#262626}.cpop.out .cpop-c{transform:scale(.96);opacity:0}
 .cpop-c img{display:block;max-width:100%;max-height:calc(100dvh - 160px);object-fit:contain;border-radius:12px;margin:0 auto}
@@ -2797,6 +2825,20 @@ function openCerts(){ setView("certs"); }
 function closeCerts(){ setView("tableau"); }
 async function loadCerts(){ await Promise.all((state.certs || []).map(c => idb.get("cert:" + c.id))); certEdit = null; drawCerts(); }
 const certAmt = c => { const v = num(c.amount); return {v: isFinite(v) && /\d/.test(c.amount || "") ? v : null, c: /\$/.test(c.amount || "") ? "$" : /€/.test(c.amount || "") ? "€" : ""}; };
+/* carte black : le certificat devient une carte en métal noir, reflet holographique qui suit la souris */
+function bcardHTML(c, no){ const A = certAmt(c), d = c.date ? new Date(c.date) : null, p2 = x => String(x).padStart(2, "0");
+  const amt = A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, A.v % 1 ? 2 : 0) + "\u00a0" + (A.c || cur()) : esc(c.amount || "—");
+  return `<span class="bc"><span class="bc-tex"></span><span class="bc-holo"></span><span class="bc-glow"></span>
+    <span class="bc-top"><b>${esc((c.firm || "Prop firm").toUpperCase())}</b><em>${esc({"Payout": "PAYOUT", "Compte financé": "FUNDED", "Évaluation réussie": "PASSED"}[c.kind] || (c.kind || "").toUpperCase())}</em></span>
+    <span class="bc-chip"><i></i><i></i><i></i></span>
+    <span class="bc-amt mv">${amt}</span>
+    <span class="bc-bot"><span><small>Date</small>${d ? p2(d.getDate()) + "." + p2(d.getMonth() + 1) + "." + d.getFullYear() : "—"}</span><span><small>Titulaire</small>${esc((state.name || "Trader").toUpperCase())}</span><span class="bc-no"><small>N°</small>${String(no || 1).padStart(4, "0")}</span></span></span>`; }
+function bcardHover(host, sel){ if (!host || host._bch) return; host._bch = 1;
+  host.addEventListener("pointermove", e => { const b = host.querySelector(sel); if (!b) return; const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    host.querySelectorAll(".bc.hov").forEach(o => { if (o !== b) o.classList.remove("hov"); });
+    if (x < -.05 || x > 1.05 || y < -.05 || y > 1.05) { b.classList.remove("hov"); b.style.removeProperty("--rx"); b.style.removeProperty("--ry"); return; }
+    b.classList.add("hov"); b.style.setProperty("--mx", (x * 100).toFixed(1) + "%"); b.style.setProperty("--my", (y * 100).toFixed(1) + "%"); b.style.setProperty("--rx", ((.5 - y) * 12).toFixed(2) + "deg"); b.style.setProperty("--ry", ((x - .5) * 16).toFixed(2) + "deg"); });
+  host.addEventListener("pointerleave", () => host.querySelectorAll(".bc.hov").forEach(b => { b.classList.remove("hov"); b.style.removeProperty("--rx"); b.style.removeProperty("--ry"); })); }
 function drawCerts(){
   const cs = (state.certs || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   const pays = cs.filter(c => c.kind === "Payout" && certAmt(c).v != null), cc = pays.length && pays.every(c => certAmt(c).c === "$") ? "$" : cur();
@@ -2825,15 +2867,13 @@ function drawCerts(){
   $("certGrid").innerHTML = cs.length ? `<div class="deck" id="deck" tabindex="0" aria-label="Certificats, glissez pour parcourir">
       <div class="deck-stage">${cs.map((c, i) => { const im = (imgCache["cert:" + c.id] || [])[0] || c.src, A = certAmt(c);
         return `<button type="button" class="dcard" data-ci="${i}" aria-label="${esc(c.firm)} ${esc(c.amount || "")}">
-          <span class="dc-im">${im ? `<img src="${im}" alt="" draggable="false">` : `<span class="dc-none">Pas d'image</span>`}</span>
-          <span class="dc-foot"><span><b>${esc(c.firm)}</b><small>${esc(fd(c.date))}</small></span><em class="mv">${A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, A.v % 1 ? 2 : 0) + (A.c ? " " + A.c : "") : esc(c.amount || "")}</em></span>
-          <span class="dc-glare"></span><span class="dc-edge"></span></button>`; }).join("")}</div>
+          ${bcardHTML(c, cs.length - i)}</button>`; }).join("")}</div>
       <div class="deck-bar"><button type="button" data-dkstep="-1" aria-label="Carte précédente">‹</button>
         <div class="deck-dots">${cs.map((_, i) => `<i data-dkgo="${i}"></i>`).join("")}</div>
         <button type="button" data-dkstep="1" aria-label="Carte suivante">›</button></div>
       <div class="deck-info" id="deckInfo"></div></div>`
     : `<button type="button" class="slot wide" data-newcert="1">+ Ajouter votre premier certificat</button>`;
-  layoutDeck();
+  layoutDeck(); bcardHover($("certGrid"), ".dcard.on .bc");
   $("certEditModal").hidden = !certEdit;
   if (!certEdit) { $("certEdit").innerHTML = ""; return; }
   const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2885,13 +2925,16 @@ function frostCard(c){ if (matchMedia("(prefers-reduced-motion: reduce)").matche
     r.animate([{transform: "translate(-50%,-50%) scale(1)", opacity: .7}, {transform: "translate(-50%,-50%) scale(1.22)", opacity: 0}], {duration: 1000, delay: k * 130, easing: "cubic-bezier(.2,.7,.3,1)", fill: "backwards"}).onfinish = () => r.remove(); } }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) certPop(c); }
 /* certificat ouvert en grand : une simple fenêtre, sur le fond normal */
-function certPop(c){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; if (!im) { certEdit = {...c}; drawCerts(); return; }
+function certPop(c){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; const no = deckList.length - deckList.indexOf(c);
   const ov = document.createElement("div"); ov.className = "cpop";
-  ov.innerHTML = `<div class="cpop-c"><img alt=""><div class="cpop-b"><div><b>${esc(c.firm || "Certificat")}</b><span>${esc([c.kind, c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : ""].filter(Boolean).join(" · "))}</span></div>
-    <div class="cpop-a"><button type="button" data-cp="edit">Modifier</button><button type="button" data-cp="dl" class="pri">Télécharger</button></div></div></div>`;
-  ov.querySelector("img").src = im; document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
-  const close = () => { ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 300); removeEventListener("keydown", key); }, key = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", key);
-  ov.addEventListener("click", e => { const b = e.target.closest("[data-cp]"); if (!b) { if (!e.target.closest(".cpop-c")) close(); return; }
+  ov.innerHTML = `<div class="cflip"><div class="cflip-in"><div class="cpf-f">${bcardHTML(c, no)}</div><div class="cpf-b">${im ? `<img alt="">` : `<span>Pas encore d'image pour ce certificat</span>`}</div></div></div>
+    <div class="cpop-a"><button type="button" data-cp="flip">↻ Retourner</button><button type="button" data-cp="edit">Modifier</button>${im ? `<button type="button" data-cp="dl" class="pri">Télécharger</button>` : ""}</div>`;
+  if (im) ov.querySelector("img").src = im; document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
+  const fl = ov.querySelector(".cflip"), flip = () => fl.classList.toggle("back"); bcardHover(ov, ".cflip:not(.back) .bc");
+  const tf = setTimeout(() => { if (im && ov.isConnected) flip(); }, 1100);
+  const close = () => { clearTimeout(tf); ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 350); removeEventListener("keydown", key); }, key = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", key);
+  ov.addEventListener("click", e => { clearTimeout(tf); if (e.target.closest(".cflip")) { flip(); return; } const b = e.target.closest("[data-cp]"); if (!b) { close(); return; }
+    if (b.dataset.cp === "flip") { flip(); return; }
     if (b.dataset.cp === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 250); return; }
     const a = document.createElement("a"), nm = ("certificat-" + (c.firm || "") + "-" + (c.date || "")).replace(/[^\w-]+/g, "-").replace(/-+$/, ""); a.href = im; a.download = nm + (/^data:image\/png/.test(im) ? ".png" : ".jpg"); document.body.appendChild(a); a.click(); a.remove(); }); }
 /* image à partager : le certificat pris dans la glace (cadre de glace + certificat incliné, givre et éclats), 1080×1920 */
@@ -7722,7 +7765,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-155";
+const APP_VERSION = "2026-10-30-156";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
