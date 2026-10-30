@@ -6047,14 +6047,14 @@ async function mountBrain3(host, C){
   const blend = dark ? THREE.AdditiveBlending : THREE.NormalBlending;
   /* ---- nébuleuses : des milliers de particules rangées en filaments ---- */
   const P = [], LS = []; const curves = [];
-  secs.forEach((S, s) => { const n = Math.round((S.f.key === "trades" ? 3400 : 4000 + S.f.items.length * 160) * (weak ? .5 : 1)), K = 22 + S.f.items.length * 2;
+  secs.forEach((S, s) => { const n = Math.round((S.f.key === "trades" ? 3400 : 4000 + S.f.items.length * 160) * (weak ? .5 : 1.4)), K = 22 + S.f.items.length * 2;
     for (let k = 0; k < K; k++) { const a = new THREE.Vector3(gs(), gs() * .8, gs()).multiplyScalar(S.r * 1.1), d = new THREE.Vector3(rnd() - .5, rnd() - .5, rnd() - .5).normalize().multiplyScalar(S.r * (.6 + rnd() * .9)),
         b = a.clone().add(d), m1 = a.clone().lerp(b, .33).add(new THREE.Vector3(gs(), gs(), gs()).multiplyScalar(S.r * .45)), m2 = a.clone().lerp(b, .66).add(new THREE.Vector3(gs(), gs(), gs()).multiplyScalar(S.r * .45));
       curves.push({s, pts: [a, m1, m2, b]}); }
     const myC = curves.filter(c => c.s === s), bez = (c, u) => { const [a, b, e, d] = c.pts, w = 1 - u; return a.clone().multiplyScalar(w * w * w).add(b.clone().multiplyScalar(3 * w * w * u)).add(e.clone().multiplyScalar(3 * w * u * u)).add(d.clone().multiplyScalar(u * u * u)); };
     for (let k = 0; k < n; k++) { let o; if (rnd() < .72) { const c = myC[Math.floor(rnd() * myC.length)]; o = bez(c, rnd()).add(new THREE.Vector3(gs(), gs(), gs()).multiplyScalar(5 + rnd() * 9)); } else o = new THREE.Vector3(gs(), gs() * .8, gs()).multiplyScalar(S.r * .95);
       P.push([s, o, rnd(), rnd() < .04 ? 3.4 + rnd() * 3 : 1 + rnd() * 1.8]); }
-    for (let k = 0; k < (weak ? 700 : 1400); k++) { const g = Math.pow(rnd(), 1.6); P.push([s, new THREE.Vector3(gs(), gs() * .85, gs()).multiplyScalar(S.r * (.08 + .22 * g)), rnd(), 1.3 + rnd() * 2.2]); }
+    for (let k = 0; k < (weak ? 700 : 2000); k++) { const g = Math.pow(rnd(), 1.6); P.push([s, new THREE.Vector3(gs(), gs() * .85, gs()).multiplyScalar(S.r * (.08 + .22 * g)), rnd(), 1.3 + rnd() * 2.2]); }
     myC.forEach(c => { let prev = bez(c, 0); for (let q = 1; q <= 14; q++) { const p = bez(c, q / 14); LS.push([s, prev, p, rnd()]); prev = p; } }); });
   /* noyau */
   const NC = weak ? 1200 : 2400; for (let k = 0; k < NC; k++) { const v = new THREE.Vector3(gs(), gs(), gs()).normalize().multiplyScalar(26 + Math.pow(rnd(), 2) * 34); P.push([7, v, rnd(), 1 + rnd() * 1.6]); }
@@ -6080,12 +6080,20 @@ async function mountBrain3(host, C){
           float lag = clamp(bk * 1.25 - h3 * .25, 0., 1.); vec4 mx = mix(mv, tgt, lag); vec2 dv = mx.xy - cv.xy; float sw = lag * (1. - lag) * 7. * (1. - .5 * h2), cs4 = cos(sw), sn4 = sin(sw); mx.xy = cv.xy + vec2(dv.x * cs4 - dv.y * sn4, dv.x * sn4 + dv.y * cs4) * (1. - lag * (1. - lag) * .9); mv = mx; }
         gl_Position = projectionMatrix * mv;
         float coc = clamp(abs(-mv.z - uFD) / uFD, 0., 1.5), flick = .65 + .35 * sin(uT * (1. + aD * 2.) + aD * 40.);
-        gl_PointSize = max(1., aZ * (1. + coc * 1.6) * (1. + bk * (bRad * .45 + bHot * .2)) * uScale / -mv.z * 1.9);
+        gl_PointSize = max(1.5, aZ * (1. + coc * 1.6) * (1. + bk * (bRad * .45 + bHot * .2)) * uScale / -mv.z * 2.3);
         float bb = s == 7 ? 1. : bornK(s, aD), flash = s == 7 ? 1. : (1. + 2.5 * bb * (1. - bb)) * step(.001, bb);
         vA = (uDark > .5 ? .55 : .5) * flick / (1. + coc * 2.2) * hotK(s) * flash * (s == 7 ? 1.3 : 1.); vC = mix(mix(mix(vec3(1.), uCol[s], smoothstep(.15, .85, bb)), uHCol, pull * .6), (kP > .5 ? vec3(.72, .88, 1.) : kH > .5 ? mix(vec3(1., .72, .7), vec3(.85, .92, 1.), clamp(bHot - .6, 0., 1.)) : mix(mix(vec3(.95, .25, .2), vec3(1., .62, .55), clamp(bOut, 0., 1.)), vec3(1., .9, .86), clamp(max(0., bRad - 1.) * .6, 0., 1.))), bk * .92); vA *= mix(1., (bOut > 0. ? bOut * bRad : 1.) * (1.3 + bHot * 1.3), bk); }`,
-    fragmentShader: `uniform float uDark; varying vec3 vC; varying float vA; void main(){ vec2 c = gl_PointCoord * 2. - 1.; float r2 = dot(c, c); if (r2 > 1.) discard; float g = exp(-r2 * 3.2);
-      gl_FragColor = uDark > .5 ? vec4(vC * g * vA, 1.) : vec4(vC, g * vA * .9); }`});
+    fragmentShader: `uniform float uDark; varying vec3 vC; varying float vA; void main(){ vec2 c = gl_PointCoord * 2. - 1.; float r2 = dot(c, c); if (r2 > 1.) discard; float core = exp(-r2 * 16.), halo = exp(-r2 * 3.) * .38 * (1. - r2), g = core * 1.1 + halo;
+      vec3 col = mix(vC, vec3(1.), core * .45); gl_FragColor = uDark > .5 ? vec4(col * g * vA, 1.) : vec4(vC, g * vA * .9); }`});
   scene.add(new THREE.Points(pg, pMat));
+  /* poussière d'étoiles lointaine : donne de la profondeur au fond noir */
+  const SF = weak ? 1200 : 3200, sfg = new THREE.BufferGeometry(), sfP = new Float32Array(SF * 3), sfZ = new Float32Array(SF), sfD = new Float32Array(SF);
+  for (let k = 0; k < SF; k++) { const v = new THREE.Vector3(gs(), gs() * .7, gs()).normalize().multiplyScalar(1500 + Math.pow(rnd(), .7) * 2600); sfP.set([v.x, v.y, v.z], k * 3); sfZ[k] = rnd() < .06 ? 2.2 + rnd() * 1.4 : .8 + rnd() * 1.1; sfD[k] = rnd(); }
+  sfg.setAttribute("position", new THREE.BufferAttribute(sfP, 3)); sfg.setAttribute("aZ", new THREE.BufferAttribute(sfZ, 1)); sfg.setAttribute("aD", new THREE.BufferAttribute(sfD, 1)); sfg.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 9000);
+  const starF = new THREE.Points(sfg, new THREE.ShaderMaterial({uniforms: Object.assign({uPR: {value: PR}}, U), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: `uniform float uT, uBirth, uPR, uBH; attribute float aZ, aD; varying float vA; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); gl_PointSize = aZ * uPR * 1.6; vA = (.25 + .3 * aZ) * (.6 + .4 * sin(uT * (.6 + aD * 1.8) + aD * 50.)) * smoothstep(0., 1., uBirth * 1.4 - aD * .4) * (1. - uBH * .6); }`,
+    fragmentShader: `varying float vA; void main(){ vec2 c = gl_PointCoord * 2. - 1.; float r2 = dot(c, c); if (r2 > 1.) discard; float g = exp(-r2 * 5.); gl_FragColor = vec4(vec3(.82, .88, 1.) * g * vA, 1.); }`}));
+  scene.add(starF);
   /* filaments fins */
   const lg = new THREE.BufferGeometry(), nl = LS.length * 2, lO = new Float32Array(nl * 3), lS = new Float32Array(nl), lD = new Float32Array(nl);
   LS.forEach(([s, a, b, d], k) => { lO.set([a.x, a.y, a.z, b.x, b.y, b.z], k * 6); lS[k * 2] = lS[k * 2 + 1] = s; lD[k * 2] = lD[k * 2 + 1] = d; });
@@ -6235,7 +6243,7 @@ async function mountBrain3(host, C){
       cam.position.copy(fly.pos); cam.lookAt(v3.copy(fly.pos).add(dir)); U.uFD.value = 500; }
     else { cam.position.set(st.tgt.x + st.dist * Math.sin(st.ph) * Math.cos(st.th), st.tgt.y + st.dist * Math.cos(st.ph), st.tgt.z + st.dist * Math.sin(st.ph) * Math.sin(st.th)); cam.lookAt(st.tgt); U.uFD.value = st.dist; }
     /* liens qui travaillent */
-    li = 0; const hotN = hovN, nb = hotN ? new Set(links.filter(l => l.a === hotN || l.b === hotN).flatMap(l => [l.a, l.b])) : null, pathOn = t - pathT, grow = Math.max(0, Math.min(1, (bu - .6) / .35));
+    li = 0; const hotN = hovN, nb = hotN ? new Set(links.filter(l => l.a === hotN || l.b === hotN).flatMap(l => [l.a, l.b])) : null, pathOn = t - pathT, grow = (q => q * q * (3 - 2 * q))(Math.max(0, Math.min(1, (tb - 9.5) / 4.5))), rp = (q => q * q * (3 - 2 * q))(Math.max(0, Math.min(1, (tb - 11.5) / 6)));
     if (t > nextPath && bu >= 1) { nextPath = t + 4 + Math.random() * 3; pathT = t; combos += 120 + Math.floor(Math.random() * 400); }
     secs.forEach(S => { curMul = LM[S.i]; curA = white; curB = S.col; for (let q = 0; q < 3; q++) { const bend = A1.set(Math.sin(t * .3 + q * 2 + S.ph) * 60, (q - 1) * 40, Math.cos(t * .25 + q + S.ph) * 60).clone(); let prev = coreN.p; for (let k = 1; k <= 16; k++) { const p = bez(coreN.p, S.c, bend, k / 16 * grow, new THREE.Vector3()); seg(prev, p, white, .1 * grow * (nb ? .4 : 1), k / 16); prev = p; } } });
     links.forEach(l => { curMul = Math.max(LM[l.a.sec.i], LM[l.b.sec.i]); curA = l.a.sec.col; curB = l.b.sec.col; const bend = A2.set(0, 30 + 20 * Math.sin(t * .4 + l.ph), 0).clone(), on = nb && nb.has(l.a) && nb.has(l.b) && (l.a === hotN || l.b === hotN), ia = pathChain.indexOf(l.a), ib = pathChain.indexOf(l.b);
@@ -6243,22 +6251,22 @@ async function mountBrain3(host, C){
       const al = (l.k === "path" ? .34 : .18) * (nb ? (on ? 3 : .25) : 1) + lit * .9, c = white; let prev = l.a.p;
       for (let k = 1; k <= 14; k++) { const p = bez(l.a.p, l.b.p, bend, k / 14 * grow, new THREE.Vector3()); seg(prev, p, c, al * grow, k / 14); prev = p; } });
     /* connexions éphémères : elles naissent, poussent, vivent, se retirent, d'autres repoussent ailleurs */
-    if (bu >= 1) { const hs = null, want = 120; let born = 0; while (syn.length < want && born < (fr < 3 ? 999 : hs ? 10 : 6)) { born++; const pt = () => { const r = Math.random(); if (r < .55 && nodes.length) return {N: nodes[Math.floor(Math.random() * nodes.length)]}; if (r < .9) { const S = secs[Math.floor(Math.random() * nF)]; return {S, o: new THREE.Vector3((Math.random() - .5) * S.r * 1.6, (Math.random() - .5) * S.r * 1.2, (Math.random() - .5) * S.r * 1.6)}; } return coreN.p; };
+    if (bu >= 1) { const hs = null, want = Math.round(120 * rp); let born = 0; while (syn.length < want && born < (fr < 3 && rp >= 1 ? 999 : hs ? 10 : 3)) { born++; const pt = () => { const r = Math.random(); if (r < .55 && nodes.length) return {N: nodes[Math.floor(Math.random() * nodes.length)]}; if (r < .9) { const S = secs[Math.floor(Math.random() * nF)]; return {S, o: new THREE.Vector3((Math.random() - .5) * S.r * 1.6, (Math.random() - .5) * S.r * 1.2, (Math.random() - .5) * S.r * 1.6)}; } return coreN.p; };
       syn.push({a: pt(), b: hs && Math.random() < .85 ? {S: hs, o: new THREE.Vector3((Math.random() - .5) * hs.r, (Math.random() - .5) * hs.r * .8, (Math.random() - .5) * hs.r)} : pt(), t0: fr < 3 ? t - 1.7 - Math.random() * 2 : t, g: .4 + Math.random() * 1.2, h: .8 + Math.random() * 4, r: .3 + Math.random() * 1, bend: new THREE.Vector3((Math.random() - .5) * 120, (Math.random() - .5) * 120, (Math.random() - .5) * 120), w: .12 + Math.random() * .22, out: Math.random() < .5}); } }
     const PP = (q, o) => q.S ? o.copy(q.S.c).addScaledVector(q.o, q.S.br) : q.N ? o.copy(q.N.p) : o.copy(q), SI = q => q.S ? q.S.i : q.N ? q.N.sec.i : 7;
     for (let k = syn.length - 1; k >= 0; k--) { const y = syn[k], age = t - y.t0, end = y.g + y.h + y.r; if (age > end) { syn.splice(k, 1); continue; }
       const a = PP(y.a, A1).clone(), b = PP(y.b, A2).clone(); let u0 = 0, u1 = 1; if (age < y.g) u1 = age / y.g; else if (age > y.g + y.h) { const q = (age - y.g - y.h) / y.r; if (y.out) u0 = q; else u1 = 1 - q; }
-      curMul = Math.max(LM[SI(y.a)], LM[SI(y.b)]); curA = colI(SI(y.a)); curB = colI(SI(y.b)); const al = y.w * (nb ? .35 : 1); let prev = bez(a, b, y.bend, u0, new THREE.Vector3()); for (let q = 1; q <= 10; q++) { const p = bez(a, b, y.bend, u0 + (u1 - u0) * q / 10, new THREE.Vector3()); seg(prev, p, white, al, q / 10); prev = p; } }
+      curMul = Math.max(LM[SI(y.a)], LM[SI(y.b)]); curA = colI(SI(y.a)); curB = colI(SI(y.b)); const al = y.w * (nb ? .35 : 1) * rp; let prev = bez(a, b, y.bend, u0, new THREE.Vector3()); for (let q = 1; q <= 10; q++) { const p = bez(a, b, y.bend, u0 + (u1 - u0) * q / 10, new THREE.Vector3()); seg(prev, p, white, al, q / 10); prev = p; } }
     nodes.forEach(n => { curMul = LM[n.sec.i]; curA = curB = n.sec.col; seg(n.sec.c, n.p, white, .14 * grow * (nb ? (nb.has(n) ? 2 : .3) : 1)); }); curMul = 1;
-    { if (bu >= 1) while (wls.length < WL) { const pick = () => Math.random() < .7 && nodes.length ? {N: nodes[Math.floor(Math.random() * nodes.length)]} : {N: {p: coreN.p}}; wls.push({a: pick(), b: pick(), t0: fr < 3 ? t - 1.6 - Math.random() * 1.5 : t + Math.random() * 2, g: .5 + Math.random(), h: 1 + Math.random() * 3, r: .6 + Math.random(), bend: new THREE.Vector3((Math.random() - .5) * 140, (Math.random() - .5) * 140, (Math.random() - .5) * 140)}); }
+    { if (bu >= 1) while (wls.length < Math.round(WL * rp)) { const pick = () => Math.random() < .7 && nodes.length ? {N: nodes[Math.floor(Math.random() * nodes.length)]} : {N: {p: coreN.p}}; wls.push({a: pick(), b: pick(), t0: fr < 3 ? t - 1.6 - Math.random() * 1.5 : t + Math.random() * 2, g: .5 + Math.random(), h: 1 + Math.random() * 3, r: .6 + Math.random(), bend: new THREE.Vector3((Math.random() - .5) * 140, (Math.random() - .5) * 140, (Math.random() - .5) * 140)}); }
       let wi = 0; wPos.fill(0); wAl.fill(0); for (let k = wls.length - 1; k >= 0; k--) { const y = wls[k], age = t - y.t0; if (age > y.g + y.h + y.r) { wls.splice(k, 1); continue; } if (age < 0 || y.a.N === y.b.N) continue;
-        let u1 = Math.min(1, age / y.g), al = age > y.g + y.h ? 1 - (age - y.g - y.h) / y.r : 1; al *= .32 * (nb ? .4 : 1) * Math.max(LM[y.a.N.sec ? y.a.N.sec.i : 7], LM[y.b.N.sec ? y.b.N.sec.i : 7]);
+        let u1 = Math.min(1, age / y.g), al = age > y.g + y.h ? 1 - (age - y.g - y.h) / y.r : 1; al *= .32 * rp * (nb ? .4 : 1) * Math.max(LM[y.a.N.sec ? y.a.N.sec.i : 7], LM[y.b.N.sec ? y.b.N.sec.i : 7]);
         let prev = y.a.N.p.clone(); for (let q = 1; q <= 12; q++) { const pp = bez(y.a.N.p, y.b.N.p, y.bend, u1 * q / 12, new THREE.Vector3()); if (wi < WL * 12) { wPos.set([prev.x, prev.y, prev.z, pp.x, pp.y, pp.z], wi * 6); wAl[wi * 2] = wAl[wi * 2 + 1] = Math.max(0, Math.min(1, al * (1 - U.uBH.value))); wi++; } prev = pp; } }
       wg.setDrawRange(0, wi * 2); wg.attributes.position.needsUpdate = true; wg.attributes.aA.needsUpdate = true; }
     kg.setDrawRange(0, li * DP); kg.attributes.position.needsUpdate = true; kg.attributes.color.needsUpdate = true; kg.attributes.aA.needsUpdate = true; curA = curB = null;
     /* impulsions de lumière le long des liens */
     if (bu >= 1 && U.uHW.value > .5 && hotLast >= 0) for (let k = 0; k < 5 && pulses.length < PU; k++) { const hs = secs[hotLast], src = Math.random() < .2 ? coreN.p : (nodes[Math.floor(Math.random() * nodes.length)] || {p: coreN.p}).p; pulses.push({a: src, b: hs.c, bend: new THREE.Vector3(Math.random() * 160 - 80, Math.random() * 160 - 80, Math.random() * 160 - 80), u: 0, v: .35 + Math.random() * .4, c: hs.col}); }
-    if (bu >= 1) for (let k = 0; k < 4 && pulses.length < PU; k++) { const l = links.length && Math.random() < .6 ? links[Math.floor(Math.random() * links.length)] : null; if (l) pulses.push({a: l.a.p, b: l.b.p, bend: new THREE.Vector3(0, 30, 0), u: 0, v: .25 + Math.random() * .5, c: l.a.sec.col}); else { const S = secs[Math.floor(Math.random() * nF)]; pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40), u: 0, v: .2 + Math.random() * .35, c: S.col}); } }
+    if (bu >= 1) for (let k = 0; k < 4 && pulses.length < PU && Math.random() < rp; k++) { const l = links.length && Math.random() < .6 ? links[Math.floor(Math.random() * links.length)] : null; if (l) pulses.push({a: l.a.p, b: l.b.p, bend: new THREE.Vector3(0, 30, 0), u: 0, v: .25 + Math.random() * .5, c: l.a.sec.col}); else { const S = secs[Math.floor(Math.random() * nF)]; pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 80 - 40, Math.random() * 80 - 40, Math.random() * 80 - 40), u: 0, v: .2 + Math.random() * .35, c: S.col}); } }
     for (let k = pulses.length - 1; k >= 0; k--) { pulses[k].u += pulses[k].v * dt; if (pulses[k].u >= 1) pulses.splice(k, 1); }
     uSz.fill(0); pulses.forEach((pu, k) => { const p = bez(pu.a, pu.b, pu.bend, pu.u, A1); uPos.set([p.x, p.y, p.z], k * 3); const m = dark ? [pu.c.r * .9 + .1, pu.c.g * .9 + .1, pu.c.b * .9 + .1] : [pu.c.r, pu.c.g, pu.c.b]; uCol.set(m, k * 3); uSz[k] = 10 * Math.sin(Math.PI * pu.u) * (1 - U.uBH.value); });
     ug.attributes.position.needsUpdate = true; ug.attributes.color.needsUpdate = true; ug.attributes.aZ.needsUpdate = true;
@@ -6267,6 +6275,7 @@ async function mountBrain3(host, C){
       const gk = dark ? Math.min(1, .25 + G[n.sec.i] * .75) : 1; nCol.set([c.r * gk, c.g * gk, c.b * gk], k * 3); nSz[k] = (1 - U.uBH.value) * (n.cell.f.key === "trades" ? 16 : 26) * grow * (1 + lit * .8 + (n === hovN ? .6 : 0)) * (nb && !nb.has(n) ? .7 : 1); });
     const kc = nodes.length; nPos.set([coreN.p.x, coreN.p.y, coreN.p.z], kc * 3); nCol.set([white.r, white.g, white.b], kc * 3); nSz[kc] = 46 * (1 + .15 * Math.sin(t * 1.3)) * Math.min(1, bu * 5) * (1 - U.uBH.value);
     ng.attributes.position.needsUpdate = true; ng.attributes.color.needsUpdate = true; ng.attributes.aZ.needsUpdate = true;
+    starF.rotation.y += .00012; starF.rotation.x = Math.sin(U.uT.value * .02) * .05;
     orbs.forEach(o => { const t = U.uT.value * o.sp + o.ph, k = 1 - U.uBH.value; o.sat.position.set(Math.cos(t) * o.a, 0, Math.sin(t) * o.b); o.grp.rotation.y += .0004; o.grp.position.copy(coreN.p); o.ln.material.opacity = o.op * k; o.sat.material.opacity = .85 * k; });
     ren.render(scene, cam);
     if (fr % 5 === 0 && !eaten) kTxt.textContent = (combos += Math.floor((2 + Math.random() * 6) * (idle < 2 ? 3 : 1))).toLocaleString("fr-FR") + " combinaisons explorées";
@@ -7582,7 +7591,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-149";
+const APP_VERSION = "2026-10-30-150";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
