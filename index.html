@@ -2270,9 +2270,24 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pc-bot{position:absolute;left:7%;right:7%;bottom:8%;display:flex;gap:8%;font-size:clamp(9px,2.5cqi,13px);letter-spacing:.1em;font-variant-numeric:tabular-nums}
 .pc-bot>span{display:flex;flex-direction:column;gap:3px;min-width:0}.pc-bot small{font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:var(--sub)}.pc-bot em{font-style:normal}.pc-bot .pc-since{margin-left:auto;text-align:right}
 .pc-help{font-size:11.5px;opacity:.55;text-align:center;margin:0 0 6px}#handleHint:empty{display:none}
-.pc-design{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px}.pc-lab{font-size:12px;opacity:.65;flex-basis:100%}
-.pc-sw{display:flex;gap:8px}.pc-sw button{width:28px;height:28px;padding:0!important;border-radius:50%!important;border:2px solid transparent!important;box-shadow:0 0 0 1px rgba(127,127,127,.35);cursor:pointer;transition:transform .2s}.pc-sw button:hover{transform:scale(1.1)}.pc-sw button.on{border-color:var(--bg,#fff)!important;box-shadow:0 0 0 2px var(--fg,#0b0b0c)}
-.pc-cc{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;margin:0!important;font-size:12px;opacity:.85;cursor:pointer}.pc-cc input{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer}
+
+
+.pc-sec{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid rgba(127,127,127,.16)}
+.pc-lab{flex:0 0 52px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
+.pc-sw{display:flex;gap:7px;flex-wrap:wrap}
+.pc-sw button,.pc-own{width:34px;height:22px;padding:0!important;border-radius:6px!important;border:0!important;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 1px 3px rgba(0,0,0,.18);transition:transform .2s,box-shadow .2s}
+.pc-sw button:hover,.pc-own:hover{transform:translateY(-2px)}
+.pc-sw button.on{box-shadow:inset 0 0 0 1px rgba(255,255,255,.25),0 0 0 2px var(--bg,#fff),0 0 0 3.5px currentColor}
+.pc-own{background:conic-gradient(from 200deg,#ff6b8a,#ffb648,#ffe27a,#3fe0a8,#4cc9ff,#9d8cff,#ff6b8a)!important;opacity:.85}
+.pc-cc{display:flex;gap:6px}.pc-cc input{width:22px;height:22px;padding:0!important;border:0!important;border-radius:50%;background:none!important;cursor:pointer}
+.pc-cc input::-webkit-color-swatch-wrapper{padding:0}.pc-cc input::-webkit-color-swatch{border:none;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.pc-bio{align-items:flex-start}.pc-bio .pc-lab{padding-top:9px}
+.pc-ta{position:relative;flex:1;min-width:0}.pc-ta textarea{width:100%;min-height:0;resize:none;padding:9px 12px 20px!important;border-radius:10px!important;font-size:13.5px!important;line-height:1.45;background:rgba(127,127,127,.06)!important;border:1px solid transparent!important;transition:border-color .2s,background .2s}
+.pc-ta textarea:focus{background:transparent!important;border-color:rgba(127,127,127,.35)!important;outline:none}
+.pc-ta small{position:absolute;right:10px;bottom:6px;font-size:10px;opacity:.4;font-variant-numeric:tabular-nums}
+.sheet.acc .actions{padding-top:12px;border-top:1px solid rgba(127,127,127,.16)}
+.pc-out{background:none!important;border:0!important;padding:8px 4px!important;font-size:13px!important;color:#e5484d!important;opacity:.8}.pc-out:hover{opacity:1}
+.pc-help{font-size:11px!important;opacity:.45!important;margin:2px 0 4px!important}
 .sheet.acc{max-width:520px}
 .acc-top{display:flex;align-items:center;gap:16px;margin:4px 0 18px}.acc-top b{display:block;font-size:17px}.acc-top small{opacity:.6}
 .acc-av{position:relative;width:84px;height:84px;border-radius:50%;overflow:hidden;cursor:pointer;flex:none;background:rgba(127,127,127,.15);display:grid;place-items:center}.acc-av b{font-size:30px}
@@ -2440,12 +2455,12 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
     <p class="pc-help">Double-cliquez sur votre nom ou votre pseudo pour les modifier · touchez la photo pour la changer</p>
     <small class="acc-hint" id="handleHint"></small>
     <input id="fName" maxlength="30" hidden><input id="fHandle" maxlength="20" hidden><input id="fCur" hidden>
-    <div class="pc-design"><span class="pc-lab">Couleur de la carte</span><div class="pc-sw" id="pcSw"></div>
-      <label class="pc-cc" title="Couleur personnalisée"><input type="color" id="pcC1"><input type="color" id="pcC2"><span>Personnaliser</span></label></div>
-    <label for="fBio" class="acc-wide pc-bio">Description <em>· facultatif</em><textarea id="fBio" maxlength="200" rows="3" placeholder="Trader XAU/USD, prop firms…"></textarea></label>
+    <div class="pc-sec"><span class="pc-lab">Couleur</span><div class="pc-sw" id="pcSw"></div>
+      <button type="button" class="pc-own" id="pcOwn" title="Couleur personnalisée"></button><span class="pc-cc" id="pcCC" hidden><input type="color" id="pcC1" aria-label="Couleur 1"><input type="color" id="pcC2" aria-label="Couleur 2"></span></div>
+    <div class="pc-sec pc-bio"><span class="pc-lab">Bio</span><div class="pc-ta"><textarea id="fBio" maxlength="200" rows="2" placeholder="Une phrase sur vous, votre marché, vos prop firms…"></textarea><small id="bioN">0/200</small></div></div>
     <p class="err" id="setErr" hidden></p>
     <div class="actions">
-      <div><button type="button" id="btnOut" onclick="window.sbSignOut && sbSignOut()">Se déconnecter</button></div>
+      <div><button type="button" id="btnOut" class="pc-out" onclick="window.sbSignOut && sbSignOut()">Se déconnecter</button></div>
       <div><button type="button" class="ghost" id="setCancel">Fermer</button><button type="submit" class="go">Enregistrer</button></div>
     </div>
   </form>
@@ -4493,6 +4508,8 @@ function openSettings(){
   inp.addEventListener("input", () => { if (!isH) { const v = cleanName(inp.value); if (v !== inp.value) inp.value = v; } else { const v = inp.value.replace(/^@/, ""); if (v !== inp.value) inp.value = v; } });
   inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); done(); } if (e.key === "Escape") { e.preventDefault(); inp.value = src.value; done(); } }); inp.addEventListener("blur", done); }));
 $("pcSw").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; pcDraft = {c1: b.dataset.c1, c2: b.dataset.c2}; pcPaint(); const pc = $("pcard"); pc.animate([{filter: "brightness(1.5)"}, {filter: "brightness(1)"}], {duration: 500, easing: "ease-out"}); });
+$("pcOwn").onclick = () => { const cc = $("pcCC"); cc.hidden = !cc.hidden; if (!cc.hidden) cc.animate([{opacity: 0, transform: "translateX(-6px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: "ease-out"}); };
+{ const bn = () => { $("bioN").textContent = $("fBio").value.length + "/200"; }; $("fBio").addEventListener("input", bn); $("setModal").addEventListener("transitionstart", bn); new MutationObserver(bn).observe($("setModal"), {attributes: true, attributeFilter: ["hidden"]}); }
 ["pcC1", "pcC2"].forEach(id => $(id).addEventListener("input", () => { pcDraft = {c1: $("pcC1").value, c2: $("pcC2").value}; pcPaint(); }));
 $("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); c.style.setProperty("--rx", ((.5 - y) * 10).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 14).toFixed(2) + "deg"); });
 $("pcard").addEventListener("pointerleave", () => { const c = $("pcard"); c.classList.remove("hov"); c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); });
@@ -7857,7 +7874,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-162";
+const APP_VERSION = "2026-10-30-163";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
