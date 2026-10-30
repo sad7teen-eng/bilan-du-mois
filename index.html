@@ -1600,11 +1600,16 @@ body.light .cell:not(.blank):not(.wkc):hover{transform:translateY(-2px);box-shad
 .pnq{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .25s,backdrop-filter .25s}.pnq.on{background:rgba(10,10,12,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .pnq-c{width:min(340px,calc(100% - 32px));padding:22px;border-radius:20px;background:#fff;color:#0b0b0c;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
 .pnq.on .pnq-c{transform:none;opacity:1}body:not(.light) .pnq-c{background:#121214;color:#f2f2f2}
-.pnq-c small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
-.pnq-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid currentColor;padding-bottom:4px;color:#2ea060;transition:color .25s}.pnq.neg .pnq-in{color:#e5484d}
-.pnq-in input{flex:1;min-width:0;border:0!important;background:none!important;font:inherit;font-size:34px;font-weight:600;letter-spacing:-.02em;color:inherit!important;padding:0!important;outline:none;box-shadow:none!important}.pnq-in span{font-size:22px;font-weight:600}
-.pnq-s{display:flex;gap:6px}.pnq-s button{flex:1;padding:8px!important;border-radius:10px!important;font-size:13px!important;background:transparent!important;color:inherit!important;border:1px solid rgba(127,127,127,.3)!important;opacity:1}.pnq-s button.on[data-sg="1"]{background:#2ea060!important;color:#fff!important;border-color:#2ea060!important}.pnq-s button.on[data-sg="-1"]{background:#e5484d!important;color:#fff!important;border-color:#e5484d!important}
-.pnq-go{padding:12px!important;border-radius:12px!important;background:#0b0b0c!important;color:#fff!important;border:0!important;font-weight:600}body:not(.light) .pnq-go{background:#fff!important;color:#000!important}
+.pnq-c small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.5;text-align:center}
+.pnq-in{--t:127,127,127;position:relative;display:flex;align-items:baseline;justify-content:center;gap:8px;padding:22px 16px 18px;border-radius:16px;background:rgba(var(--t),.07);box-shadow:inset 0 0 0 1px rgba(var(--t),.16);color:rgb(var(--t));transition:background .3s,box-shadow .3s,color .3s}
+.pnq.pos .pnq-in{--t:46,160,96}.pnq.neg .pnq-in{--t:229,72,77}.pnq-in:focus-within{box-shadow:inset 0 0 0 1.5px rgba(var(--t),.45),0 0 0 4px rgba(var(--t),.1)}
+.pnq-in input{width:6.5ch;max-width:100%;min-width:2ch;border:0!important;background:none!important;font:inherit;font-size:40px;font-weight:650;letter-spacing:-.03em;text-align:right;color:inherit!important;padding:0!important;outline:none;box-shadow:none!important;font-variant-numeric:tabular-nums}
+.pnq-in input::placeholder{color:currentColor;opacity:.22}.pnq-in span{font-size:24px;font-weight:600;opacity:.8}
+.pnq-tag{align-self:center;display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border-radius:99px;font-size:12px;font-weight:600;color:rgb(127,127,127);background:rgba(127,127,127,.1);transition:color .3s,background .3s,transform .3s}
+.pnq.pos .pnq-tag{color:#2ea060;background:rgba(46,160,96,.12)}.pnq.neg .pnq-tag{color:#e5484d;background:rgba(229,72,77,.12)}.pnq-tag.pop{animation:pnqPop .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes pnqPop{40%{transform:scale(1.12)}}
+.pnq-h{font-size:11.5px;text-align:center;opacity:.45;margin-top:-4px}
+.pnq-go{margin-top:4px;padding:13px!important;border-radius:12px!important;background:#0b0b0c!important;color:#fff!important;border:0!important;font-weight:600;transition:background .3s,transform .15s}.pnq-go:active{transform:scale(.98)}.pnq.pos .pnq-go{background:#2ea060!important}.pnq.neg .pnq-go{background:#e5484d!important}body:not(.light) .pnq:not(.pos):not(.neg) .pnq-go{background:#fff!important;color:#000!important}
 .pnq-x{background:none!important;border:0!important;font-size:12px!important;color:inherit!important;opacity:.6;padding:2px!important}
 .pnc{position:fixed;inset:0;z-index:95;display:grid;place-items:center;cursor:pointer;background:rgba(4,4,6,0);transition:background .45s,backdrop-filter .45s;--c:#3ddc84;--g:rgba(61,220,132,.45)}.pnc.neg{--c:#ff5a5f;--g:rgba(255,90,95,.45)}
 .pnc.on{background:rgba(4,4,6,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}.pnc.out{background:rgba(4,4,6,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}
@@ -4116,14 +4121,19 @@ function drawDay(){
 /* ===== Nouveau trade : d'abord le résultat, puis une petite célébration ===== */
 function askPnl(done){
   const ov = document.createElement("div"); ov.className = "pnq";
-  ov.innerHTML = `<form class="pnq-c"><small>Résultat du trade</small><div class="pnq-in"><input inputmode="decimal" autocomplete="off" placeholder="+2 000 ou -500" aria-label="Résultat"><span>${esc(cur())}</span></div>
-    <div class="pnq-s"><button type="button" data-sg="1" class="on">Gain</button><button type="button" data-sg="-1">Perte</button></div><button type="submit" class="pnq-go">Continuer</button><button type="button" class="pnq-x">Annuler</button></form>`;
+  ov.innerHTML = `<form class="pnq-c"><small>Résultat du trade</small><div class="pnq-in"><input inputmode="decimal" autocomplete="off" placeholder="2 000" aria-label="Résultat"><span>${esc(cur())}</span></div>
+    <span class="pnq-tag">Tapez le montant</span><p class="pnq-h">Ajoutez « − » devant pour une perte</p><button type="submit" class="pnq-go">Continuer</button><button type="button" class="pnq-x">Annuler</button></form>`;
   document.body.appendChild(ov); const inp = ov.querySelector("input"); let sg = 1; requestAnimationFrame(() => { ov.classList.add("on"); inp.focus(); });
-  const paint = () => { const v = String(inp.value).trim(); if (/^-/.test(v)) sg = -1; else if (/^\+/.test(v)) sg = 1; ov.querySelectorAll("[data-sg]").forEach(b => b.classList.toggle("on", +b.dataset.sg === sg)); ov.classList.toggle("neg", sg < 0); };
-  inp.addEventListener("input", paint);
+  const tag = ov.querySelector(".pnq-tag"); let last = "";
+  const paint = () => { const v = String(inp.value).trim(), has = /\d/.test(v); sg = /^[-−–]/.test(v) ? -1 : 1;
+    const st = !has ? "" : sg < 0 ? "neg" : "pos"; ov.classList.toggle("pos", st === "pos"); ov.classList.toggle("neg", st === "neg");
+    inp.style.width = Math.max(2, Math.min(11, (v || inp.placeholder).length + .5)) + "ch";
+    if (st !== last) { last = st; tag.textContent = st === "pos" ? "↗ Gain" : st === "neg" ? "↘ Perte" : "Tapez le montant"; tag.classList.remove("pop"); void tag.offsetWidth; if (st) tag.classList.add("pop"); } };
+  inp.addEventListener("input", paint); paint();
   const close = () => { ov.classList.remove("on"); setTimeout(() => ov.remove(), 250); };
-  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".pnq-x")) return close(); const b = e.target.closest("[data-sg]"); if (b) { sg = +b.dataset.sg; inp.value = String(inp.value).replace(/^[+-]/, ""); paint(); inp.focus(); } });
-  ov.querySelector("form").addEventListener("submit", e => { e.preventDefault(); const a = Math.abs(num(String(inp.value).replace(/^[+-]/, ""))); if (!isNum(a) || !a) { inp.focus(); ov.querySelector(".pnq-in").animate([{transform: "translateX(0)"}, {transform: "translateX(-6px)"}, {transform: "translateX(6px)"}, {transform: "none"}], {duration: 260}); return; }
+  ov.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".pnq-x")) return close(); });
+  ov.querySelector("form").addEventListener("submit", e => { e.preventDefault(); const a = Math.abs(num(String(inp.value).replace(/^[+\-−–]/, ""))); if (!isNum(a) || !a) { inp.focus(); ov.querySelector(".pnq-in").animate([{transform: "translateX(0)"}, {transform: "translateX(-6px)"}, {transform: "translateX(6px)"}, {transform: "none"}], {duration: 260}); return; }
     const v = sg * a; close(); pnlCelebrate(v, () => done(v)); });
 }
 function pnlCelebrate(v, next){
@@ -7572,7 +7582,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-148";
+const APP_VERSION = "2026-10-30-149";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
