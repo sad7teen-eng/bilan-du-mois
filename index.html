@@ -821,7 +821,7 @@ body:not(.light) .rt:hover{background:#121212!important}
 .tn::before{content:"";position:absolute;inset:0;border-radius:inherit;border:1px solid rgba(255,255,255,0);background:rgba(255,255,255,0);transition:border-color .3s,background .3s,box-shadow .3s;z-index:-1}
 .tn::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;background:linear-gradient(100deg,transparent,color-mix(in srgb,currentColor 18%,transparent),transparent);transform:skewX(-18deg);opacity:0;pointer-events:none}
 .tn:hover{transform:scale(1.1);color:var(--fg)}
-body:not(.light) .topnav .tn:hover,body.incerts .topnav .tn:hover{color:#fff!important;text-shadow:0 0 10px rgba(255,255,255,.45)}
+body:not(.light) .topnav .tn:hover{color:#fff!important;text-shadow:0 0 10px rgba(255,255,255,.45)}
 .tn:hover::before{border-color:color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,currentColor 5%,transparent);box-shadow:0 0 16px rgba(255,255,255,.07),inset 0 0 10px rgba(255,255,255,.04)}
 .tn:hover::after{animation:tnSheen .7s ease-out}
 @keyframes tnSheen{0%{left:-60%;opacity:1}100%{left:120%;opacity:0}}
@@ -1015,12 +1015,12 @@ body.incerts.certbg .topnav .tn{color:rgba(255,255,255,.82)!important;text-shado
 body.incerts.certbg .topnav .tn.on{background:rgba(255,255,255,.16)!important;color:#fff!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 html body.incerts.certbg .topnav .tn-act button{background:rgba(255,255,255,.12)!important;color:#fff!important;border-color:rgba(255,255,255,.3)!important}
 body.incerts.certbg .topnav{color:#fff}
-#certBg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;display:none}body.incerts #certBg{display:block}
+#certBg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;display:none}
 body.incerts.certbg::before{opacity:0}body.incerts.certbg{background:#9a9fa7!important}
 #certFrost,#certHaze{position:fixed;pointer-events:none;z-index:-1;opacity:0;transition:opacity 1.2s}#certFrost{inset:0;width:100%;height:100%}
 #certHaze{left:50%;top:48%;width:120vmax;height:120vmax;border-radius:50%;transform:translate(-50%,-50%) scale(.15);background:radial-gradient(circle,rgba(150,190,255,.09),rgba(150,190,255,.035) 35%,transparent 62%)}
 body.incerts #certModal{position:relative;z-index:2}
-#certEggs{position:fixed;inset:0;z-index:1;pointer-events:none;display:none}body.incerts #certEggs{display:block}
+#certEggs{position:fixed;inset:0;z-index:1;pointer-events:none;display:none}
 #certEggs svg{width:100%;height:100%}#certEggs .egg-l{stroke:rgba(255,255,255,.16);stroke-width:1}#certEggs .egg-x{stroke:rgba(255,255,255,.5);stroke-width:1}#certEggs .egg-d{fill:rgba(255,255,255,.55)}
 /* ---------- La vitrine du certificat ---------- */
 .vit{position:fixed;inset:0;z-index:75;background:#050506;opacity:0;transition:opacity .6s ease;overflow:hidden;color:#f2f2f2}
@@ -1059,7 +1059,7 @@ body.incerts #certModal{position:relative;z-index:2}
 /* ---------- Qualité d'affichage (pour les machines qui rament) ---------- */
 .qwrap{position:relative}
 .qpop{position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:290px;padding:14px;border-radius:16px;background:var(--panel-solid,#fff);color:#0b0b0c;border:1px solid rgba(0,0,0,.08);box-shadow:0 24px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:8px;text-align:left;animation:qIn .22s ease both}
-body:not(.light) .qpop,body.incerts .qpop{background:#141416;color:#f2f2f2;border-color:#2a2a2a}
+body:not(.light) .qpop{background:#141416;color:#f2f2f2;border-color:#2a2a2a}
 @keyframes qIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .qpop b{font-size:14px}
 .qpop p{margin:0 0 4px;font-size:12.5px;opacity:.7;line-height:1.45}
@@ -1611,6 +1611,12 @@ body:not(.light) .ctx,body.instrat .ctx,.inmacro .ctx{background:rgba(20,21,24,.
 @keyframes ctxShake{30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
 .ctx-sep{display:block;height:1px;margin:4px 8px;background:rgba(127,127,127,.18)}
 .ctx-in{width:100%;margin:2px 0;padding:8px 10px!important;border-radius:8px!important;border:1px solid rgba(127,127,127,.35)!important;background:rgba(127,127,127,.08)!important;color:inherit!important;font:inherit;font-size:13px!important;outline:none}
+.cpop{position:fixed;inset:0;z-index:85;display:grid;place-items:center;padding:24px;background:rgba(10,10,12,0);transition:background .3s,backdrop-filter .3s}.cpop.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.cpop-c{display:flex;flex-direction:column;gap:14px;max-width:min(980px,100%);max-height:calc(100dvh - 48px);padding:14px;border-radius:22px;background:#fff;color:#0b0b0c;border:1px solid rgba(0,0,0,.08);box-shadow:0 40px 100px rgba(16,18,24,.3);transform:scale(.94) translateY(8px);opacity:0;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.cpop.on .cpop-c{transform:none;opacity:1}body:not(.light) .cpop-c{background:#121214;color:#f2f2f2;border-color:#262626}.cpop.out .cpop-c{transform:scale(.96);opacity:0}
+.cpop-c img{display:block;max-width:100%;max-height:calc(100dvh - 160px);object-fit:contain;border-radius:12px;margin:0 auto}
+.cpop-b{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:0 4px 2px}.cpop-b b{display:block;font-size:15px}.cpop-b span{font-size:12px;color:var(--muted)}
+.cpop-a{display:flex;gap:8px}.cpop-a button{padding:9px 16px!important;border-radius:999px!important;font-size:13px!important}.cpop-a button{background:transparent!important;color:inherit!important;border:1px solid rgba(127,127,127,.35)!important}.cpop-a .pri{background:#0b0b0c!important;color:#fff!important;border-color:#0b0b0c!important}body:not(.light) .cpop-a .pri{background:#fff!important;color:#000!important}
 .pnq{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .25s,backdrop-filter .25s}.pnq.on{background:rgba(10,10,12,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .pnq-c{width:min(340px,calc(100% - 32px));padding:22px;border-radius:20px;background:#fff;color:#0b0b0c;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
 .pnq.on .pnq-c{transform:none;opacity:1}body:not(.light) .pnq-c{background:#121214;color:#f2f2f2}
@@ -2086,8 +2092,6 @@ section.view[data-view="resultats"].venter .ready .l > div{animation:vUp .5s .55
 section.view[data-view="resultats"].venter #btnPlay{animation:popIn .6s .8s cubic-bezier(.2,.8,.2,1) both}
 
 /* ===== v67 : salle des certificats (fond noir) + trophée en verre ===== */
-body.incerts{background:#000!important}
-body.incerts .scene{opacity:0;transition:opacity .5s}
 .cfl{display:inline-block}
 #certFog{position:fixed;inset:0;z-index:9000;pointer-events:none;overflow:hidden}
 #certFog i{position:absolute;width:85vmax;height:60vmax;margin:-30vmax 0 0 -42.5vmax;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,rgba(158,163,171,.98) 0%,rgba(165,170,178,.85) 30%,rgba(180,185,192,.45) 52%,rgba(160,165,173,0) 70%);filter:blur(26px);opacity:0;animation:fogIn 1.7s cubic-bezier(.4,.3,.3,1) forwards}
@@ -2096,19 +2100,8 @@ body.incerts .scene{opacity:0;transition:opacity .5s}
 @keyframes fogIn{0%{opacity:0;transform:translate(0,0) scale(calc(var(--s) * .6)) rotate(-8deg)}20%{opacity:1}100%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(calc(var(--s) * 1.45)) rotate(6deg)}}
 @keyframes fogFill{to{opacity:1}}
 #certFog.out{transition:opacity 1.3s cubic-bezier(.4,0,.2,1),transform 1.3s;opacity:0;transform:scale(1.08)}
-body.incerts::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 52%,#17181c,#050506 70%,#000)}
-body.incerts .topnav{color:#f2f2f2}
-body.incerts .topnav .tn{color:#8b8b8b}
-body.incerts .topnav .tn.on{background:#161616!important;color:#fff;box-shadow:inset 0 0 0 1px #262626}
-body.incerts .topnav .tn-act button{background:#121212!important;color:#ddd!important;border-color:#2a2a2a!important}
-body.incerts #certModal .vhead h1{color:#fff!important;text-shadow:0 0 30px rgba(255,255,255,.18)!important}
 body.incerts .dash > .savebar,body.incerts #certSum,body.incerts #certHero,body.incerts .deck-info,body.incerts .deck-bar,body.incerts .dc-foot{display:none!important}
-body.incerts #certAdd{background:#fff!important;color:#000!important;border-color:#fff!important;border-radius:999px!important}
 body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(180deg,transparent 0,#000 6%,#000 84%,transparent 100%)!important;mask-image:linear-gradient(90deg,transparent 0,#000 18%,#000 82%,transparent 100%),linear-gradient(180deg,transparent 0,#000 6%,#000 84%,transparent 100%)!important}
-body.incerts .dcard{width:min(620px,74vw,calc((100vh - 330px) * 1.3))!important;border-color:#2a2a2a!important;background:#0b0b0b!important}
-body.incerts .dcard.on{box-shadow:0 40px 100px rgba(0,0,0,.9),0 0 80px rgba(120,140,255,.08)!important}
-body.incerts .ripple i{border-color:rgba(245,245,247,.8)}
-body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%224.2%22%20fill%3D%22%23f4f4f6%22%20stroke%3D%22%23000000%22%20stroke-opacity%3D%22.55%22%20stroke-width%3D%221.4%22%2F%3E%3C%2Fsvg%3E") 8 8, auto!important}
 
 .troph{position:fixed;inset:0;z-index:75;background:#02030a;overflow:hidden;opacity:0;transition:opacity .4s;cursor:grab!important;touch-action:none;user-select:none}
 .troph.grab,.troph.grab *{cursor:grabbing!important}
@@ -2856,7 +2849,7 @@ function drawCerts(){
 }
 let deckSel = 0, deckList = [], deckIntro = false, deckMouse = null, deckTiltRun = false; const deckT = {x: 0, y: 0, gx: 50, gy: 30};
 /* inclinaison douce : calculée sur la place fixe du certificat (pas sur sa forme tournée), lissée à chaque image */
-function deckTiltLoop(){ const st = document.querySelector("#certGrid .deck-stage"), c = st && st.querySelector(".dcard.on"); if (!c || !document.body.classList.contains("incerts")) { deckTiltRun = false; return; }
+function deckTiltLoop(){ deckTiltRun = false; return; const st = document.querySelector("#certGrid .deck-stage"), c = st && st.querySelector(".dcard.on"); if (!c || !document.body.classList.contains("incerts")) { deckTiltRun = false; return; }
   const R = st.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight, l = R.left + R.width / 2 - w / 2, t = R.top + R.height / 2 - h / 2, still = performance.now() - deckMovedAt > 700;
   let tx = 0, ty = 0, inside = false; if (deckMouse && still) { const x = (deckMouse[0] - l) / w, y = (deckMouse[1] - t) / h; inside = x > -.08 && x < 1.08 && y > -.08 && y < 1.08; if (inside) { tx = Math.max(-1, Math.min(1, (x - .5) * 2)); ty = Math.max(-1, Math.min(1, (y - .5) * 2)); deckT.gx = x * 100; deckT.gy = y * 100; } }
   deckT.x += (tx - deckT.x) * .08; deckT.y += (ty - deckT.y) * .08; const on = still && (inside || Math.abs(deckT.x) + Math.abs(deckT.y) > .004);
@@ -2890,7 +2883,17 @@ function stepDeck(k){ const n = Math.max(0, Math.min(deckList.length - 1, deckSe
 function frostCard(c){ if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const st = c.parentNode, w = c.offsetWidth, h = c.offsetHeight;
   for (let k = 0; k < 3; k++) { const r = document.createElement("span"); r.className = "dc-wave"; Object.assign(r.style, {width: w + "px", height: h + "px"}); st.appendChild(r);
     r.animate([{transform: "translate(-50%,-50%) scale(1)", opacity: .7}, {transform: "translate(-50%,-50%) scale(1.22)", opacity: 0}], {duration: 1000, delay: k * 130, easing: "cubic-bezier(.2,.7,.3,1)", fill: "backwards"}).onfinish = () => r.remove(); } }
-function openDeckCard(){ const c = deckList[deckSel]; if (c) openCertZoom(c); }
+function openDeckCard(){ const c = deckList[deckSel]; if (c) certPop(c); }
+/* certificat ouvert en grand : une simple fenêtre, sur le fond normal */
+function certPop(c){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; if (!im) { certEdit = {...c}; drawCerts(); return; }
+  const ov = document.createElement("div"); ov.className = "cpop";
+  ov.innerHTML = `<div class="cpop-c"><img alt=""><div class="cpop-b"><div><b>${esc(c.firm || "Certificat")}</b><span>${esc([c.kind, c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : ""].filter(Boolean).join(" · "))}</span></div>
+    <div class="cpop-a"><button type="button" data-cp="edit">Modifier</button><button type="button" data-cp="dl" class="pri">Télécharger</button></div></div></div>`;
+  ov.querySelector("img").src = im; document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
+  const close = () => { ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 300); removeEventListener("keydown", key); }, key = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", key);
+  ov.addEventListener("click", e => { const b = e.target.closest("[data-cp]"); if (!b) { if (!e.target.closest(".cpop-c")) close(); return; }
+    if (b.dataset.cp === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 250); return; }
+    const a = document.createElement("a"), nm = ("certificat-" + (c.firm || "") + "-" + (c.date || "")).replace(/[^\w-]+/g, "-").replace(/-+$/, ""); a.href = im; a.download = nm + (/^data:image\/png/.test(im) ? ".png" : ".jpg"); document.body.appendChild(a); a.click(); a.remove(); }); }
 /* image à partager : le certificat pris dans la glace (cadre de glace + certificat incliné, givre et éclats), 1080×1920 */
 const certShareCache = new Map();
 function makeCertShare(src){ if (certShareCache.has(src)) return certShareCache.get(src);
@@ -3011,8 +3014,7 @@ function openCertZoom(c){
   const ap = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(ap); gl.vertexAttribPointer(ap, 2, gl.FLOAT, false, 0, 0);
   const uT = gl.getUniformLocation(pr, "t"), uA = gl.getUniformLocation(pr, "asp"), uM = gl.getUniformLocation(pr, "mx");
   let mx = 0, my = 0, sx = 0, sy = 0, last = 0, t = 0; addEventListener("pointermove", e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, {passive: true});
-  const loop = now => { requestAnimationFrame(loop); const on = document.body.classList.contains("incerts") && !document.querySelector(".ig") && !document.hidden;
-    document.body.classList.toggle("certbg", on || (document.body.classList.contains("incerts") && !!document.querySelector(".ig"))); if (!on || now - last < 33) return;
+  const loop = now => { document.body.classList.remove("certbg"); return;
     const dt = Math.min(.1, (now - (last || now)) / 1000); last = now; t += dt; sx += (mx - sx) * .05; sy += (my - sy) * .05;
     const w = Math.round(innerWidth * .5), hh = Math.round(innerHeight * .5); if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; gl.viewport(0, 0, w, hh); }
     gl.uniform1f(uT, t); gl.uniform1f(uA, innerWidth / innerHeight); gl.uniform2f(uM, sx, -sy); gl.drawArrays(gl.TRIANGLES, 0, 3); };
@@ -3043,7 +3045,7 @@ false && (() => { const cv = document.createElement("canvas"), haze = document.c
       p.el = document.createElementNS(NS, "path"); p.el.setAttribute("class", p.cross ? "egg-x" : "egg-d"); svg.appendChild(p.el); P.push(p); pts.push(p); }
     P.forEach((p, i) => { const q = P[(i + 1) % P.length]; if (i < P.length - (P.length > 3 ? 0 : 1)) { const l = document.createElementNS(NS, "line"); l.setAttribute("class", "egg-l"); svg.insertBefore(l, svg.firstChild); p.line = [l, q]; } }); });
   let mx = -999, my = -999; addEventListener("pointermove", e => { mx = e.clientX; my = e.clientY; }, {passive: true});
-  const tick = t => { requestAnimationFrame(tick); if (!document.body.classList.contains("incerts") || document.querySelector(".ig,.cz")) return; const W = innerWidth, H = innerHeight;
+  const tick = t => { return; const W = innerWidth, H = innerHeight;
     pts.forEach(p => { let x = p.gx * W + p.ox + Math.sin(t / 1900 + p.ph) * 9, y = p.gy * H + p.oy + Math.cos(t / 2300 + p.ph * 1.3) * 7;
       const dx = x - mx, dy = y - my, d = Math.hypot(dx, dy), push = d < 130 ? (130 - d) * .55 : 0; p.fx += ((d ? dx / d : 0) * push - p.fx) * .12; p.fy += ((d ? dy / d : 0) * push - p.fy) * .12;
       p.px = x + p.fx; p.py = y + p.fy; p.el.setAttribute("d", p.cross ? `M${p.px - 4} ${p.py}h8M${p.px} ${p.py - 4}v8` : `M${p.px} ${p.py}m-1.4 0a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0`); });
@@ -3841,7 +3843,7 @@ function openTrophy(c){
     const go = e.target.closest("[data-dkgo]"); if (go) { deckSel = +go.dataset.dkgo; layoutDeck(); return; }
     if (e.target.closest("[data-dkopen]")) { openDeckCard(); return; }
     if (e.target.closest("[data-dkedit]")) { certEdit = {...deckList[deckSel]}; drawCerts(); return; }
-    const c = e.target.closest(".dcard"); if (c) { if (+c.dataset.ci !== deckSel) { deckSel = +c.dataset.ci; layoutDeck(); } else { frostCard(c); setTimeout(openDeckCard, 320); } }
+    const c = e.target.closest(".dcard"); if (c) { if (+c.dataset.ci !== deckSel) { deckSel = +c.dataset.ci; layoutDeck(); } else openDeckCard(); }
   });
   g.addEventListener("wheel", e => { if (!e.target.closest(".deck-stage")) return; const v = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; const dir = Math.sign(v);
     if (!dir || (dir < 0 && !deckSel) || (dir > 0 && deckSel === deckList.length - 1)) return;
@@ -5151,7 +5153,7 @@ const VIEWS = ["tableau", "resultats", "certs", "strategie", "analytics", "graph
 let view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tableau";
 let certFogOn = false;
 function setView(v, keepScroll){
-  const inC = document.body.classList.contains("incerts"); if ((v === "certs") !== inC && VIEWS.includes(v) && v !== "macro" && !certFogOn && !document.querySelector(".cz") && !matchMedia("(prefers-reduced-motion: reduce)").matches) return certFogCover(() => setView0(v, keepScroll));
+  const inC = document.body.classList.contains("incerts"); if (false && (v === "certs") !== inC && VIEWS.includes(v) && v !== "macro" && !certFogOn && !document.querySelector(".cz") && !matchMedia("(prefers-reduced-motion: reduce)").matches) return certFogCover(() => setView0(v, keepScroll));
   return setView0(v, keepScroll); }
 function setView0(v, keepScroll){
   if (!VIEWS.includes(v)) v = "tableau";
@@ -5170,7 +5172,7 @@ function setView0(v, keepScroll){
   if (v === "strategie") renderStrat();
   if (v === "analytics") renderAna();
   if (v === "certs") { deckIntro = true; loadCerts(); }
-  if (v === "certs" && !document.body.classList.contains("incerts") && certFogOn) certTitleIn();
+  
   document.body.classList.toggle("incerts", v === "certs"); document.body.classList.toggle("instrat", v === "strategie"); if (v !== "strategie" && typeof b3Remove === "function") { b3Remove(); document.querySelectorAll(".tn-strat").forEach(x => x.remove()); }
   { let lt = true; try { lt = localStorage.getItem(THEME_KEY) !== "dark"; } catch (e) {} document.body.classList.toggle("light", v === "strategie" ? false : lt); }
   if (v === "graphique") renderChartPage(); else if (chart) { try { chart.remove(); } catch(e) {} chart = null; }
@@ -7711,7 +7713,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-152";
+const APP_VERSION = "2026-10-30-153";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
