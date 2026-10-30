@@ -2247,6 +2247,33 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .crop-st{position:relative;width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;touch-action:none}.crop-st canvas{width:100%;height:100%;display:block;cursor:grab}.crop-st canvas:active{cursor:grabbing}
 .crop-ring{position:absolute;inset:0;pointer-events:none;border-radius:50%;box-shadow:0 0 0 999px rgba(0,0,0,.55);outline:1.5px solid rgba(255,255,255,.7)}
 .crop-z{width:100%;accent-color:#fff}.crop-a{display:flex;justify-content:flex-end;gap:8px}.crop-a button{padding:9px 16px!important;border-radius:999px!important;font:inherit;font-size:13px!important;cursor:pointer;background:transparent!important;color:#ddd!important;border:1px solid #333!important}.crop-a button.go{background:#fff!important;color:#000!important;border-color:#fff!important}
+/* ===== Mon compte : carte de présentation façon carte bancaire ===== */
+.pcard{--c1:#2b2c31;--c2:#060607;--ink:#eef0f3;--sub:rgba(255,255,255,.55);--mx:30%;--my:20%;position:relative;width:100%;aspect-ratio:1.586;border-radius:20px;overflow:hidden;color:var(--ink);container-type:inline-size;margin:6px 0 10px;
+  background:radial-gradient(130% 150% at 0% 0%,var(--c1) 0%,color-mix(in srgb,var(--c1) 35%,var(--c2)) 48%,var(--c2) 100%);box-shadow:0 26px 50px rgba(16,18,24,.3),0 6px 14px rgba(16,18,24,.15),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(255,255,255,.08);
+  transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1),background .5s}
+.pcard.hov{transition:transform .12s linear,background .5s}
+.pcard.in{animation:pcIn .8s cubic-bezier(.2,.8,.2,1) both}@keyframes pcIn{from{opacity:0;transform:perspective(1000px) rotateX(18deg) translateY(16px) scale(.94)}}
+.pcard.lt{--ink:#14161a;--sub:rgba(0,0,0,.5)}
+.pc-tex{position:absolute;inset:0;opacity:.5;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px),repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 4px)}
+.pc-holo{position:absolute;inset:-20%;opacity:.22;mix-blend-mode:color-dodge;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(90,190,255,.55) 40%,rgba(200,120,255,.5) 46%,rgba(255,140,190,.45) 52%,rgba(255,225,140,.5) 58%,transparent 68%);background-size:220% 220%;background-position:var(--mx) var(--my);animation:bcIdle 9s ease-in-out infinite alternate}
+.pcard.hov .pc-holo{opacity:.4;animation:none}
+.pc-top{position:absolute;left:7%;right:7%;top:9%;display:flex;justify-content:space-between;align-items:baseline}
+.pc-brand{font-size:clamp(11px,3cqi,15px);font-weight:700;letter-spacing:-.01em}.pc-mem{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,2cqi,11px);letter-spacing:.22em;color:var(--sub)}
+.pc-chip.acc-av{position:absolute;left:7%;top:27%;width:15%;height:auto;aspect-ratio:1.25;border-radius:18%!important;box-shadow:0 0 0 1.5px rgba(255,255,255,.55),0 0 0 3px rgba(0,0,0,.25),0 6px 14px rgba(0,0,0,.35);background:linear-gradient(135deg,#efefef,#9a9da3 45%,#e1e2e5 60%,#7f8288)}
+.pc-chip.acc-av b{font-size:clamp(14px,5cqi,26px);color:#222}
+.pc-id{position:absolute;left:7%;right:7%;top:56%;display:flex;flex-direction:column;gap:4px}
+.pc-name{font-size:clamp(18px,6.4cqi,32px);font-weight:650;letter-spacing:-.02em;line-height:1.05;cursor:text;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc-name .vbadge{width:.62em;height:.62em}
+.pc-handle{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(10px,2.8cqi,14px);letter-spacing:.08em;color:var(--sub);cursor:text}
+.pc-edit{font:inherit;font-size:clamp(18px,6.4cqi,32px)!important;font-weight:650;letter-spacing:-.02em;background:rgba(255,255,255,.12)!important;color:var(--ink)!important;border:1px solid rgba(255,255,255,.35)!important;border-radius:8px!important;padding:2px 8px!important;width:80%;outline:none}
+.pc-edit.h{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(10px,2.8cqi,14px)!important;font-weight:500;width:50%}
+.pcard.lt .pc-edit{background:rgba(0,0,0,.06)!important;border-color:rgba(0,0,0,.2)!important}
+.pc-bot{position:absolute;left:7%;right:7%;bottom:8%;display:flex;gap:8%;font-size:clamp(9px,2.5cqi,13px);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+.pc-bot>span{display:flex;flex-direction:column;gap:3px;min-width:0}.pc-bot small{font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:var(--sub)}.pc-bot em{font-style:normal}.pc-bot .pc-since{margin-left:auto;text-align:right}
+.pc-help{font-size:11.5px;opacity:.55;text-align:center;margin:0 0 6px}#handleHint:empty{display:none}
+.pc-design{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 12px}.pc-lab{font-size:12px;opacity:.65;flex-basis:100%}
+.pc-sw{display:flex;gap:8px}.pc-sw button{width:28px;height:28px;padding:0!important;border-radius:50%!important;border:2px solid transparent!important;box-shadow:0 0 0 1px rgba(127,127,127,.35);cursor:pointer;transition:transform .2s}.pc-sw button:hover{transform:scale(1.1)}.pc-sw button.on{border-color:var(--bg,#fff)!important;box-shadow:0 0 0 2px var(--fg,#0b0b0c)}
+.pc-cc{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;margin:0!important;font-size:12px;opacity:.85;cursor:pointer}.pc-cc input{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer}
+.sheet.acc{max-width:520px}
 .acc-top{display:flex;align-items:center;gap:16px;margin:4px 0 18px}.acc-top b{display:block;font-size:17px}.acc-top small{opacity:.6}
 .acc-av{position:relative;width:84px;height:84px;border-radius:50%;overflow:hidden;cursor:pointer;flex:none;background:rgba(127,127,127,.15);display:grid;place-items:center}.acc-av b{font-size:30px}
 .acc-av i{position:absolute;inset:auto 0 0;font-style:normal;font-size:10.5px;text-align:center;padding:5px 0;background:rgba(0,0,0,.55);color:#fff;opacity:0;transition:opacity .25s}.acc-av:hover i{opacity:1}
@@ -2404,14 +2431,18 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 <div class="modal" id="setModal" hidden>
   <form class="sheet acc" id="setForm">
     <h2>Mon compte</h2>
-    <div class="acc-top"><label class="acc-av" for="fAvatar" title="Changer la photo"><span id="accAv"></span><i>Changer</i></label><input type="file" id="fAvatar" accept="image/*" hidden>
-      <div><b id="accName"></b><small id="accHandle"></small></div></div>
-    <div class="fields">
-      <label for="fName">Prénom<input id="fName" maxlength="30" autocomplete="given-name"></label>
-      <label for="fHandle">Pseudo<span class="acc-at"><i>@</i><input id="fHandle" maxlength="20" autocomplete="off" spellcheck="false"></span><small class="acc-hint" id="handleHint"></small></label>
-      <label for="fBio" class="acc-wide">Description <em>· facultatif</em><textarea id="fBio" maxlength="200" rows="3" placeholder="Trader XAU/USD, prop firms…"></textarea></label>
-      <label for="fCur">Devise<input id="fCur" maxlength="3"></label>
-    </div>
+    <div class="pcard" id="pcard"><span class="pc-tex"></span><span class="pc-holo"></span>
+      <div class="pc-top"><span class="pc-brand">KaelJournal</span><span class="pc-mem" id="pcMem">MEMBRE</span></div>
+      <label class="pc-chip acc-av" for="fAvatar" title="Changer la photo"><span id="accAv"></span><i>Changer</i></label><input type="file" id="fAvatar" accept="image/*" hidden>
+      <div class="pc-id"><b class="pc-name" id="pcName" title="Double-cliquez pour modifier"></b><span class="pc-handle" id="pcHandle" title="Double-cliquez pour modifier"></span></div>
+      <div class="pc-bot" id="pcBot"></div>
+      <span id="accName" hidden></span><span id="accHandle" hidden></span></div>
+    <p class="pc-help">Double-cliquez sur votre nom ou votre pseudo pour les modifier · touchez la photo pour la changer</p>
+    <small class="acc-hint" id="handleHint"></small>
+    <input id="fName" maxlength="30" hidden><input id="fHandle" maxlength="20" hidden><input id="fCur" hidden>
+    <div class="pc-design"><span class="pc-lab">Couleur de la carte</span><div class="pc-sw" id="pcSw"></div>
+      <label class="pc-cc" title="Couleur personnalisée"><input type="color" id="pcC1"><input type="color" id="pcC2"><span>Personnaliser</span></label></div>
+    <label for="fBio" class="acc-wide pc-bio">Description <em>· facultatif</em><textarea id="fBio" maxlength="200" rows="3" placeholder="Trader XAU/USD, prop firms…"></textarea></label>
     <p class="err" id="setErr" hidden></p>
     <div class="actions">
       <div><button type="button" id="btnOut" onclick="window.sbSignOut && sbSignOut()">Se déconnecter</button></div>
@@ -4438,10 +4469,32 @@ async function checkHandle(){ const h = cleanHandle($("fHandle").value), cur = c
   hint.textContent = "Vérification…"; hint.className = "acc-hint";
   const free = await window.SBP?.isFree(h); if (cleanHandle($("fHandle").value) !== h) return;
   handleOk = free !== false; hint.textContent = free === false ? "@" + h + " est déjà pris." : "@" + h + " est disponible ✓"; hint.className = "acc-hint " + (free === false ? "err" : "ok"); }
+const PC_THEMES = [["Noir", "#2b2c31", "#060607"], ["Graphite", "#646a74", "#1b1d21"], ["Or", "#d8b56c", "#4a3713"], ["Nuit", "#2a4c96", "#060a1a"], ["Émeraude", "#22886a", "#03140e"], ["Bordeaux", "#8a2440", "#16040a"], ["Perle", "#ffffff", "#c9ccd4"]];
+const pcLum = h => { const n = parseInt(String(h).slice(1), 16); return ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) / 255; };
+let pcDraft = null;
+function pcPaint(){ const c = $("pcard"); if (!c) return; const d = pcDraft || state.card || {c1: PC_THEMES[0][1], c2: PC_THEMES[0][2]}; c.style.setProperty("--c1", d.c1); c.style.setProperty("--c2", d.c2); c.classList.toggle("lt", (pcLum(d.c1) + pcLum(d.c2)) / 2 > .55);
+  $("pcName").innerHTML = esc(cleanName($("fName").value) || "Votre prénom") + (state.verified ? VBADGE : ""); $("pcHandle").textContent = "@" + (cleanHandle($("fHandle").value) || "pseudo");
+  $("pcSw").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.c1 === d.c1 && b.dataset.c2 === d.c2)); $("pcC1").value = d.c1; $("pcC2").value = d.c2; }
 function openSettings(){
   $("fName").value = state.name || ""; $("fHandle").value = cleanHandle(state.handle); $("fBio").value = state.bio || ""; $("fCur").value = state.currency;
-  $("handleHint").textContent = ""; handleOk = true; $("setErr").hidden = true; paintAvatar(); $("setModal").hidden = false;
+  $("handleHint").textContent = ""; handleOk = true; $("setErr").hidden = true; pcDraft = state.card ? {...state.card} : null;
+  $("pcSw").innerHTML = PC_THEMES.map(([n, a, b]) => `<button type="button" title="${n}" data-c1="${a}" data-c2="${b}" style="background:linear-gradient(135deg,${a},${b})"></button>`).join("");
+  const all = allTrades(), syms = [...new Set(all.map(t => (t.sym || "").toUpperCase()).filter(Boolean))].slice(0, 3);
+  $("pcBot").innerHTML = `<span><small>Actifs</small>${esc(syms.join(" · ") || (stratCfg().market || "—"))}</span><span><small>Trades</small>${all.length}</span><span class="pc-since"><small>Depuis</small><em id="pcSince">—</em></span>`;
+  paintAvatar(); pcPaint(); $("setModal").hidden = false; const pc = $("pcard"); pc.classList.remove("in"); void pc.offsetWidth; pc.classList.add("in");
+  (async () => { try { const me = await window.SBP?.load(); if (!me || !me.created_at) return; const d = new Date(me.created_at); $("pcSince").textContent = d.toLocaleDateString("fr-FR", {month: "short", year: "numeric"});
+    const r = await SB.cli.from("profiles").select("id", {count: "exact", head: true}).lte("created_at", me.created_at); if (!r.error && r.count) $("pcMem").textContent = "MEMBRE N° " + String(r.count).padStart(4, "0"); } catch (e) {} })();
 }
+/* double-clic sur le nom ou le pseudo : on l'édite directement sur la carte */
+["pcName", "pcHandle"].forEach(id => $(id).addEventListener("dblclick", () => { const el = $(id), isH = id === "pcHandle", src = $(isH ? "fHandle" : "fName");
+  const inp = document.createElement("input"); inp.className = "pc-edit" + (isH ? " h" : ""); inp.value = src.value; inp.maxLength = isH ? 20 : 30; inp.spellcheck = false; el.replaceWith(inp); inp.focus(); inp.select();
+  let fin = false; const done = () => { if (fin || !inp.isConnected) return; fin = true; src.value = isH ? cleanHandle(inp.value) : cleanName(inp.value).trim(); inp.replaceWith(el); pcPaint(); if (isH) { clearTimeout(handleT); checkHandle(); } };
+  inp.addEventListener("input", () => { if (!isH) { const v = cleanName(inp.value); if (v !== inp.value) inp.value = v; } else { const v = inp.value.replace(/^@/, ""); if (v !== inp.value) inp.value = v; } });
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); done(); } if (e.key === "Escape") { e.preventDefault(); inp.value = src.value; done(); } }); inp.addEventListener("blur", done); }));
+$("pcSw").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; pcDraft = {c1: b.dataset.c1, c2: b.dataset.c2}; pcPaint(); const pc = $("pcard"); pc.animate([{filter: "brightness(1.5)"}, {filter: "brightness(1)"}], {duration: 500, easing: "ease-out"}); });
+["pcC1", "pcC2"].forEach(id => $(id).addEventListener("input", () => { pcDraft = {c1: $("pcC1").value, c2: $("pcC2").value}; pcPaint(); }));
+$("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); c.style.setProperty("--rx", ((.5 - y) * 10).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 14).toFixed(2) + "deg"); });
+$("pcard").addEventListener("pointerleave", () => { const c = $("pcard"); c.classList.remove("hov"); c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); });
 $("btnSettings").onclick = openSettings;
 $("setCancel").onclick = () => { $("setModal").hidden = true; };
 $("fName").addEventListener("input", e => { const v = cleanName(e.target.value); if (v !== e.target.value) e.target.value = v; });
@@ -4453,7 +4506,7 @@ $("setForm").addEventListener("submit", async e => {
   e.preventDefault(); await checkHandle(); if (!handleOk) return;
   const prof = {first_name: cleanName($("fName").value).trim(), handle: cleanHandle($("fHandle").value), bio: $("fBio").value.trim()};
   try { if (window.SBP) await window.SBP.saveProfile(prof); } catch (er) { $("setErr").textContent = /duplicate|23505/.test(er.message + er.code) ? "Ce pseudo vient d'être pris, choisissez-en un autre." : "Enregistrement impossible : " + er.message; $("setErr").hidden = false; return; }
-  Object.assign(state, {name: prof.first_name, handle: "@" + prof.handle, bio: prof.bio, currency: $("fCur").value.trim() || "€"});
+  Object.assign(state, {name: prof.first_name, handle: "@" + prof.handle, bio: prof.bio, currency: $("fCur").value.trim() || state.currency || "€"}); if (pcDraft) state.card = {...pcDraft};
   save(); renderDash(); paintAvatar(); $("setModal").hidden = true;
 });
 /* rognage de la photo : glisser pour placer, molette / curseur pour zoomer */
@@ -7803,7 +7856,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-159";
+const APP_VERSION = "2026-10-30-160";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
