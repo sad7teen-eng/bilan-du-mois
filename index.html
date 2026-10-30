@@ -4972,9 +4972,9 @@ function curveFull(L, from){ const days = dailySeries(L); if (!days || !days.len
 /* niveau global du trader : débutant → élite, à partir de toutes les stats */
 function traderLevel(s){ const wr = s.wr || 0, aw = s.avgW || 0, ratio = s.avgL ? aw / s.avgL : (aw ? 9 : 0), net = s.net || 0;
   const L = [{n: "Trader débutant", ic: "◇", ok: true},
-    {n: "Trader intermédiaire", ic: "◆", ok: wr >= 40 && ratio >= 1 && net > 0, need: [[wr >= 40, "40 % de réussite"], [ratio >= 1, "des gains plus gros que les pertes"], [net > 0, "un résultat positif"]]},
-    {n: "Trader avancé", ic: "★", ok: wr >= 45 && ratio >= 1.3 && aw >= 2000 && net > 0, need: [[wr >= 45, "45 % de réussite"], [ratio >= 1.3, "un ratio gain / perte de 1,3"], [aw >= 2000, "un gain moyen de 2 000 " + cur()]]},
-    {n: "Trader élite", ic: "✦", ok: wr >= 50 && ratio >= 1.5 && aw >= 10000 && net > 0, need: [[wr >= 50, "50 % de réussite"], [ratio >= 1.5, "un ratio gain / perte de 1,5"], [aw >= 10000, "un gain moyen de 10 000 " + cur()]]}];
+    {n: "Trader intermédiaire", ic: "◆", ok: wr >= 50 && net > 0, need: [[wr >= 50, "50 % de réussite"], [net > 0, "un résultat positif"]]},
+    {n: "Trader avancé", ic: "★", ok: wr >= 60 && ratio >= 1.3 && aw >= 2000 && net > 0, need: [[wr >= 60, "60 % de réussite"], [ratio >= 1.3, "un ratio gain / perte de 1,3"], [aw >= 2000, "un gain moyen de 2 000 " + cur()]]},
+    {n: "Trader élite", ic: "✦", ok: wr >= 70 && ratio >= 1.5 && aw >= 10000 && net > 0, need: [[wr >= 70, "70 % de réussite"], [ratio >= 1.5, "un ratio gain / perte de 1,5"], [aw >= 10000, "un gain moyen de 10 000 " + cur()]]}];
   let k = 0; for (let i = 1; i < L.length; i++) { if (L[i].ok) k = i; else break; } if (!s.n) k = 0;
   const nx = L[k + 1], miss = nx ? nx.need.filter(x => !x[0]).map(x => x[1]) : [];
   return {k, name: L[k].n, ic: L[k].ic, next: nx ? nx.n : null, miss}; }
@@ -7722,7 +7722,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-154";
+const APP_VERSION = "2026-10-30-155";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
