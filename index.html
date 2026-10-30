@@ -2109,7 +2109,7 @@ body.incerts,body.incerts *{cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22h
 .ag-mail{display:flex;gap:8px}.ag-mail input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid #2a2a2a;background:#0e0e10;color:#fff;font:inherit;font-size:14px}.ag-mail input:focus{outline:none;border-color:#555}
 .ag-send{padding:12px 14px;border-radius:12px;border:1px solid #333;background:#151517;color:#eee;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.ag-send:hover{border-color:#666}
 .ag-msg{margin:4px 0 0;font-size:13px;color:#9aa}.ag-msg.err{color:#e5484d}
-.vbadge{width:.95em;height:.95em;vertical-align:-.12em;margin-left:.3em;display:inline-block;flex:none}
+.vbadge{width:.9em;height:.9em;vertical-align:-.1em;margin-left:.32em;display:inline-block;flex:none;overflow:visible}.vb-s{fill:#0b0b0c}.vb-c{stroke:#fff}body:not(.light) .vb-s,body.incerts .vb-s,body.instrat .vb-s,.cz .vb-s,.story .vb-s{fill:#f4f4f6;filter:drop-shadow(0 0 6px rgba(255,255,255,.35))}body:not(.light) .vb-c,body.incerts .vb-c,body.instrat .vb-c,.cz .vb-c,.story .vb-c{stroke:#0b0b0c}
 .tn-help{width:34px;height:34px;padding:0!important;border-radius:50%!important;font-weight:600;font-size:14px!important;display:grid;place-items:center}
 .tn-av{width:34px;height:34px;padding:0!important;border-radius:50%!important;overflow:hidden;display:grid;place-items:center}
 .tn-av span,.acc-av span{width:100%;height:100%;display:grid;place-items:center}.tn-av img,.acc-av img{width:100%;height:100%;object-fit:cover;display:block}.tn-av b{font-size:14px}
@@ -4223,7 +4223,7 @@ $("addRow").onclick = () => { startNew(); drawDay(); };
 $("dayClose").onclick = () => { $("dayModal").hidden = true; editId = null; edit = null; if (state.trades.some(t => t.day === dayOpen)) openJournal(dayOpen); };
 
 /* ---------- Mon compte ---------- */
-const VBADGE = '<svg class="vbadge" viewBox="0 0 24 24" aria-label="Compte certifié"><path fill="#1d9bf0" d="M12 1.5l2.6 1.9 3.2-.2 1 3.1 2.6 1.9-1 3.1 1 3.1-2.6 1.9-1 3.1-3.2-.2L12 22.5l-2.6-1.9-3.2.2-1-3.1L2.6 15.8l1-3.1-1-3.1 2.6-1.9 1-3.1 3.2.2z"/><path d="M7.6 12.3l3 3 5.8-6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>', vb = () => state.verified ? VBADGE : "", cleanName = v => String(v || "").replace(/[^\p{L}\p{M} '’-]/gu, "").replace(/\s+/g, " ").trimStart().slice(0, 30);
+const VBADGE = '<svg class="vbadge" viewBox="0 0 24 24" aria-label="Compte certifié"><path class="vb-s" d="M13.78 2.20Q15.56 3.41 17.67 3.81Q19.78 4.22 20.19 6.33Q20.59 8.44 21.80 10.22Q23.00 12.00 21.80 13.78Q20.59 15.56 20.19 17.67Q19.78 19.78 17.67 20.19Q15.56 20.59 13.78 21.80Q12.00 23.00 10.22 21.80Q8.44 20.59 6.33 20.19Q4.22 19.78 3.81 17.67Q3.41 15.56 2.20 13.78Q1.00 12.00 2.20 10.22Q3.41 8.44 3.81 6.33Q4.22 4.22 6.33 3.81Q8.44 3.41 10.22 2.20Q12.00 1.00 13.78 2.20Z"/><path class="vb-c" d="M7.7 12.2l2.9 2.9 5.7-5.9" fill="none" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>', vb = () => state.verified ? VBADGE : "", cleanName = v => String(v || "").replace(/[^\p{L}\p{M} '’-]/gu, "").replace(/\s+/g, " ").trimStart().slice(0, 30);
 const HANDLE_RE = /^[a-z0-9_.]{3,20}$/, cleanHandle = v => String(v || "").trim().replace(/^@+/, "").toLowerCase().replace(/[^a-z0-9_.]/g, "");
 function avatarHTML(){ const n = (state.name || state.handle || "?").replace(/^@/, ""); return state.avatar ? `<img src="${esc(state.avatar)}" alt="">` : `<b>${esc(n.charAt(0).toUpperCase() || "?")}</b>`; }
 function paintAvatar(){ ["tnAv", "accAv"].forEach(id => { const e = $(id); if (e) e.innerHTML = avatarHTML(); }); if ($("accName")) { $("accName").innerHTML = esc(state.name || "Mon compte") + vb(); $("accHandle").textContent = state.handle || ""; } }
@@ -7178,8 +7178,8 @@ function drawTradeCard(ctx, W, H, t, cv, p){
   const bx = fx + bw + 40 * u + nw + 22 * u; ctx.beginPath(); ctx.arc(bx, fy, 13 * u, 0, 7); ctx.fillStyle = "#2ea060"; ctx.fill();
   ctx.strokeStyle = "#fff"; ctx.lineWidth = 3 * u; ctx.beginPath(); ctx.moveTo(bx - 6 * u, fy); ctx.lineTo(bx - 1.5 * u, fy + 5 * u); ctx.lineTo(bx + 6.5 * u, fy - 5 * u); ctx.stroke();
   if (state.handle) { ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = `500 ${22 * u}px ${F}`; ctx.fillText(state.handle, W / 2, fy + 40 * u);
-    if (state.verified) { const tw = ctx.measureText(state.handle).width, bx = W / 2 + tw / 2 + 16 * u, by = fy + 32 * u, r = 10 * u; ctx.save(); ctx.fillStyle = "#1d9bf0"; ctx.beginPath(); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, rr = i % 2 ? r * .86 : r; ctx.lineTo(bx + Math.cos(a) * rr, by + Math.sin(a) * rr); } ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.2 * u; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(bx - 4.4 * u, by + .3 * u); ctx.lineTo(bx - 1.3 * u, by + 3.3 * u); ctx.lineTo(bx + 4.6 * u, by - 3 * u); ctx.stroke(); ctx.restore(); } }
+    if (state.verified) { const tw = ctx.measureText(state.handle).width, bx = W / 2 + tw / 2 + 16 * u, by = fy + 32 * u, r = 10 * u; ctx.save(); ctx.fillStyle = "#f4f4f6"; ctx.shadowColor = "rgba(255,255,255,.4)"; ctx.shadowBlur = 8 * u; ctx.beginPath(); for (let i = 0; i <= 16; i++) { const a = i / 16 * Math.PI * 2 - Math.PI / 2, a2 = (i + .5) / 16 * Math.PI * 2 - Math.PI / 2, rr = i % 2 ? r * .85 : r; if (!i) ctx.moveTo(bx + Math.cos(a) * rr, by + Math.sin(a) * rr); else ctx.quadraticCurveTo(bx + Math.cos(a) * rr * 1.02, by + Math.sin(a) * rr * 1.02, bx + Math.cos(a2) * r * .93, by + Math.sin(a2) * r * .93); } ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+      ctx.strokeStyle = "#0b0b0c"; ctx.lineWidth = 2.2 * u; ctx.lineCap = ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(bx - 4.4 * u, by + .3 * u); ctx.lineTo(bx - 1.3 * u, by + 3.3 * u); ctx.lineTo(bx + 4.6 * u, by - 3 * u); ctx.stroke(); ctx.restore(); } }
 }
 function tcDraw(i, p){
   const c = document.querySelector(`#tcStrip canvas[data-i="${i}"]`), t = tcList[i]; if (!c || !t) return;
@@ -7359,7 +7359,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-128";
+const APP_VERSION = "2026-10-30-129";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
