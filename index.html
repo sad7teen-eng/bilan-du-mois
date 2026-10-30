@@ -2728,7 +2728,7 @@ $("days").addEventListener("click", e => {
   const y = +c.dataset.y, m = +c.dataset.m;
   if (y !== state.year || m !== state.month) goMonth(y, m, true);
   const d = +c.dataset.day;
-  if (state.trades.some(t => t.day === d)) openJournal(d); else openDay(d);
+  if (state.trades.some(t => t.day === d)) openJournal(d); else askPnl(v => openDay(d).then(() => { startNew(); edit.pnl = String(v).replace(".", ","); drawDay(); }));
 });
 $("btnMonth").onclick = () => { monthOpen = !monthOpen; renderDash(); };
 $("prevW").onclick = () => { if (monthOpen) return shiftMonth(-1); weekStart.setDate(weekStart.getDate() - 7); syncMonthToWeek(); };
@@ -7572,7 +7572,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-147";
+const APP_VERSION = "2026-10-30-148";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
