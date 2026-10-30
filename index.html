@@ -698,7 +698,23 @@ body:not(.light) .scn{color:#fff;text-shadow:0 0 22px rgba(255,255,255,.3)}
 .radar .ax{stroke:var(--line)}
 .radar .shape{fill:var(--fg);fill-opacity:.12;stroke:var(--fg);stroke-width:1.5;stroke-linejoin:round}
 .radar .vtx{fill:var(--fg);transition:r .25s,opacity .25s}.radar text{transition:fill .25s,font-weight .25s}
-.rwrap{position:relative}.radar .rhit{cursor:help}.radar .rhit line{stroke:transparent;stroke-width:18}.radar .rhit circle{fill:transparent}
+.rwrap{position:relative}
+[data-pop]{cursor:pointer;transition:transform .35s cubic-bezier(.2,.8,.2,1)}[data-pop]:active{transform:scale(.985)}
+.sp{--fg:#0b0b0c;--muted:#6b6f76;--line:rgba(11,11,12,.09);--bg:#fff;color:var(--fg);position:fixed;inset:0;z-index:75;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .35s,backdrop-filter .35s;-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}
+.sp.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sp-card{position:relative;width:min(380px,calc(100% - 32px));padding:22px 22px 20px;border-radius:22px;background:var(--panel-solid,#fff);color:var(--fg);border:1px solid var(--line);box-shadow:0 40px 100px rgba(16,18,24,.28);display:flex;flex-direction:column;gap:10px}
+body:not(.light) .sp{--fg:#f2f2f2;--muted:#8b8b8b;--line:rgba(255,255,255,.1);--bg:#121214}body:not(.light) .sp-card{background:#121214}
+.sp .rwrap{width:100%;margin:6px auto 0}.sp .rtip{position:relative;inset:auto!important;width:auto!important;transform:none!important;min-height:112px;margin-bottom:6px;box-shadow:none}.sp .radar{width:min(300px,100%)}.sp-curve .cv{margin-top:46px}.sp .radar{max-width:none}
+.sp-card.wide{width:min(900px,calc(100% - 32px))}
+.sp-card > small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.sp-big{font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}.sp-of{font-size:16px;color:var(--muted);font-weight:400;margin-left:4px}
+.sp-rank{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--fg) 6%,transparent);font-size:12.5px;line-height:1.35;animation:spIn .6s .15s cubic-bezier(.2,.8,.2,1) both}
+.sp-rank i{font-style:normal;font-size:14px}.sp-rank.r3{background:linear-gradient(90deg,rgba(0,180,255,.14),rgba(0,180,255,.04));}.sp-rank.r3 i,.sp-rank.r2 i{color:#00a6ec}
+.sp-kv{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line);animation:spIn .5s cubic-bezier(.2,.8,.2,1) both}.sp-kv:nth-of-type(2){animation-delay:.05s}.sp-kv:nth-of-type(3){animation-delay:.1s}
+.sp-kv span{color:var(--muted)}.sp-card p{margin:4px 0 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+.sp-x{position:absolute;top:12px;right:12px;width:28px;height:28px;padding:0!important;border-radius:50%!important;font-size:12px!important;min-height:0!important}
+.sp-curve .cv{height:min(52vh,420px)}
+@keyframes spIn{from{opacity:0;transform:translateY(6px)}}.radar .rhit{cursor:help}.radar .rhit line{stroke:transparent;stroke-width:18}.radar .rhit circle{fill:transparent}
 .rwrap.hov .radar .vtx{opacity:.35}.radar .vtx.on{opacity:1!important;r:4.5px}.radar text.on{fill:var(--fg);font-weight:600}
 .rwrap.hov .radar .shape{fill-opacity:.07}
 .rtip{position:absolute;left:0;right:0;bottom:-6px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--bg,#fff) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 16px 40px rgba(16,18,24,.14);font-size:12px;line-height:1.45;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .35s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:3}
@@ -4816,13 +4832,47 @@ function radarText(k, s, v){
     {t: "Discipline", how: `${pc} % de vos pertes sont restées à 1 R ou moins (SL respecté).`, tip: pc >= 90 ? "Vous respectez vos stops, continuez." : "Ne déplacez jamais votre SL : une perte doit rester à 1 R."},
     {t: "Régularité", how: `${pc} % de vos jours de trading finissent dans le vert.`, tip: pc >= 70 ? "Belle constance d'un jour à l'autre." : "Arrêtez la journée après une perte, et ne cherchez pas à vous refaire."}][k];
 }
-function bindRadar(s, sc){ const w = $("radarW"), tip = $("radarTip"); if (!w) return; let cur = -1;
+function bindRadar(s, sc, w, tip){ if (!w) return; let cur = -1;
   const show = k => { if (k === cur) return; cur = k; w.querySelectorAll("[data-k]").forEach(e => e.classList.toggle("on", +e.dataset.k === k)); w.classList.toggle("hov", k >= 0);
-    if (k < 0) { tip.classList.remove("in"); return; } const v = sc.ax[k], d = radarText(k, s, v);
+    if (k < 0) { if (!tip.closest(".sp")) tip.classList.remove("in"); return; } const v = sc.ax[k], d = radarText(k, s, v);
     tip.innerHTML = `<div class="rt-h"><b>${d.t}</b><span>${Math.round(v * 100)}<small>/100</small></span></div><div class="rt-bar"><i style="width:${Math.round(v * 100)}%"></i></div><p>${d.how}</p>${d.tip ? `<p class="rt-tip">→ ${d.tip}</p>` : ""}`;
     tip.dataset.side = k === 0 ? "b" : k <= 2 ? "l" : "r"; tip.hidden = false; tip.classList.remove("in"); void tip.offsetWidth; tip.classList.add("in"); };
   w.addEventListener("pointerover", e => { const g = e.target.closest(".rhit"); if (g) show(+g.dataset.k); });
   w.addEventListener("pointerleave", () => show(-1)); }
+/* ===== Fenêtres de détail du Tableau (taux de réussite, R, gains, courbe, score) ===== */
+let boardPop = null;
+function spOpen(kind, from){ if (!boardPop) return; const {s, sc, L} = boardPop, fr = (x, d = 2) => frN(x, d);
+  const lvl = (v, a, b, c) => v >= c ? 3 : v >= b ? 2 : v >= a ? 1 : 0, badge = (k, t) => `<div class="sp-rank r${k}"><i>${["◇", "◆", "★", "✦"][k]}</i>${t}</div>`;
+  let h = "";
+  if (kind === "wr") { const v = s.wr, k = lvl(v, 45, 55, 65);
+    h = `<small>Taux de réussite</small><div class="sp-big">${fr(v, 1)}\u00a0%</div>${badge(k, ["Dans la moyenne, la plupart des traders sont entre 40 et 50 %", "Au-dessus de la moyenne des traders particuliers", "Nettement au-dessus de la plupart des traders", "Niveau d'élite : très peu de traders tiennent ce taux"][k])}
+      <div class="sp-kv"><span>Gagnants</span><b>${s.wins}</b></div><div class="sp-kv"><span>Perdants</span><b>${s.losses}</b></div><div class="sp-kv"><span>Total</span><b>${s.n}</b></div>
+      <p>${k >= 2 ? "Votre sélection de setups est solide : continuez à ne prendre que les A+." : "Pour monter : moins de trades, uniquement ceux qui cochent toute votre checklist."}</p>`; }
+  if (kind === "rr") { const v = s.avgR, k = v == null ? 0 : lvl(v, 1.5, 2, 2.5), pf = s.pf === Infinity ? "∞" : fr(s.pf);
+    h = `<small>RR moyen gagnant</small><div class="sp-big">${v == null ? "—" : fr(v) + " R"}</div>${badge(k, v == null ? "Renseignez le R de vos trades pour le voir" : ["Beaucoup de traders sortent sous 1,5 R", "Au-dessus de la moyenne, la plupart sortent entre 1 et 1,5 R", "Très bon ratio : vos gagnants payent largement vos pertes", "Niveau d'élite : vos gagnants valent plus de 2,5 fois votre risque"][k])}
+      <div class="sp-kv"><span>Profit factor</span><b>${pf}</b></div><div class="sp-kv"><span>Discipline (pertes ≤ 1 R)</span><b>${Math.round(s.disc * 100)} %</b></div>
+      <p>${k >= 2 ? "Vous laissez courir vos gagnants : gardez vos TP sur la liquidité." : "Visez 2 à 3 R minimum et évitez de couper vos gagnants trop tôt."}</p>`; }
+  if (kind === "avg") { const ratio = s.avgL ? s.avgW / s.avgL : null, k = ratio == null ? 3 : lvl(ratio, 1, 1.8, 2.5);
+    h = `<small>Gain moyen / perte moyenne</small><div class="sp-big mv">${frN(Math.round(s.avgW), 0)}\u00a0${cur()}</div>${badge(k, ratio == null ? "Aucune perte pour l'instant" : ["Vos pertes pèsent autant que vos gains", "Vos gains dépassent vos pertes", "Vos gains valent près du double de vos pertes", "Gestion d'élite : vos gains écrasent vos pertes"][k])}
+      <div class="sp-kv"><span>Perte moyenne</span><b class="mv">${frN(Math.round(s.avgL), 0)}\u00a0${cur()}</b></div><div class="sp-kv"><span>Ratio gain / perte</span><b>${ratio == null ? "∞" : fr(ratio)}</b></div><div class="sp-kv"><span>Résultat net</span><b class="mv">${bigMoney(s.net)}</b></div>
+      <p>${k >= 2 ? "Votre gestion est propre : petites pertes, gros gains." : "Coupez plus tôt les trades qui ne partent pas, et laissez respirer les gagnants."}</p>`; }
+  if (kind === "curve") h = `<small>P&amp;L cumulé · cliquez un point pour ouvrir le trade</small><div class="sp-curve">${curveHTML(L).replace('id="cv"', 'id="cvZ"').replace('id="cvPlot"', 'id="cvPlotZ"')}</div>`;
+  if (kind === "score") h = `<small>Score · survolez un axe</small><div class="sp-big">${sc.v}<span class="sp-of">/100</span></div><div class="rwrap" id="radarWZ"><div class="rtip in" id="radarTipZ"><p>Survolez un axe pour voir comment il est calculé et comment progresser.</p></div>${radarSVG(sc.ax)}</div>`;
+  if (!h) return;
+  const ov = document.createElement("div"); ov.className = "sp"; ov.innerHTML = `<div class="sp-card${kind === "curve" ? " wide" : ""}"><button type="button" class="sp-x" aria-label="Fermer">✕</button>${h}</div>`;
+  document.body.appendChild(ov); const card = ov.querySelector(".sp-card");
+  if (kind === "score") bindRadar(s, sc, $("radarWZ"), $("radarTipZ"));
+  if (kind === "curve") { const pl = $("cvPlotZ"), days = dailySeries(L); if (pl) { const oid = pl.id; pl.id = "cvPlot"; const old = document.querySelector("#row3 #cvPlot"); if (old) old.id = "cvPlotO"; bindCurve(L); pl.id = oid; if (old) old.id = "cvPlot";
+      pl.style.cursor = "pointer"; pl.addEventListener("click", e => { const r = pl.getBoundingClientRect(), n = days.length, i = Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left) / r.width * (n - 1)))), k = dkey(days[i].d);
+        const tr = L.filter(t => dkey(t.at) === k).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))[0]; if (!tr) return; close();
+        if (!tcList.length) tcList = tcTrades(); const ix = tcList.findIndex(x => x.id === tr.id); setTimeout(() => ix >= 0 ? tcZoom(ix) : (goMonth(tr.y, tr.m), openDay(tr.day)), 280); }); } }
+  if (from && !matchMedia("(prefers-reduced-motion: reduce)").matches) { const a = from.getBoundingClientRect(), b = card.getBoundingClientRect();
+    card.animate([{transform: `translate(${a.left + a.width / 2 - (b.left + b.width / 2)}px,${a.top + a.height / 2 - (b.top + b.height / 2)}px) scale(${Math.min(a.width / b.width, a.height / b.height)})`, opacity: .4}, {transform: "none", opacity: 1}], {duration: 480, easing: "cubic-bezier(.2,.8,.2,1)"}); }
+  requestAnimationFrame(() => ov.classList.add("on"));
+  const close = () => { ov.classList.remove("on"); card.animate([{transform: "none", opacity: 1}, {transform: "scale(.94)", opacity: 0}], {duration: 220, easing: "ease-in", fill: "forwards"}); setTimeout(() => ov.remove(), 230); removeEventListener("keydown", esc2); };
+  const esc2 = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc2);
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".sp-x")) close(); }); }
+document.addEventListener("click", e => { const t = e.target.closest("[data-pop]"); if (!t || e.target.closest(".info,button,a,.cv-plot")) return; spOpen(t.dataset.pop, t); });
 function radarSVG(ax){
   const C = [110, 98], R = 66, n = ax.length, lab = ["Réussite", "Profit factor", "R moyen", "Discipline", "Régularité"];
   const P = (k, f) => { const a = -Math.PI / 2 + k / n * 2 * Math.PI; return [C[0] + Math.cos(a) * R * f, C[1] + Math.sin(a) * R * f]; };
@@ -4859,9 +4909,9 @@ function renderBoard(){
 
   const pfTxt = s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ",");
   $("perf").innerHTML = `
-    <div class="tile pc"><div class="pl">Taux de réussite ${info("Taux de réussite", "Gagnants sur trades gagnants + perdants")}</div><div class="pv">${s.wr.toFixed(1).replace(".", ",")}\u00a0%</div><div class="pf"><span>${s.n} trade${pl(s.n)}</span>${has30 ? trend(s.wr - b.wr, "%", 1) : ""}</div></div>
-    <div class="tile pc"><div class="pl">RR moyen gagnant ${info("RR moyen gagnant", "Moyenne des R de tes trades gagnants")}</div><div class="pv">${s.avgR == null ? "—" : s.avgR.toFixed(2).replace(".", ",") + "R"}</div><div class="pf"><span>Profit factor ${pfTxt}</span>${has30 && s.avgR != null && b.avgR != null ? trend(s.avgR - b.avgR, "R", 2) : ""}</div></div>
-    <div class="tile pc"><div class="pl">Gain moy. / perte moy. ${info("Gain moyen / perte moyenne", s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte")}</div><div class="pv mv">${frN(Math.round(s.avgW), 0)}\u00a0${cur()}</div><div class="pf"><span>Perte moy. : <b class="mv">${frN(Math.round(s.avgL), 0)}\u00a0${cur()}</b></span>${s.avgL ? `<span class="trend">× ${(s.avgW / s.avgL).toFixed(2).replace(".", ",")}</span>` : ""}</div></div>`;
+    <div class="tile pc" data-pop="wr"><div class="pl">Taux de réussite ${info("Taux de réussite", "Gagnants sur trades gagnants + perdants")}</div><div class="pv">${s.wr.toFixed(1).replace(".", ",")}\u00a0%</div><div class="pf"><span>${s.n} trade${pl(s.n)}</span>${has30 ? trend(s.wr - b.wr, "%", 1) : ""}</div></div>
+    <div class="tile pc" data-pop="rr"><div class="pl">RR moyen gagnant ${info("RR moyen gagnant", "Moyenne des R de tes trades gagnants")}</div><div class="pv">${s.avgR == null ? "—" : s.avgR.toFixed(2).replace(".", ",") + "R"}</div><div class="pf"><span>Profit factor ${pfTxt}</span>${has30 && s.avgR != null && b.avgR != null ? trend(s.avgR - b.avgR, "R", 2) : ""}</div></div>
+    <div class="tile pc" data-pop="avg"><div class="pl">Gain moy. / perte moy. ${info("Gain moyen / perte moyenne", s.avgL ? "Ratio " + (s.avgW / s.avgL).toFixed(2) : "Aucune perte")}</div><div class="pv mv">${frN(Math.round(s.avgW), 0)}\u00a0${cur()}</div><div class="pf"><span>Perte moy. : <b class="mv">${frN(Math.round(s.avgL), 0)}\u00a0${cur()}</b></span>${s.avgL ? `<span class="trend">× ${(s.avgW / s.avgL).toFixed(2).replace(".", ",")}</span>` : ""}</div></div>`;
 
   const mon = mondayOf(now), wT = all.filter(t => t.at >= mon), ws = bstats(wT);
   const dayP = [0, 1, 2, 3, 4].map(i => { const d = new Date(mon); d.setDate(d.getDate() + i); const k = dkey(d); return {k, p: sumP(wT.filter(t => dkey(t.at) === k)), today: k === dkey(now)}; });
@@ -4869,14 +4919,14 @@ function renderBoard(){
   const sc = (() => { const ax = [s.wr / 100, s.pf === Infinity ? 1 : Math.min(1, s.pf / 3), s.avgR == null ? 0 : Math.max(0, Math.min(1, s.avgR / 3)), s.disc, s.green]; return {ax, v: s.n ? Math.round(ax.reduce((a, x) => a + x, 0) / ax.length * 100) : 0}; })();
   const anim = boardDrawn || reduced ? "" : " anim";
   $("row3").innerHTML = `
-    <div class="tile c3"><div class="c3h"><span class="lab2">P&amp;L cumulé<em>${scope === "month" ? esc(monthName()) : "depuis le début"}</em></span><b class="mv${s.net < 0 ? " r" : ""}">${bigMoney(s.net)}</b></div>${curveHTML(L)}</div>
+    <div class="tile c3" data-pop="curve"><div class="c3h"><span class="lab2">P&amp;L cumulé<em>${scope === "month" ? esc(monthName()) : "depuis le début"}</em></span><b class="mv${s.net < 0 ? " r" : ""}">${bigMoney(s.net)}</b></div>${curveHTML(L)}</div>
     <div class="tile c3${anim}"><div class="c3h"><span class="lab2">Cette semaine</span><small>${mon.getDate()} ${MON3[mon.getMonth()]} → aujourd'hui</small></div>
       <div class="wkv mv${ws.net < 0 ? " r" : ""}">${bigMoney(ws.net)}</div>
       <div class="kv"><span>Trades</span><b>${ws.n}</b></div><div class="kv"><span>Taux de réussite</span><b>${ws.wins + ws.losses ? Math.round(ws.wr) + "%" : "—"}</b></div>
       <div class="wbars">${dayP.map((x, i) => `<div class="${x.today ? "today" : ""}" data-tip-t="${["Lundi","Mardi","Mercredi","Jeudi","Vendredi"][i]}" data-tip="${x.p ? money(x.p) : "Aucun trade"}"><i class="${x.p < 0 ? "dn" : x.p ? "" : "z"}" style="height:${x.p ? Math.max(6, Math.abs(x.p) / mx * 100) : 4}%"></i>${"LMMJV"[i]}</div>`).join("")}</div></div>
-    <div class="tile c3${anim}"><div class="c3h"><span class="lab2">Score ${info("Score", "Moyenne de 5 axes : réussite, profit factor, R moyen, discipline (pertes ≤ 1R), régularité (jours verts)")}</span><span class="scn">${sc.v}</span></div>
-      <small style="font-size:11px;color:var(--muted);margin-top:-6px">Sur ${s.n} trade${pl(s.n)}</small><div class="rwrap" id="radarW">${radarSVG(sc.ax)}<div class="rtip" id="radarTip" hidden></div></div></div>`;
-  bindCurve(L); bindRadar(s, sc);
+    <div class="tile c3${anim}" data-pop="score"><div class="c3h"><span class="lab2">Score ${info("Score", "Moyenne de 5 axes : réussite, profit factor, R moyen, discipline (pertes ≤ 1R), régularité (jours verts)")}</span><span class="scn">${sc.v}</span></div>
+      <small style="font-size:11px;color:var(--muted);margin-top:-6px">Sur ${s.n} trade${pl(s.n)}</small>${radarSVG(sc.ax)}</div>`;
+  bindCurve(L); boardPop = {s, sc, L};
 
   /* Session du jour + trades récents */
   const p = plan(), wk0 = (() => { const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d; })(), today = all.filter(t => t.at >= wk0 && t.at - wk0 < 7 * 864e5), ts = bstats(today), rk = p.rules[dkey(now)];
@@ -7412,7 +7462,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-139";
+const APP_VERSION = "2026-10-30-140";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
