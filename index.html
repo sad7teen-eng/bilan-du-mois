@@ -2258,7 +2258,7 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pc-holo{position:absolute;inset:-20%;opacity:.22;mix-blend-mode:color-dodge;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(90,190,255,.55) 40%,rgba(200,120,255,.5) 46%,rgba(255,140,190,.45) 52%,rgba(255,225,140,.5) 58%,transparent 68%);background-size:220% 220%;background-position:var(--mx) var(--my);animation:bcIdle 9s ease-in-out infinite alternate}
 .pcard.hov .pc-holo{opacity:.4;animation:none}
 .pc-top{position:absolute;left:7%;right:7%;top:9%;display:flex;justify-content:space-between;align-items:baseline}
-.pc-brand{font-size:clamp(11px,3cqi,15px);font-weight:700;letter-spacing:-.01em}.pc-mem{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,2cqi,11px);letter-spacing:.22em;color:var(--sub)}.pc-mem.fd{color:var(--ink);font-weight:600;padding:4px 10px;border:1px solid currentColor;border-radius:99px;letter-spacing:.26em}
+.pc-brand{font-size:clamp(11px,3cqi,15px);font-weight:700;letter-spacing:-.01em}.pc-mem{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,2cqi,11px);letter-spacing:.22em;color:var(--sub)}.pc-mem{text-shadow:0 1px 0 rgba(0,0,0,.7),0 -1px 0 rgba(255,255,255,.12)}.pcard.lt .pc-mem{text-shadow:0 1px 0 rgba(255,255,255,.7),0 -1px 0 rgba(0,0,0,.15)}
 .pc-chip.acc-av{position:absolute;left:7%;top:24%;width:17%;height:auto;aspect-ratio:1;border-radius:50%!important;box-shadow:0 0 0 2px rgba(255,255,255,.6),0 0 0 4px rgba(0,0,0,.18),0 8px 18px rgba(0,0,0,.35);background:linear-gradient(135deg,#efefef,#9a9da3 45%,#e1e2e5 60%,#7f8288)}
 .pc-chip.acc-av b{font-size:clamp(14px,5cqi,26px);color:#222}
 .pc-id{position:absolute;left:7%;right:7%;top:55%;display:flex;flex-direction:column;gap:4px}
@@ -7857,7 +7857,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-161";
+const APP_VERSION = "2026-10-30-162";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
