@@ -4662,6 +4662,7 @@ window.BSync = (() => {
   return {soon, run, reset: () => { loadMeta(); }};
 })();
 /* ===== Profils : prénom, @pseudo unique, photo, description ===== */
+const KEEP_EMAILS = ["sad7teen@gmail.com", "lp7.ecom@gmail.com"];
 const mkSBP = () => ({
   async load(){ const r = await SB.cli.from("profiles").select("*").eq("id", SB.uid).maybeSingle(); if (r.error) throw r.error; return r.data; },
   async isFree(h){ try { const r = await SB.cli.from("profiles").select("id").eq("handle", h).neq("id", SB.uid || "").limit(1); if (r.error) return null; return !r.data.length; } catch(e) { return null; } },
@@ -4687,12 +4688,15 @@ const mkSBP = () => ({
   async function enter(u, greet){ if (!window.SBP) window.SBP = mkSBP();
     if (inside === u.id) return; inside = u.id; SB.user = u;
     let prev = null; try { prev = localStorage.getItem("bdm-uid"); } catch(e) {}
-    const own = String(u.email || "").toLowerCase() === "sad7teen@gmail.com";
-    /* premier compte connecté sur cet appareil : les données déjà présentes ne lui appartiennent que si c'est le propriétaire */
-    if (!prev && !own) { let had = false; try { had = !!localStorage.getItem(KEY); } catch(e) {}
-      if (had) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); ["bdm-owner", "cap-gh-token", "bdm-s1-kael"].forEach(k => localStorage.removeItem(k)); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; } }
+    const em = String(u.email || "").toLowerCase(), own = KEEP_EMAILS.includes(em);
+    /* tous les comptes hors liste démarrent à zéro, même si l'appareil avait déjà servi (nettoyage fait une seule fois par compte) */
+    if (!own) { let had = false, done = false; try { had = !!localStorage.getItem(KEY); done = localStorage.getItem("bdm-clean:" + u.id) === "1"; localStorage.setItem("bdm-clean:" + u.id, "1"); } catch(e) {}
+      /* si mes données (trades MT5, certificats Alpha) ont été copiées dans ce compte, on les retire aussi en ligne */
+      try { const r = await SB.cli.from("journals").select("data").eq("user_id", u.id).maybeSingle(); const txt = r.data ? JSON.stringify(r.data.data) : "";
+        if (/mt5-2026|seed-cert-alpha/.test(txt)) { await SB.cli.from("journals").delete().eq("user_id", u.id); const ls = await SB.cli.storage.from("certs").list(u.id, {limit: 1000}); if (ls.data && ls.data.length) await SB.cli.storage.from("certs").remove(ls.data.map(f => u.id + "/" + f.name)); had = true; done = false; } } catch(e) {}
+      if (had && (!prev || !done)) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); ["bdm-owner", "cap-gh-token", "bdm-s1-kael"].forEach(k => localStorage.removeItem(k)); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; } }
     if (prev && prev !== u.id) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem("bdm-owner"); localStorage.removeItem("bdm-s1-kael"); if (!own) localStorage.removeItem("cap-gh-token"); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; }
-    try { localStorage.setItem("bdm-uid", u.id); if (String(u.email || "").toLowerCase() === "sad7teen@gmail.com") localStorage.setItem("bdm-owner", "1"); } catch(e) {}
+    try { localStorage.setItem("bdm-uid", u.id); if (em === "sad7teen@gmail.com") localStorage.setItem("bdm-owner", "1"); } catch(e) {}
     SB.uid = u.id; BSync.reset(); BSync.soon(0);
     /* profil : prénom + @pseudo obligatoires la première fois */
     let prof; try { prof = await SBP.load(); } catch(e) { prof = undefined; }
@@ -7466,7 +7470,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-141";
+const APP_VERSION = "2026-10-30-142";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
