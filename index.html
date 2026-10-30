@@ -2345,6 +2345,8 @@ const toText = ts => [...ts].sort((a, b) => a.day - b.day).map(t => [t.day, (t.p
 try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).forEach(k => localStorage.removeItem(k)); } catch(e) {}
 const DEFAULT = {greet: "Bonsoir,", name: "", ready: "Ton bilan du mois est prêt", currency: "€", handle: "", year: new Date().getFullYear(), month: new Date().getMonth(), trades: []};
 const KEY = "month-review-v3";
+/* « Bonjour » le jour, « Bonsoir » le soir, sauf si l'utilisateur a écrit sa propre salutation */
+const greetNow = () => { const g = String(state.greet || "").trim(); if (!g || /^(bonjour|bonsoir),?$/i.test(g)) { const h = new Date().getHours(); return (h >= 18 || h < 5 ? "Bonsoir" : "Bonjour") + (state.name ? "," : ""); } return g; };
 /* mes données d'origine (trades MT5, certificats Alpha) ne concernent que mon compte, jamais celui des autres */
 const LEGACY0 = (() => { try { return !localStorage.getItem("bdm-uid") && !!localStorage.getItem(KEY); } catch(e) { return false; } })();
 const isOwner = () => { try { if (localStorage.getItem("bdm-owner") === "1") return true; return LEGACY0 && !localStorage.getItem("bdm-uid"); } catch(e) { return false; } };
@@ -2547,7 +2549,7 @@ function weekdayHTML(ws, big){
 }
 function renderDash(){
   const s = stats(state.trades);
-  $("hello").innerHTML = `${esc(state.greet)} <span class="name">${esc(state.name)}</span>`;
+  $("hello").innerHTML = `${esc(greetNow())} <span class="name">${esc(state.name || "")}</span>`;
   $("meta").innerHTML = `${s.n} trades · ${s.days.length} jours de trading · <span class="live">● journal à jour</span>`;
   $("monthLabel").textContent = monthName();
   $("readyTitle").textContent = state.ready;
@@ -4247,7 +4249,7 @@ function buildSlides(){
   const s = stats(state.trades), out = [];
   let li = 0;
   const word = (w, cls) => `<span class="w">${[...w].map(ch => `<span class="ltr${cls ? " " + cls : ""}" style="--i:${li++}">${esc(ch)}</span>`).join("")}</span>`;
-  const greetWords = state.greet.split(/\s+/).filter(Boolean).map(w => word(w)).join(" ");
+  const greetWords = greetNow().split(/\s+/).filter(Boolean).map(w => word(w)).join(" ");
   const nameWords = state.name.split(/\s+/).filter(Boolean).map(w => word(w, "name")).join(" ");
   out.push(`<div class="inner"><div class="hello">${greetWords} ${nameWords}</div>
     <div class="banner rise" style="--d:${Math.min(9, Math.ceil(li * 45 / 130) + 2)}"><i class="dot"></i>
@@ -4280,7 +4282,7 @@ function buildTradeSlides(t, imgs, monthNet, main){
   const out = [];
   let li = 0;
   const word = (w, cls) => `<span class="w">${[...w].map(ch => `<span class="ltr${cls ? " " + cls : ""}" style="--i:${li++}">${esc(ch)}</span>`).join("")}</span>`;
-  const hello = state.greet.split(/\s+/).filter(Boolean).map(w => word(w)).join(" ") + " " + state.name.split(/\s+/).filter(Boolean).map(w => word(w, "name")).join(" ");
+  const hello = greetNow().split(/\s+/).filter(Boolean).map(w => word(w)).join(" ") + " " + state.name.split(/\s+/).filter(Boolean).map(w => word(w, "name")).join(" ");
   const when = `${t.day} ${MONTHS[state.month].toLowerCase()}${t.time ? " · " + t.time : ""}`;
   out.push(`<div class="inner"><div class="hello">${hello}</div>
     <div class="banner rise" style="--d:${Math.min(9, Math.ceil(li * 45 / 130) + 2)}"><i class="dot"></i>
@@ -7100,7 +7102,7 @@ function drawTradeCard(ctx, W, H, t, cv, p){
     ctx.textAlign = "left"; ctx.fillStyle = ink; ctx.font = `600 ${30 * u}px ${F}`; ctx.fillText(b, W / 2 + 24 * u, y); });
   ctx.globalAlpha = 1;
   /* pied : marque + nom certifié */
-  const fy = H - 90 * u; ctx.font = `700 ${30 * u}px ${F}`; const brand = "KaelJournal", nm = state.name || "Kael";
+  const fy = H - 90 * u; ctx.font = `700 ${30 * u}px ${F}`; const brand = "KaelJournal", nm = state.name || "";
   const bw = ctx.measureText(brand).width; ctx.font = `500 ${30 * u}px ${F}`; const nw = ctx.measureText(nm).width;
   const tot = bw + 40 * u + nw + 40 * u, fx = W / 2 - tot / 2;
   ctx.textAlign = "left"; ctx.fillStyle = ink; ctx.font = `700 ${30 * u}px ${F}`; ctx.fillText(brand, fx, fy);
@@ -7288,7 +7290,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-125";
+const APP_VERSION = "2026-10-30-126";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
