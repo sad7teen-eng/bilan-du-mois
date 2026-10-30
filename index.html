@@ -700,6 +700,23 @@ body:not(.light) .scn{color:#fff;text-shadow:0 0 22px rgba(255,255,255,.3)}
 .radar .vtx{fill:var(--fg);transition:r .25s,opacity .25s}.radar text{transition:fill .25s,font-weight .25s}
 .rwrap{position:relative}
 [data-pop]{cursor:pointer;transition:transform .35s cubic-bezier(.2,.8,.2,1)}[data-pop]:active{transform:scale(.985)}
+.cf{position:fixed;inset:0;z-index:74;display:flex;flex-direction:column;padding:calc(34px + env(safe-area-inset-top,0px)) clamp(20px,5vw,80px) calc(34px + env(safe-area-inset-bottom,0px));gap:22px;background:rgba(246,247,249,0);color:#0b0b0c;cursor:zoom-out;transition:background .45s,backdrop-filter .45s;--g:#2ea060;--r:#e5484d}
+.cf.on{background:rgba(246,247,249,.9);-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%)}
+body:not(.light) .cf{color:#f2f2f2}body:not(.light) .cf.on{background:rgba(6,6,8,.9)}
+.cf-head{display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .6s .1s cubic-bezier(.2,.8,.2,1)}.cf.on .cf-head{opacity:1;transform:none}.cf.out .cf-head,.cf.out .cf-plot{opacity:0;transition-delay:0s}
+.cf-head small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.5}.cf-v{font-size:clamp(44px,6vw,76px);font-weight:600;letter-spacing:-.035em;line-height:1}.cf-v.r{color:var(--r)}.cf-sub{font-size:12.5px;opacity:.5}
+.cf-plot{position:relative;flex:1;min-height:0;padding:0 0 26px 58px;opacity:0;transition:opacity .5s .2s;cursor:default}.cf.on .cf-plot{opacity:1}
+.cf-plot svg{width:100%;height:100%;display:block;overflow:visible;color:currentColor}
+.cf-g{stroke:currentColor;stroke-opacity:.07;stroke-dasharray:3 6;vector-effect:non-scaling-stroke}.cf-z{stroke:currentColor;stroke-opacity:.22;vector-effect:non-scaling-stroke}
+.cf-l{fill:none;stroke:currentColor;stroke-width:2.2;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;stroke-linejoin:round}.cf.on .cf-l{animation:cfDraw 1.6s .25s cubic-bezier(.4,0,.2,1) forwards}@keyframes cfDraw{to{stroke-dashoffset:0}}
+.cf-a{opacity:0;transition:opacity 1s .9s}.cf.on .cf-a{opacity:1}
+.cf-m{fill:var(--g);opacity:0;transition:opacity .4s 1.4s;vector-effect:non-scaling-stroke}.cf-m.r{fill:var(--r)}.cf.on .cf-m{opacity:.9}
+.cf-y{position:absolute;left:0;top:0;bottom:26px;width:52px}.cf-y span{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;opacity:.45;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cf-xa{position:absolute;left:58px;right:0;bottom:0;display:flex;justify-content:space-between;font-size:11px;opacity:.45}
+.cf-x{position:absolute;top:0;bottom:26px;width:0;border-left:1.5px dashed currentColor;opacity:.35;pointer-events:none}.cf-x.g{color:var(--g);opacity:1}.cf-x.r{color:var(--r);opacity:1}
+.cf-d{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:currentColor;box-shadow:0 0 0 5px color-mix(in srgb,currentColor 18%,transparent);pointer-events:none}.cf-d.g{color:var(--g)}.cf-d.r{color:var(--r)}
+.cf-t{position:absolute;transform:translateX(-50%);padding:10px 14px;border-radius:12px;background:#0b0b0c;color:#fff;font-size:12px;display:flex;flex-direction:column;gap:2px;pointer-events:none;white-space:nowrap;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+body:not(.light) .cf-t{background:#fff;color:#0b0b0c}.cf-t small{opacity:.6;text-transform:capitalize}.cf-t b{font-size:16px}.cf-t .g{color:#3ddc84}.cf-t .r{color:#ff6b6f}
 .sp{--fg:#0b0b0c;--muted:#6b6f76;--line:rgba(11,11,12,.09);--bg:#fff;color:var(--fg);position:fixed;inset:0;z-index:75;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .35s,backdrop-filter .35s;-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}
 .sp.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .sp-card{position:relative;width:min(380px,calc(100% - 32px));padding:22px 22px 20px;border-radius:22px;background:var(--panel-solid,#fff);color:var(--fg);border:1px solid var(--line);box-shadow:0 40px 100px rgba(16,18,24,.28);display:flex;flex-direction:column;gap:10px}
@@ -1578,6 +1595,25 @@ body.light .cell:not(.blank):not(.wkc):hover{transform:translateY(-2px);box-shad
 
 /* ===== Journal du jour ===== */
 #jourModal{align-items:center}
+.pnq{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .25s,backdrop-filter .25s}.pnq.on{background:rgba(10,10,12,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.pnq-c{width:min(340px,calc(100% - 32px));padding:22px;border-radius:20px;background:#fff;color:#0b0b0c;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.pnq.on .pnq-c{transform:none;opacity:1}body:not(.light) .pnq-c{background:#121214;color:#f2f2f2}
+.pnq-c small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+.pnq-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid currentColor;padding-bottom:4px;color:#2ea060;transition:color .25s}.pnq.neg .pnq-in{color:#e5484d}
+.pnq-in input{flex:1;min-width:0;border:0!important;background:none!important;font:inherit;font-size:34px;font-weight:600;letter-spacing:-.02em;color:inherit!important;padding:0!important;outline:none;box-shadow:none!important}.pnq-in span{font-size:22px;font-weight:600}
+.pnq-s{display:flex;gap:6px}.pnq-s button{flex:1;padding:8px!important;border-radius:10px!important;font-size:13px!important;background:transparent!important;color:inherit!important;border:1px solid rgba(127,127,127,.3)!important;opacity:1}.pnq-s button.on[data-sg="1"]{background:#2ea060!important;color:#fff!important;border-color:#2ea060!important}.pnq-s button.on[data-sg="-1"]{background:#e5484d!important;color:#fff!important;border-color:#e5484d!important}
+.pnq-go{padding:12px!important;border-radius:12px!important;background:#0b0b0c!important;color:#fff!important;border:0!important;font-weight:600}body:not(.light) .pnq-go{background:#fff!important;color:#000!important}
+.pnq-x{background:none!important;border:0!important;font-size:12px!important;color:inherit!important;opacity:.6;padding:2px!important}
+.pnc{position:fixed;inset:0;z-index:95;display:grid;place-items:center;cursor:pointer;background:rgba(4,4,6,0);transition:background .45s,backdrop-filter .45s;--c:#3ddc84;--g:rgba(61,220,132,.45)}.pnc.neg{--c:#ff5a5f;--g:rgba(255,90,95,.45)}
+.pnc.on{background:rgba(4,4,6,.82);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}.pnc.out{background:rgba(4,4,6,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0)}
+.pnc-in{display:flex;flex-direction:column;align-items:center;gap:6px;transition:opacity .35s,transform .45s cubic-bezier(.4,0,.2,1)}.pnc.out .pnc-in{opacity:0;transform:scale(1.04)}
+.pnc-cv{width:min(320px,70vw);height:auto;overflow:visible}.pnc-cv path{fill:none;stroke:var(--c);stroke-width:2.2;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;filter:drop-shadow(0 0 6px var(--g))}.pnc.on .pnc-cv path{animation:pncDraw 1.5s .2s cubic-bezier(.4,0,.2,1) forwards}
+.pnc-cv circle{fill:var(--c);opacity:0;filter:drop-shadow(0 0 6px var(--c))}.pnc.on .pnc-cv circle{animation:pncDot .4s 1.6s forwards}
+@keyframes pncDraw{to{stroke-dashoffset:0}}@keyframes pncDot{to{opacity:1}}
+.pnc-in small{font-family:var(--mono,monospace);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:8px}
+.pnc-v{font-size:clamp(48px,9vw,84px);font-weight:700;letter-spacing:-.03em;color:var(--c);font-variant-numeric:tabular-nums;line-height:1;opacity:0;transform:translateY(10px);transition:opacity .5s .35s,transform .6s .35s cubic-bezier(.2,.8,.2,1),text-shadow .6s}
+.pnc.on .pnc-v{opacity:1;transform:none}.pnc.done .pnc-v{text-shadow:0 0 34px var(--g)}
+.pnc-in p{margin:14px 0 0;font-size:12px;color:rgba(255,255,255,.4);opacity:0;transition:opacity .5s}.pnc.done .pnc-in p{opacity:1}
 .jsheet{width:min(1180px,100%);max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:16px;background:var(--panel);border:1px solid var(--line)}
 body:not(.light) .jsheet{background:#0a0a0a;border-color:#222}
 .jh{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
@@ -1586,8 +1622,9 @@ body:not(.light) .jsheet{background:#0a0a0a;border-color:#222}
 .jacts{display:flex;gap:8px}
 .jacts button{border-radius:999px!important;padding:8px 14px!important}
 .jcards{display:grid;grid-auto-flow:column;grid-auto-columns:min(440px,86vw);gap:14px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory}
-.jc{scroll-snap-align:start;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);background:var(--panel-2);min-width:0}
-body:not(.light) .jc{background:linear-gradient(180deg,#111,#0a0a0a);border-color:#222}
+.jc{scroll-snap-align:start;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px;border:1px solid rgba(11,11,12,.14);box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 8px 24px rgba(16,18,24,.07);background:var(--panel-2);min-width:0}
+body:not(.light) .jc{background:linear-gradient(180deg,#111,#0a0a0a);border-color:#2e2e2e;box-shadow:none}
+.jc .jdel{color:var(--loss,#e5484d)!important}.jc .jdel.sure{background:var(--loss,#e5484d)!important;color:#fff!important;border-color:var(--loss,#e5484d)!important}
 .jc-h{display:flex;align-items:center;gap:9px}
 .jc-h .grow{flex:1}
 .jg{font-size:11px;font-weight:700;padding:3px 8px;border-radius:7px;background:var(--fg);color:var(--bg)}
@@ -1911,7 +1948,7 @@ section.view.venter .wdb .up i,section.view.venter .wdb .dn2 i{animation-delay:c
 .tc-strip{overflow:hidden!important;scroll-snap-type:none!important;padding:6px 0 12px!important;touch-action:pan-y}
 .tc-track{display:flex;gap:14px;will-change:transform}
 .tc-strip canvas{transition:none!important;scroll-snap-align:none!important}
-.tcz{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,10,12,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);transition:background .3s,backdrop-filter .3s}
+.tcz{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,10,12,0);-webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);transition:background .3s,backdrop-filter .3s}
 .tcz.on{background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .tcz-card{position:relative;border-radius:22px;transform:perspective(900px) scale(.6);opacity:0;transition:opacity .3s;box-shadow:0 40px 100px rgba(0,0,0,.55);will-change:transform}
 .tcz.on .tcz-card{opacity:1}
@@ -4074,6 +4111,33 @@ function drawDay(){
   const na = document.getElementById("e-newsym"); if (na) { na.focus(); return; }
   const f = document.getElementById("e-pnl"); if (f && !String(edit.pnl).trim()) f.focus();
 }
+/* ===== Nouveau trade : d'abord le résultat, puis une petite célébration ===== */
+function askPnl(done){
+  const ov = document.createElement("div"); ov.className = "pnq";
+  ov.innerHTML = `<form class="pnq-c"><small>Résultat du trade</small><div class="pnq-in"><input inputmode="decimal" autocomplete="off" placeholder="+2 000 ou -500" aria-label="Résultat"><span>${esc(cur())}</span></div>
+    <div class="pnq-s"><button type="button" data-sg="1" class="on">Gain</button><button type="button" data-sg="-1">Perte</button></div><button type="submit" class="pnq-go">Continuer</button><button type="button" class="pnq-x">Annuler</button></form>`;
+  document.body.appendChild(ov); const inp = ov.querySelector("input"); let sg = 1; requestAnimationFrame(() => { ov.classList.add("on"); inp.focus(); });
+  const paint = () => { const v = String(inp.value).trim(); if (/^-/.test(v)) sg = -1; else if (/^\+/.test(v)) sg = 1; ov.querySelectorAll("[data-sg]").forEach(b => b.classList.toggle("on", +b.dataset.sg === sg)); ov.classList.toggle("neg", sg < 0); };
+  inp.addEventListener("input", paint);
+  const close = () => { ov.classList.remove("on"); setTimeout(() => ov.remove(), 250); };
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest(".pnq-x")) return close(); const b = e.target.closest("[data-sg]"); if (b) { sg = +b.dataset.sg; inp.value = String(inp.value).replace(/^[+-]/, ""); paint(); inp.focus(); } });
+  ov.querySelector("form").addEventListener("submit", e => { e.preventDefault(); const a = Math.abs(num(String(inp.value).replace(/^[+-]/, ""))); if (!isNum(a) || !a) { inp.focus(); ov.querySelector(".pnq-in").animate([{transform: "translateX(0)"}, {transform: "translateX(-6px)"}, {transform: "translateX(6px)"}, {transform: "none"}], {duration: 260}); return; }
+    const v = sg * a; close(); pnlCelebrate(v, () => done(v)); });
+}
+function pnlCelebrate(v, next){
+  const up = v >= 0, ov = document.createElement("div"); ov.className = "pnc" + (up ? "" : " neg");
+  const pts = []; let y = 0; for (let i = 0; i <= 40; i++) { y += (Math.random() - .42) * 8 * (up ? 1 : -1); pts.push([i * 7.5, 60 - y * .9]); }
+  const lo = Math.min(...pts.map(p => p[1])), hi = Math.max(...pts.map(p => p[1])), P = pts.map(([x, yy]) => [x, 8 + (yy - lo) / Math.max(1, hi - lo) * 64]);
+  const d = P.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" "), last = P[P.length - 1];
+  ov.innerHTML = `<div class="pnc-in"><svg viewBox="0 0 300 80" class="pnc-cv"><path d="${d}" pathLength="1"/><circle cx="${last[0]}" cy="${last[1]}" r="3.5"/></svg>
+    <small>${up ? "Trade gagnant" : "Trade perdant"}</small><div class="pnc-v mv"><span>${up ? "+" : "−"}</span><b>0</b><span>\u00a0${esc(cur())}</span></div><p>Cliquez n'importe où pour continuer</p></div>`;
+  document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
+  const el = ov.querySelector(".pnc-v b"), A = Math.abs(v), t0 = performance.now() + 450, D = 1500;
+  const step = t => { const k = Math.max(0, Math.min(1, (t - t0) / D)), e = 1 - Math.pow(1 - k, 4); el.textContent = frN(A * e, A % 1 && k >= 1 ? 2 : 0); if (k < 1 && ov.isConnected) requestAnimationFrame(step); else if (k >= 1) ov.classList.add("done"); };
+  requestAnimationFrame(step);
+  let gone = false; const go = () => { if (gone) return; gone = true; ov.classList.add("out"); setTimeout(() => { ov.remove(); next(); }, 420); };
+  setTimeout(() => ov.addEventListener("click", go), 300); addEventListener("keydown", function k(e){ if (!ov.isConnected) return removeEventListener("keydown", k); if (e.key === "Enter" || e.key === "Escape" || e.key === " ") { removeEventListener("keydown", k); go(); } });
+}
 async function openDay(d){
   dayOpen = d;
   $("dayTitle").textContent = `${d} ${MONTHS[state.month].toLowerCase()} ${state.year}`;
@@ -4849,7 +4913,35 @@ function bindRadar(s, sc, w, tip){ if (!w) return; let cur = -1;
   w.addEventListener("pointerleave", () => show(-1)); }
 /* ===== Fenêtres de détail du Tableau (taux de réussite, R, gains, courbe, score) ===== */
 let boardPop = null;
-function spOpen(kind, from){ if (!boardPop) return; const {s, sc, L} = boardPop, fr = (x, d = 2) => frN(x, d);
+/* P&L cumulé en plein écran : survol = trait pointillé vert/rouge, clic = carte du trade, clic dans le vide = fermer */
+function curveFull(L, from){ const days = dailySeries(L); if (!days || !days.length) return;
+  const n = days.length, pts = days.map(x => x.v), W = 1600, H = 620, lo = Math.min(0, ...pts), hiR = Math.max(0, ...pts), hi = hiR + (hiR - lo) * .08 || 1, lo2 = lo - (hiR - lo) * .04;
+  const X = i => n > 1 ? i / (n - 1) * W : W / 2, Y = v => H - (v - lo2) / (hi - lo2) * H, d = smoothPath(pts.map((v, i) => [X(i), Y(v)])), net = pts[n - 1];
+  const ticks = Array.from({length: 5}, (_, k) => lo2 + (hi - lo2) * k / 4), fdl = x => x.d.toLocaleDateString("fr-FR", {day: "numeric", month: "short"});
+  const marks = days.map((x, i) => x.n ? `<circle class="cf-m${x.p < 0 ? " r" : ""}" cx="${X(i).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="4"/>` : "").join("");
+  const ov = document.createElement("div"); ov.className = "cf";
+  ov.innerHTML = `<div class="cf-head"><small>P&amp;L cumulé · ${scope === "month" ? esc(monthName()) : "depuis le début"}</small><div class="cf-v mv${net < 0 ? " r" : ""}">${bigMoney(net)}</div><span class="cf-sub">${L.length} trade${pl(L.length)} · survolez la courbe, cliquez un jour pour ouvrir le trade</span></div>
+    <div class="cf-plot"><div class="cf-y">${ticks.map(t => `<span style="top:${(Y(t) / H * 100).toFixed(2)}%">${kMoney(t)}</span>`).join("")}</div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="cfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".18"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
+        ${ticks.map(t => `<line class="cf-g" x1="0" x2="${W}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}"/>`).join("")}<line class="cf-z" x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"/>
+        <path class="cf-a" d="${d} L ${W} ${H} L 0 ${H} Z" fill="url(#cfg)"/><path class="cf-l" d="${d}" pathLength="1"/>${marks}</svg>
+      <i class="cf-x" hidden></i><i class="cf-d" hidden></i><div class="cf-t" hidden></div>
+      <div class="cf-xa"><span>${fdl(days[0])}</span><span>${fdl(days[Math.floor((n - 1) / 2)])}</span><span>${fdl(days[n - 1])}</span></div></div>`;
+  document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
+  const plot = ov.querySelector(".cf-plot"), svg = plot.querySelector("svg"), xl = ov.querySelector(".cf-x"), dot = ov.querySelector(".cf-d"), tip = ov.querySelector(".cf-t"); let cur = -1;
+  const at = cx => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((cx - r.left) / r.width * (n - 1)))); };
+  svg.addEventListener("pointermove", e => { const i = at(e.clientX); if (i === cur) return; cur = i; const r = svg.getBoundingClientRect(), pr = plot.getBoundingClientRect(), x = days[i], xp = r.left - pr.left + X(i) / W * r.width, yp = r.top - pr.top + Y(pts[i]) / H * r.height;
+    const c = x.n ? (x.p < 0 ? "r" : "g") : ""; xl.className = "cf-x " + c; dot.className = "cf-d " + c; xl.style.left = dot.style.left = xp + "px"; dot.style.top = yp + "px";
+    tip.innerHTML = `<small>${x.d.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"})}</small><b class="mv">${bigMoney(pts[i])}</b>${x.n ? `<span class="${c}">${x.p < 0 ? "" : "+"}${money(x.p)} · ${x.n} trade${pl(x.n)}</span>` : `<span>Pas de trade</span>`}`;
+    tip.style.left = Math.max(90, Math.min(pr.width - 90, xp)) + "px"; tip.style.top = Math.max(10, yp - 86) + "px"; xl.hidden = dot.hidden = tip.hidden = false; svg.style.cursor = x.n ? "pointer" : "default"; });
+  svg.addEventListener("pointerleave", () => { cur = -1; xl.hidden = dot.hidden = tip.hidden = true; });
+  const close = () => { ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 380); removeEventListener("keydown", esc3); };
+  const esc3 = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc3);
+  ov.addEventListener("click", e => { if (e.target.closest("svg")) { const x = days[at(e.clientX)], k = dkey(x.d); const tr = L.filter(t => dkey(t.at) === k).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))[0];
+      if (!tr) return; if (!tcList.length) tcList = tcTrades(); const ix = tcList.findIndex(t => t.id === tr.id); ix >= 0 ? tcZoom(ix) : (close(), goMonth(tr.y, tr.m), openDay(tr.day)); return; }
+    close(); });
+}
+function spOpen(kind, from){ if (!boardPop) return; if (kind === "curve") return curveFull(boardPop.L, from); const {s, sc, L} = boardPop, fr = (x, d = 2) => frN(x, d);
   const lvl = (v, a, b, c) => v >= c ? 3 : v >= b ? 2 : v >= a ? 1 : 0, badge = (k, t) => `<div class="sp-rank r${k}"><i>${["◇", "◆", "★", "✦"][k]}</i>${t}</div>`;
   let h = "";
   if (kind === "wr") { const v = s.wr, k = lvl(v, 45, 55, 65);
@@ -6806,6 +6898,7 @@ function drawJournal(){
   $("jTitle").textContent = dl[0].toUpperCase() + dl.slice(1);
   $("jSum").innerHTML = `${ts.length} trade${pl(ts.length)} · <b class="mv ${tot < 0 ? "r" : ""}">${tot < 0 ? "" : "+"}${money(tot)}</b>`;
   const f = v => isNum(v) ? v.toLocaleString("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2}) : "";
+  document.querySelector("#jourModal .jsheet").style.width = `min(${Math.min(3, Math.max(1, ts.length)) * 454 + 26}px, 100%)`;
   $("jCards").innerHTML = ts.map(t => { const main = (imgCache[t.id + "#main"] || [])[0], imgs = imgCache[t.id] || [], ses = t.time ? sessionOf({time: t.time}) : "";
     const tags = Array.isArray(t.tags) ? t.tags : [];
     return `<article class="jc ${t.pnl < 0 ? "down" : "up"}">
@@ -6816,17 +6909,19 @@ function drawJournal(){
       ${main || imgs.length ? `<div class="jshots${main && imgs.length ? " two" : ""}">${[main, ...imgs].filter(Boolean).slice(0, 4).map((src, i) => `<button type="button" class="jshot" data-jimg="${t.id}|${i}"><img src="${src}" alt="Capture du trade"><span class="zoom">⌕</span></button>`).join("")}</div>` : `<div class="jshots none">Pas encore de capture</div>`}
       ${t.note ? `<p class="jnote">${esc(t.note)}</p>` : `<p class="jnote muted">Pas encore d'analyse écrite.</p>`}
       ${tags.length ? `<div class="jtags2">${tags.map(x => `<span>${esc(x)}</span>`).join("")}</div>` : ""}
-      <div class="jc-a"><button type="button" data-jedit="${t.id}">Modifier</button><button type="button" data-jchart="${t.id}">Voir sur le graphique</button><button type="button" class="go" data-jplay="${t.id}">▶ Lancer</button></div>
+      <div class="jc-a"><button type="button" data-jedit="${t.id}">Modifier</button><button type="button" class="jdel" data-jdel="${t.id}">Supprimer</button><button type="button" data-jchart="${t.id}">Voir sur le graphique</button><button type="button" class="go" data-jplay="${t.id}">▶ Lancer</button></div>
     </article>`; }).join("") || `<p class="muted">Aucun trade ce jour.</p>`;
 }
 $("jClose").onclick = () => { $("jourModal").hidden = true; };
-$("jAdd").onclick = () => { $("jourModal").hidden = true; openDay(jDay).then(() => { startNew(); drawDay(); }); };
+$("jAdd").onclick = () => { askPnl(v => { $("jourModal").hidden = true; openDay(jDay).then(() => { startNew(); edit.pnl = String(v).replace(".", ","); drawDay(); }); }); };
 $("jourModal").addEventListener("click", e => {
   if (e.target === $("jourModal")) { $("jourModal").hidden = true; return; }
   const b = e.target.closest("button"); if (!b) return; const ds = b.dataset;
   if (ds.jimg) { const [id, i] = ds.jimg.split("|"); const all = [(imgCache[id + "#main"] || [])[0], ...(imgCache[id] || [])].filter(Boolean); if (!all[+i]) return;
     lbId = null; $("lbEdit").hidden = true; $("lightImg").src = all[+i]; $("lightbox").hidden = false; return; }
   if (ds.jedit) { const t = state.trades.find(x => x.id === ds.jedit); $("jourModal").hidden = true; openDay(jDay).then(() => { edit = {...t}; editId = t.id; drawDay(); }); return; }
+  if (ds.jdel) { if (!b.classList.contains("sure")) { document.querySelectorAll("#jCards .sure").forEach(x => { x.classList.remove("sure"); x.textContent = "Supprimer"; }); b.classList.add("sure"); b.textContent = "Confirmer"; setTimeout(() => { if (b.isConnected) { b.classList.remove("sure"); b.textContent = "Supprimer"; } }, 4000); return; }
+    const card = b.closest(".jc"); card.animate([{opacity: 1, transform: "none"}, {opacity: 0, transform: "scale(.94)"}], {duration: 260, easing: "ease-in", fill: "forwards"}).onfinish = () => { deleteTrade(ds.jdel); if (!state.trades.some(t => t.day === jDay)) { $("jourModal").hidden = true; return; } drawJournal(); }; return; }
   if (ds.jplay) { const t = state.trades.find(x => x.id === ds.jplay); $("jourModal").hidden = true; playTradeObj(t); return; }
   if (ds.jchart) { cSel = ds.jchart; $("jourModal").hidden = true; setView("graphique"); return; }
 });
@@ -7475,7 +7570,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-144";
+const APP_VERSION = "2026-10-30-146";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
