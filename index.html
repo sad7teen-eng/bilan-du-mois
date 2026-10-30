@@ -1598,6 +1598,19 @@ body.light .cell:not(.blank):not(.wkc):hover{transform:translateY(-2px);box-shad
 
 /* ===== Journal du jour ===== */
 #jourModal{align-items:center}
+.ctx{position:fixed;z-index:200;width:max-content;min-width:220px;max-width:300px;padding:6px;border-radius:14px;background:rgba(255,255,255,.92);color:#0b0b0c;border:1px solid rgba(11,11,12,.08);box-shadow:0 24px 60px rgba(16,18,24,.22),0 2px 8px rgba(16,18,24,.08);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);font-size:13px;opacity:0;transform:scale(.9);filter:blur(4px);transition:opacity .18s,transform .26s cubic-bezier(.2,.9,.25,1.15),filter .2s;--g:#2ea060;--r:#e5484d}
+.ctx.on{opacity:1;transform:none;filter:none}.ctx.out{opacity:0;transform:scale(.96);transition-duration:.15s}
+body:not(.light) .ctx,body.instrat .ctx,.inmacro .ctx{background:rgba(20,21,24,.9);color:#f0f0f0;border-color:rgba(255,255,255,.1);box-shadow:0 24px 60px rgba(0,0,0,.55)}
+.ctx-h{display:flex;flex-direction:column;gap:3px;padding:8px 10px 9px;margin-bottom:4px;border-bottom:1px solid rgba(127,127,127,.18)}.ctx-h b{font-size:13.5px;font-weight:650;letter-spacing:-.01em}.ctx-h span{font-size:11.5px;line-height:1.4;opacity:.62}.ctx-h span.g{color:var(--g);opacity:1;font-weight:600}.ctx-h span.r{color:var(--r);opacity:1;font-weight:600}
+.ctx-l{display:block;padding:6px 10px 3px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.45}
+.ctx-i{display:flex!important;align-items:center;gap:9px;width:100%;padding:7px 10px!important;border:0!important;border-radius:8px!important;background:transparent!important;color:inherit!important;font:inherit;font-size:13px!important;text-align:left;cursor:pointer;opacity:0;transform:translateX(-4px);animation:ctxIn .24s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--k) * 18ms + 40ms)}
+@keyframes ctxIn{to{opacity:1;transform:none}}
+.ctx-i:hover{background:rgba(127,127,127,.13)!important}.ctx-i.on{font-weight:600}.ctx-i.on .ctx-ic::after{content:"";}
+.ctx-ic{width:16px;flex:0 0 16px;text-align:center;font-size:12px;opacity:.6}.ctx-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ctx-i em{font-style:normal;font-size:12px;font-variant-numeric:tabular-nums;opacity:.7}.ctx-i em.g{color:var(--g);opacity:1}.ctx-i em.r{color:var(--r);opacity:1}
+.ctx-i.danger{color:var(--r)!important}.ctx-i.danger .ctx-ic{opacity:1}.ctx-i.sure{background:var(--r)!important;color:#fff!important;animation:ctxShake .3s}.ctx-i.sure .ctx-ic{color:#fff}
+@keyframes ctxShake{30%{transform:translateX(-3px)}60%{transform:translateX(3px)}}
+.ctx-sep{display:block;height:1px;margin:4px 8px;background:rgba(127,127,127,.18)}
+.ctx-in{width:100%;margin:2px 0;padding:8px 10px!important;border-radius:8px!important;border:1px solid rgba(127,127,127,.35)!important;background:rgba(127,127,127,.08)!important;color:inherit!important;font:inherit;font-size:13px!important;outline:none}
 .pnq{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,10,12,0);transition:background .25s,backdrop-filter .25s}.pnq.on{background:rgba(10,10,12,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .pnq-c{width:min(340px,calc(100% - 32px));padding:22px;border-radius:20px;background:#fff;color:#0b0b0c;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px rgba(0,0,0,.3);transform:scale(.94);opacity:0;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s}
 .pnq.on .pnq-c{transform:none;opacity:1}body:not(.light) .pnq-c{background:#121214;color:#f2f2f2}
@@ -2636,10 +2649,10 @@ function weekdayHTML(ws, big){
   const pos = Math.max(0, ...ws.days.map(x => x.pnl)), neg = Math.max(0, ...ws.days.map(x => -x.pnl));
   const fu = pos || (neg ? 0 : 1), fd = neg;
   const bars = ws.days.map(x => { const h = x.n ? Math.max(4, Math.abs(x.pnl) / (x.pnl > 0 ? pos : neg || 1) * 100) : 0;
-    return `<div class="wdb" style="--k:${ws.days.indexOf(x)}" title="${WDL[x.d]} : ${x.n ? money(x.pnl) : "aucun trade"}"><div class="up" style="flex:${fu} 1 0">${x.pnl > 0 ? `<i style="height:${h}%"></i>` : ""}</div><div class="axis"></div><div class="dn2" style="flex:${fd} 1 0">${x.pnl < 0 ? `<i style="height:${h}%"></i>` : ""}</div></div>`; }).join("");
+    return `<div class="wdb" data-wd="${x.d}" style="--k:${ws.days.indexOf(x)}" title="${WDL[x.d]} : ${x.n ? money(x.pnl) : "aucun trade"}"><div class="up" style="flex:${fu} 1 0">${x.pnl > 0 ? `<i style="height:${h}%"></i>` : ""}</div><div class="axis"></div><div class="dn2" style="flex:${fd} 1 0">${x.pnl < 0 ? `<i style="height:${h}%"></i>` : ""}</div></div>`; }).join("");
   const b = ws.best;
-  return `<div class="wdbars" style="--n:${ws.days.length}">${bars}</div><div class="wdlab" style="--n:${ws.days.length}">${ws.days.map((x, k) => `<span style="--k:${k}">${WD[x.d]}${big && x.n ? `<span class="wdval">${short(x.pnl)}</span>` : ""}</span>`).join("")}</div>
-    ${b ? `<div class="bestday"><div><small>Meilleur jour de la semaine</small><b>${WDL[b.d][0].toUpperCase() + WDL[b.d].slice(1)}</b></div><span><b class="g">${money(b.pnl)}</b> · ${b.w + b.l ? Math.round(b.w / (b.w + b.l) * 100) : 0} % de réussite · ${b.n} trade${b.n > 1 ? "s" : ""}</span></div>` : ""}`;
+  return `<div class="wdbars" style="--n:${ws.days.length}">${bars}</div><div class="wdlab" style="--n:${ws.days.length}">${ws.days.map((x, k) => `<span data-wd="${x.d}" style="--k:${k}">${WD[x.d]}${big && x.n ? `<span class="wdval">${short(x.pnl)}</span>` : ""}</span>`).join("")}</div>
+    ${b ? `<div class="bestday" data-wd="${b.d}"><div><small>Meilleur jour de la semaine</small><b>${WDL[b.d][0].toUpperCase() + WDL[b.d].slice(1)}</b></div><span><b class="g">${money(b.pnl)}</b> · ${b.w + b.l ? Math.round(b.w / (b.w + b.l) * 100) : 0} % de réussite · ${b.n} trade${b.n > 1 ? "s" : ""}</span></div>` : ""}`;
 }
 function renderDash(){
   const s = stats(state.trades);
@@ -6208,6 +6221,11 @@ async function mountBrain3(host, C){
   const mindSave = () => { try { const E = stratEntry(); if (E) { if (mindCustom()) { E.mind = {}; secs.forEach(S => { E.mind[S.f.key] = [S.homeT.x, S.homeT.y, S.homeT.z].map(v => Math.round(v)); }); } else delete E.mind; save(); } } catch (e) {} mindBtn(); };
   resetB.onclick = () => { secs.forEach((S, i) => setTimeout(() => { S.homeT.copy(S.home0); S.v.add(new THREE.Vector3((Math.random() - .5) * 300, 160 + Math.random() * 160, (Math.random() - .5) * 300)); for (let k = 0; k < 14 && pulses.length < PU; k++) pulses.push({a: coreN.p, b: S.c, bend: new THREE.Vector3(Math.random() * 200 - 100, Math.random() * 200 - 100, Math.random() * 200 - 100), u: Math.random() * .2, v: .5 + Math.random() * .5, c: S.col}); }, i * 90)); setTimeout(mindSave, secs.length * 90 + 50); focus(-1); };
   mindBtn();
+  host._ctx = (cx, cy) => { const r = cv.getBoundingClientRect(), x = cx - r.left, y = cy - r.top, n = pickNode(x, y);
+    if (n) return {title: n.l, sub: [n.cell.f.label + (n.s ? " · " + n.s : "")], items: [{ic: "◉", t: "Voir le détail", run: () => show(n)}, {ic: "→", t: "Centrer sur " + n.cell.f.label.toLowerCase(), run: () => focus(n.sec.i)}]};
+    const si = pickSec(x, y); if (si >= 0) { const S = secs[si], mv = S.homeT.distanceTo(S.home0) > 2; return {title: S.f.label, sub: [`${S.nodes.length} élément${S.nodes.length > 1 ? "s" : ""}`, "Maintenez le clic pour le déplacer"],
+      items: [{ic: "→", t: "Centrer sur l'amas", run: () => focus(si)}, ...(mv ? [{ic: "↺", t: "Remettre cet amas à sa place", run: () => { S.homeT.copy(S.home0); S.v.add(new THREE.Vector3(0, 220, 0)); mindSave(); }}] : [])]}; }
+    return {title: "Carte de la stratégie", sub: ["Glissez un amas pour composer votre carte"], items: [{ic: "◎", t: "Vue d'ensemble", run: () => focus(-1)}, ...(mindCustom() ? [{ic: "↺", t: "Réinitialiser la carte", run: () => resetB.onclick()}] : []), {ic: "✎", t: "Modifier la stratégie", run: () => openStratDescribe()}]}; };
   cv.addEventListener("pointerleave", () => { mouse.set(-9, -9); hovN = null; hovS = -1; hovCore = false; });
   cv.addEventListener("wheel", e => { e.preventDefault(); idle = 0;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.5) { st.th0 -= e.deltaX * .0016; return; } /* glissé horizontal à deux doigts : tourner */
@@ -7259,7 +7277,7 @@ function startBig(){
       onCity: (c, e) => { const tp = $("mTip"); if (!tp) return; const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false;
         tp.innerHTML = `<b>${esc(c.n)}</b> · ${c.p >= 1e6 ? (c.p / 1e6).toFixed(1).replace(".", ",") + " M" : Math.round(c.p / 1e3) + " k"} habitants`; tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; }, speed: 8, paused: () => $("macroView").classList.contains("entering"), m: 0, au: 0, iw: 1, k: .6, rot: flyRot || undefined,
       onTouch: () => { const hh = $("mHint"); if (hh) { hh.style.opacity = 0; setTimeout(() => hh.remove(), 400); try { localStorage.setItem("bilan-mhint", "1"); } catch(e) {} } },
-      onHover: (f, e) => { const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2] + ((bigG && bigG.st.z < 1.9) ? "" : " · zoomez pour voir les villes"); tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
+      onHover: (f, e) => { window.__mHov = f || null; const tp = $("mTip"); if (!tp) return; if (!f) { tp.hidden = true; return; } const b = $("bigGlobe").getBoundingClientRect(); tp.hidden = false; tp.textContent = f.c[2] + ((bigG && bigG.st.z < 1.9) ? "" : " · zoomez pour voir les villes"); tp.style.left = (e.clientX - b.left + 14) + "px"; tp.style.top = (e.clientY - b.top + 10) + "px"; },
       onPick: f => selectCountry(f.iso)});
     document.querySelectorAll("#mChips button").forEach(b => b.classList.remove("on"));
     drawOverview();
@@ -7445,6 +7463,89 @@ function deleteTrade(id){ if (String(id).startsWith("mt5-")) state.seedSkip = [.
 /* après un ajout / une modification / une suppression : la bande « Mes trades » se met à jour tout de suite */
 function refreshTCards(id){ Object.keys(tcCurveCache).forEach(k => delete tcCurveCache[k]);
   const i = tcTrades().findIndex(x => x.id === id); if (i >= 0) tcIdx = i; try { renderTCards(false); } catch (e) {} }
+/* ===== Clic droit : notre propre menu, qui s'adapte à ce qu'on vise ===== */
+let ctxEl = null;
+function ctxClose(){ const m = ctxEl; if (!m) return; ctxEl = null; m.classList.remove("on"); m.classList.add("out"); setTimeout(() => m.remove(), 180); }
+function ctxOpen(x, y, spec){
+  ctxClose(); if (!spec || (!spec.items?.length && !spec.title)) return;
+  const m = document.createElement("div"); m.className = "ctx"; m.setAttribute("role", "menu");
+  const head = spec.title ? `<div class="ctx-h"><b>${esc(spec.title)}</b>${(spec.sub || []).filter(Boolean).map(l => `<span${l.c ? ` class="${l.c}"` : ""}>${esc(l.t || l)}</span>`).join("")}</div>` : "";
+  m.innerHTML = head + (spec.items || []).map((it, k) => it.sep ? `<i class="ctx-sep"></i>` : it.label ? `<small class="ctx-l">${esc(it.label)}</small>`
+    : `<button type="button" class="ctx-i${it.danger ? " danger" : ""}${it.on ? " on" : ""}" data-k="${k}" style="--k:${k}"><span class="ctx-ic">${it.ic || ""}</span><span class="ctx-t">${esc(it.t)}</span>${it.r ? `<em class="${it.rc || ""}">${esc(it.r)}</em>` : ""}</button>`).join("");
+  document.body.appendChild(m); ctxEl = m;
+  const W = m.offsetWidth, H = m.offsetHeight, px = x + W + 8 > innerWidth ? Math.max(8, x - W) : x, py = y + H + 8 > innerHeight ? Math.max(8, y - H) : y;
+  m.style.left = px + "px"; m.style.top = py + "px"; m.style.transformOrigin = `${x - px}px ${y - py}px`;
+  requestAnimationFrame(() => m.classList.add("on"));
+  m.addEventListener("contextmenu", e => e.preventDefault());
+  m.addEventListener("click", e => { const b = e.target.closest(".ctx-i"); if (!b) return; const it = spec.items[+b.dataset.k];
+    if (it.input) { const inp = document.createElement("input"); inp.className = "ctx-in"; inp.value = it.input; inp.maxLength = 28; b.replaceWith(inp); inp.focus(); inp.select();
+      const done = ok => { if (!inp.isConnected) return; const v = inp.value.trim(); ctxClose(); if (ok && v) it.run(v); };
+      inp.onkeydown = ev => { if (ev.key === "Enter") done(true); if (ev.key === "Escape") ctxClose(); }; inp.onblur = () => done(true); return; }
+    if (it.confirm && !b.classList.contains("sure")) { b.classList.add("sure"); b.querySelector(".ctx-t").textContent = it.confirm; return; }
+    ctxClose(); setTimeout(() => it.run && it.run(), 60); });
+}
+addEventListener("pointerdown", e => { if (ctxEl && !ctxEl.contains(e.target)) ctxClose(); }, true);
+addEventListener("keydown", e => { if (e.key === "Escape" && ctxEl) ctxClose(); });
+addEventListener("resize", ctxClose); addEventListener("scroll", ctxClose, true);
+const CI = {open: "↗", add: "+", edit: "✎", del: "✕", chart: "◱", play: "▶", eye: "◉", dup: "⧉", back: "↺", go: "→", cal: "▦"};
+function ctxAddTrade(y, m, d){ if (y !== state.year || m !== state.month) goMonth(y, m, true); askPnl(v => openDay(d).then(() => { startNew(); edit.pnl = String(v).replace(".", ","); drawDay(); })); }
+function ctxOpenDay(t){ if (t.y !== state.year || t.m !== state.month) goMonth(t.y, t.m, true); openJournal(t.day); }
+function ctxCard(t){ tcList = tcTrades(); const i = tcList.findIndex(x => x.id === t.id && x.y === t.y && x.m === t.m); if (i >= 0) tcZoom(i); else ctxOpenDay(t); }
+const ctxTradeLine = t => ({ic: t.pnl < 0 ? "↘" : "↗", t: `${t.sym || "Trade"}${t.side ? " · " + (/^s/i.test(t.side) ? "Short" : "Long") : ""}`, r: money(t.pnl), rc: t.pnl < 0 ? "r" : "g", run: () => ctxCard(t)});
+const ctxDate = (y, m, d) => { const s = new Date(y, m, d).toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"}); return s[0].toUpperCase() + s.slice(1); };
+const ctxNav = () => [{label: "Aller à"}, ...[["tableau", "Tableau"], ["resultats", "Résultats"], ["certs", "Certificats"], ["strategie", "Stratégie"], ["analytics", "Analytics"]].map(([v, t]) => ({ic: CI.go, t, on: view === v, run: () => setView(v)})),
+  {sep: 1}, {ic: CI.add, t: "Ajouter un trade aujourd'hui", run: () => { const n = new Date(); ctxAddTrade(n.getFullYear(), n.getMonth(), n.getDate()); }}, {ic: "◎", t: "Mon compte", run: () => openSettings()}];
+const ctxRates = () => ["US", "EZ", "GB", "JP", "CH"].map(k => ({ic: "%", t: RATES[k][0], r: RATES[k][1].toFixed(2).replace(".", ",") + " %", run: () => { if (view !== "macro") openMacro(); }}));
+function ctxBuild(el, e){
+  const fr = (x, d = 1) => (Math.round(x * 10 ** d) / 10 ** d).toString().replace(".", ",");
+  /* cases de performance du tableau */
+  const tile = el.closest("[data-pop]"); if (tile && boardPop) { const k = tile.dataset.pop, {s} = boardPop, n = s.n || 0; let title = "", sub = [];
+    if (k === "wr") { title = `Taux de réussite · ${fr(s.wr || 0)} %`; sub = [`${s.wins || 0} gagnant${pl(s.wins || 0)} · ${s.losses || 0} perdant${pl(s.losses || 0)}`, n ? radarText(0, s, 0).tip : "Aucun trade pour l'instant."]; }
+    else if (k === "rr") { title = `RR moyen gagnant · ${s.avgR == null ? "—" : fr(s.avgR, 2) + " R"}`; sub = [n ? radarText(2, s, 0).how : "Aucun trade pour l'instant.", n ? radarText(2, s, 0).tip : ""]; }
+    else if (k === "avg") { title = "Gain moyen / perte moyenne"; sub = [`Gain moyen : ${money(s.avgW || 0)}`, `Perte moyenne : ${money(-(s.avgL || 0))}`, s.avgL ? `Ratio ${fr(s.avgW / s.avgL, 2)} : vos gains valent ${fr(s.avgW / s.avgL, 2)} fois vos pertes.` : "Aucune perte pour l'instant."]; }
+    else if (k === "score") { title = "Score"; sub = ["Moyenne de 5 axes : réussite, profit factor, R moyen, discipline et régularité.", "Ouvrez le détail pour voir chaque axe."]; }
+    else if (k === "curve") { title = `P&L cumulé · ${money(s.net || 0)}`; sub = [`${n} trade${pl(n)} · profit factor ${s.pf === Infinity ? "parfait" : fr(s.pf || 0, 2)}`]; }
+    return {title, sub, items: [{ic: CI.open, t: "Ouvrir le détail", run: () => spOpen(k, tile)}, {ic: CI.cal, t: "Voir les résultats", run: () => setView("resultats")}]}; }
+  /* jours du calendrier */
+  const cell = el.closest("#days [data-day]"); if (cell) { const y = +cell.dataset.y, m = +cell.dataset.m, d = +cell.dataset.day, ts = tradesOf(y, m).filter(t => t.day === d).map(t => ({...t, y, m})), tot = ts.reduce((a, t) => a + t.pnl, 0);
+    return {title: ctxDate(y, m, d), sub: [ts.length ? {t: `${ts.length} trade${pl(ts.length)} · ${money(tot)}`, c: tot < 0 ? "r" : "g"} : "Pas de trade pris"],
+      items: [...(ts.length ? [{label: "Trades du jour"}, ...ts.map(ctxTradeLine), {sep: 1}, {ic: CI.eye, t: "Ouvrir le journal du jour", run: () => ctxOpenDay(ts[0])}] : []), {ic: CI.add, t: "Ajouter un trade", run: () => ctxAddTrade(y, m, d)}]}; }
+  /* cartes « Mes trades » */
+  const tcv = el.closest("#tcStrip canvas") || (el.closest("#tcStrip, #tcards") ? document.elementsFromPoint(e.clientX, e.clientY).find(x => x.matches && x.matches("#tcStrip canvas")) : null); if (tcv) { const t = tcList[+tcv.dataset.i]; if (t) return {title: `${t.sym || "Trade"} · ${money(t.pnl)}`, sub: [ctxDate(t.y, t.m, t.day) + (t.time ? " · " + t.time : "")],
+    items: [{ic: CI.open, t: "Agrandir la carte", run: () => tcZoom(+tcv.dataset.i)}, {ic: CI.eye, t: "Ouvrir le journal du jour", run: () => ctxOpenDay(t)}, {ic: CI.play, t: "Lancer l'animation", run: () => playTradeObj(t)}]}; }
+  /* trade dans le journal du jour */
+  const jc = el.closest("#jCards .jc"); if (jc) { const id = (jc.querySelector("[data-jedit]") || {}).dataset?.jedit, t = state.trades.find(x => x.id === id); if (t) { const clk = s => () => { const b = jc.querySelector(s); if (b) b.click(); };
+    return {title: `${t.sym || "Trade"} · ${money(t.pnl)}`, sub: [t.time ? "Ouvert à " + t.time : ""], items: [{ic: CI.edit, t: "Modifier", run: clk("[data-jedit]")}, {ic: CI.chart, t: "Voir sur le graphique", run: clk("[data-jchart]")}, {ic: CI.play, t: "Lancer l'animation", run: clk("[data-jplay]")}, {sep: 1},
+      {ic: CI.del, t: "Supprimer le trade", danger: 1, confirm: "Confirmer la suppression", run: () => { const b = jc.querySelector(".jdel"); if (b) { b.click(); b.click(); } }}]}; } }
+  /* jours de la semaine (meilleur jour…) */
+  const wd = el.closest("[data-wd]"); if (wd) { const d = +wd.dataset.wd, ts = allTrades().filter(t => t.at.getDay() === d), tot = ts.reduce((a, t) => a + t.pnl, 0), w = ts.filter(t => t.pnl > 0).length, l = ts.filter(t => t.pnl < 0).length;
+    return {title: WDL[d][0].toUpperCase() + WDL[d].slice(1), sub: [ts.length ? {t: `${ts.length} trade${pl(ts.length)} · ${money(tot)}`, c: tot < 0 ? "r" : "g"} : "Aucun trade ce jour-là", ts.length && w + l ? `${Math.round(w / (w + l) * 100)} % de réussite` : ""],
+      items: ts.length ? [{label: "Derniers trades"}, ...ts.slice(-8).reverse().map(ctxTradeLine)] : []}; }
+  /* stratégies */
+  const sb = el.closest(".sdd-m [data-sid]"); if (sb) { const S = strat(), L = stratList(), x = L.find(q => q.id === sb.dataset.sid); if (x) {
+    const act = () => { if (S.active !== x.id) { S.active = x.id; S.at = Date.now(); stratSync(); save(); renderStrat(); } };
+    return {title: x.name, sub: [S.active === x.id ? "Stratégie active" : ""], items: [{ic: CI.open, t: "Ouvrir", run: act}, {ic: CI.edit, t: "Modifier", run: () => { act(); setTimeout(() => openStratDescribe(), 50); }}, {ic: "Aa", t: "Renommer", input: x.name, run: v => { x.name = v; S.at = Date.now(); save(); renderStrat(); }},
+      {ic: CI.dup, t: "Dupliquer", run: () => { const id = "s" + Date.now().toString(36); L.push({...JSON.parse(JSON.stringify(x)), id, name: (x.name + " (copie)").slice(0, 28)}); S.at = Date.now(); save(); renderStrat(); }}, {sep: 1},
+      {ic: CI.del, t: "Supprimer", danger: 1, confirm: "Confirmer la suppression", run: () => { S.active = x.id; stratDelete(); }}]}; } }
+  /* carte 3D de la stratégie */
+  const b3 = el.closest(".b3c"); if (b3) { const h = b3.closest(".b3"); if (h && h._ctx) return h._ctx(e.clientX, e.clientY); }
+  /* planète macro */
+  if (el.closest("#bigGlobe")) { const f = window.__mHov, r = f && (RATES[f.iso] || (["DE", "FR", "IT", "ES", "NL", "BE", "AT", "PT", "IE", "FI", "GR"].includes(f.iso) ? RATES.EZ : null));
+    if (f) return {title: f.c[2], sub: r ? [`${r[0]} : ${r[1].toFixed(2).replace(".", ",")} %`, `Dernière décision : ${r[2]}`] : ["Pas de taux directeur suivi pour ce pays"], items: [{ic: CI.open, t: "Ouvrir la fiche du pays", run: () => selectCountry(f.iso)}, {ic: CI.back, t: "Retour au tableau", run: () => { const b = $("mBack"); if (b) b.click(); }}]};
+    return {title: "Taux directeurs", sub: ["Relevés le 26 oct. 2026 · à vérifier avant de trader"], items: [...ctxRates(), {sep: 1}, {ic: CI.back, t: "Retour au tableau", run: () => { const b = $("mBack"); if (b) b.click(); }}]}; }
+  if (el.closest("#miniGlobe")) return {title: "Planète macro", sub: ["Taux directeurs relevés le 26 oct. 2026"], items: [...ctxRates(), {sep: 1}, {ic: CI.open, t: "Ouvrir la planète", run: () => openMacro()}]};
+  /* certificats */
+  const dc = el.closest(".dcard"); if (dc && typeof deckList !== "undefined") { const i = +dc.dataset.ci, c = deckList[i]; if (c) return {title: c.firm || "Certificat", sub: [[c.kind, c.amount ? money(+String(c.amount).replace(/\s/g, "").replace(",", ".") || 0) : ""].filter(Boolean).join(" · ")],
+    items: [{ic: CI.open, t: "Agrandir", run: () => { deckSel = i; layoutDeck(); setTimeout(openDeckCard, 200); }}, {ic: CI.edit, t: "Modifier", run: () => { certEdit = {...c}; drawCerts(); }}, {sep: 1}, {ic: CI.add, t: "Ajouter un certificat", run: () => newCert()}]}; }
+  if (view === "certs") return {items: [{ic: CI.add, t: "Ajouter un certificat", run: () => newCert()}, {sep: 1}, ...ctxNav()]};
+  return {items: ctxNav()};
+}
+document.addEventListener("contextmenu", e => {
+  const el = e.target instanceof Element ? e.target : e.target.parentElement; if (!el) return;
+  if (el.closest("input, textarea, select, [contenteditable=''], [contenteditable='true']")) { ctxClose(); return; }
+  e.preventDefault(); if (el.closest("#authGate:not([hidden])") || document.querySelector(".pnq, .pnc")) return;
+  let spec = null; try { spec = ctxBuild(el, e); } catch (err) { spec = {items: ctxNav()}; } ctxOpen(e.clientX, e.clientY, spec);
+});
 function renderTCards(animate){
   const box = $("tcards"); if (!box) return;
   tcList = tcTrades(); if (!tcList.length) { box.innerHTML = `<span class="lab2">Mes trades</span><p class="muted">Vos trades apparaîtront ici.</p>`; return; }
@@ -7610,7 +7711,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-151";
+const APP_VERSION = "2026-10-30-152";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
