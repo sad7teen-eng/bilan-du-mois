@@ -700,17 +700,19 @@ body:not(.light) .scn{color:#fff;text-shadow:0 0 22px rgba(255,255,255,.3)}
 .radar .vtx{fill:var(--fg);transition:r .25s,opacity .25s}.radar text{transition:fill .25s,font-weight .25s}
 .rwrap{position:relative}
 [data-pop]{cursor:pointer;transition:transform .35s cubic-bezier(.2,.8,.2,1)}[data-pop]:active{transform:scale(.985)}
-.cf{position:fixed;inset:0;z-index:74;display:flex;flex-direction:column;padding:calc(34px + env(safe-area-inset-top,0px)) clamp(20px,5vw,80px) calc(34px + env(safe-area-inset-bottom,0px));gap:22px;background:rgba(246,247,249,0);color:#0b0b0c;cursor:zoom-out;transition:background .45s,backdrop-filter .45s;--g:#2ea060;--r:#e5484d}
-.cf.on{background:rgba(246,247,249,.9);-webkit-backdrop-filter:blur(22px) saturate(140%);backdrop-filter:blur(22px) saturate(140%)}
-body:not(.light) .cf{color:#f2f2f2}body:not(.light) .cf.on{background:rgba(6,6,8,.9)}
-.cf-head{display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .6s .1s cubic-bezier(.2,.8,.2,1)}.cf.on .cf-head{opacity:1;transform:none}.cf.out .cf-head,.cf.out .cf-plot{opacity:0;transition-delay:0s}
-.cf-head small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.5}.cf-v{font-size:clamp(44px,6vw,76px);font-weight:600;letter-spacing:-.035em;line-height:1}.cf-v.r{color:var(--r)}.cf-sub{font-size:12.5px;opacity:.5}
-.cf-plot{position:relative;flex:1;min-height:0;padding:0 0 26px 58px;opacity:0;transition:opacity .5s .2s;cursor:default}.cf.on .cf-plot{opacity:1}
+.cfx{position:fixed;inset:0;z-index:74;display:grid;place-items:center;padding:24px;background:rgba(10,10,12,0);color:#0b0b0c;cursor:zoom-out;transition:background .4s,backdrop-filter .4s;--g:#2ea060;--r:#e5484d}
+.cf-box{width:min(1080px,100%);height:min(640px,calc(100dvh - 48px));display:flex;flex-direction:column;gap:18px;padding:26px 28px 22px;border-radius:24px;background:#fff;border:1px solid rgba(11,11,12,.08);box-shadow:0 40px 100px rgba(16,18,24,.3);cursor:default;transform:scale(.94);opacity:0;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.cfx.on .cf-box{transform:none;opacity:1}.cfx.out .cf-box{transform:scale(.96);opacity:0}body:not(.light) .cf-box{background:#0e0e10;border-color:#222}
+.cfx.on{background:rgba(10,10,12,.35);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+body:not(.light) .cfx{color:#f2f2f2}
+.cf-head{display:flex;flex-direction:column;gap:6px;opacity:0;transform:translateY(10px);transition:opacity .5s .1s,transform .6s .1s cubic-bezier(.2,.8,.2,1)}.cfx.on .cf-head{opacity:1;transform:none}.cfx.out .cf-head,.cfx.out .cf-plot{opacity:0;transition-delay:0s}
+.cf-head small{font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.5}.cf-v{font-size:clamp(36px,4.5vw,56px);font-weight:600;letter-spacing:-.035em;line-height:1}.cf-v.r{color:var(--r)}.cf-sub{font-size:12.5px;opacity:.5}
+.cf-plot{position:relative;flex:1;min-height:0;padding:0 0 26px 58px;opacity:0;transition:opacity .5s .2s;cursor:default}.cfx.on .cf-plot{opacity:1}
 .cf-plot svg{width:100%;height:100%;display:block;overflow:visible;color:currentColor}
 .cf-g{stroke:currentColor;stroke-opacity:.07;stroke-dasharray:3 6;vector-effect:non-scaling-stroke}.cf-z{stroke:currentColor;stroke-opacity:.22;vector-effect:non-scaling-stroke}
-.cf-l{fill:none;stroke:currentColor;stroke-width:2.2;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;stroke-linejoin:round}.cf.on .cf-l{animation:cfDraw 1.6s .25s cubic-bezier(.4,0,.2,1) forwards}@keyframes cfDraw{to{stroke-dashoffset:0}}
-.cf-a{opacity:0;transition:opacity 1s .9s}.cf.on .cf-a{opacity:1}
-.cf-m{fill:var(--g);opacity:0;transition:opacity .4s 1.4s;vector-effect:non-scaling-stroke}.cf-m.r{fill:var(--r)}.cf.on .cf-m{opacity:.9}
+.cf-l{fill:none;stroke:currentColor;stroke-width:2.2;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;stroke-linejoin:round}.cfx.on .cf-l{animation:cfDraw 1.6s .25s cubic-bezier(.4,0,.2,1) forwards}@keyframes cfDraw{to{stroke-dashoffset:0}}
+.cf-a{opacity:0;transition:opacity 1s .9s}.cfx.on .cf-a{opacity:1}
+.cf-m{fill:var(--g);opacity:0;transition:opacity .4s 1.4s;vector-effect:non-scaling-stroke}.cf-m.r{fill:var(--r)}.cfx.on .cf-m{opacity:.9}
 .cf-y{position:absolute;left:0;top:0;bottom:26px;width:52px}.cf-y span{position:absolute;right:6px;transform:translateY(-50%);font-size:11px;opacity:.45;font-variant-numeric:tabular-nums;white-space:nowrap}
 .cf-xa{position:absolute;left:58px;right:0;bottom:0;display:flex;justify-content:space-between;font-size:11px;opacity:.45}
 .cf-x{position:absolute;top:0;bottom:26px;width:0;border-left:1.5px dashed currentColor;opacity:.35;pointer-events:none}.cf-x.g{color:var(--g);opacity:1}.cf-x.r{color:var(--r);opacity:1}
@@ -4919,14 +4921,14 @@ function curveFull(L, from){ const days = dailySeries(L); if (!days || !days.len
   const X = i => n > 1 ? i / (n - 1) * W : W / 2, Y = v => H - (v - lo2) / (hi - lo2) * H, d = smoothPath(pts.map((v, i) => [X(i), Y(v)])), net = pts[n - 1];
   const ticks = Array.from({length: 5}, (_, k) => lo2 + (hi - lo2) * k / 4), fdl = x => x.d.toLocaleDateString("fr-FR", {day: "numeric", month: "short"});
   const marks = days.map((x, i) => x.n ? `<circle class="cf-m${x.p < 0 ? " r" : ""}" cx="${X(i).toFixed(1)}" cy="${Y(x.v).toFixed(1)}" r="4"/>` : "").join("");
-  const ov = document.createElement("div"); ov.className = "cf";
-  ov.innerHTML = `<div class="cf-head"><small>P&amp;L cumulé · ${scope === "month" ? esc(monthName()) : "depuis le début"}</small><div class="cf-v mv${net < 0 ? " r" : ""}">${bigMoney(net)}</div><span class="cf-sub">${L.length} trade${pl(L.length)} · survolez la courbe, cliquez un jour pour ouvrir le trade</span></div>
+  const ov = document.createElement("div"); ov.className = "cfx";
+  ov.innerHTML = `<div class="cf-box"><div class="cf-head"><small>P&amp;L cumulé · ${scope === "month" ? esc(monthName()) : "depuis le début"}</small><div class="cf-v mv${net < 0 ? " r" : ""}">${bigMoney(net)}</div><span class="cf-sub">${L.length} trade${pl(L.length)} · survolez la courbe, cliquez un jour pour ouvrir le trade</span></div>
     <div class="cf-plot"><div class="cf-y">${ticks.map(t => `<span style="top:${(Y(t) / H * 100).toFixed(2)}%">${kMoney(t)}</span>`).join("")}</div>
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="cfg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".18"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
         ${ticks.map(t => `<line class="cf-g" x1="0" x2="${W}" y1="${Y(t).toFixed(1)}" y2="${Y(t).toFixed(1)}"/>`).join("")}<line class="cf-z" x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}"/>
         <path class="cf-a" d="${d} L ${W} ${H} L 0 ${H} Z" fill="url(#cfg)"/><path class="cf-l" d="${d}" pathLength="1"/>${marks}</svg>
       <i class="cf-x" hidden></i><i class="cf-d" hidden></i><div class="cf-t" hidden></div>
-      <div class="cf-xa"><span>${fdl(days[0])}</span><span>${fdl(days[Math.floor((n - 1) / 2)])}</span><span>${fdl(days[n - 1])}</span></div></div>`;
+      <div class="cf-xa"><span>${fdl(days[0])}</span><span>${fdl(days[Math.floor((n - 1) / 2)])}</span><span>${fdl(days[n - 1])}</span></div></div></div>`;
   document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
   const plot = ov.querySelector(".cf-plot"), svg = plot.querySelector("svg"), xl = ov.querySelector(".cf-x"), dot = ov.querySelector(".cf-d"), tip = ov.querySelector(".cf-t"); let cur = -1;
   const at = cx => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(n - 1, Math.round((cx - r.left) / r.width * (n - 1)))); };
@@ -4937,7 +4939,7 @@ function curveFull(L, from){ const days = dailySeries(L); if (!days || !days.len
   svg.addEventListener("pointerleave", () => { cur = -1; xl.hidden = dot.hidden = tip.hidden = true; });
   const close = () => { ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 380); removeEventListener("keydown", esc3); };
   const esc3 = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", esc3);
-  ov.addEventListener("click", e => { if (e.target.closest("svg")) { const x = days[at(e.clientX)], k = dkey(x.d); const tr = L.filter(t => dkey(t.at) === k).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))[0];
+  ov.addEventListener("click", e => { if (e.target.closest(".cf-box") && !e.target.closest("svg")) return; if (e.target.closest("svg")) { const x = days[at(e.clientX)], k = dkey(x.d); const tr = L.filter(t => dkey(t.at) === k).sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl))[0];
       if (!tr) return; if (!tcList.length) tcList = tcTrades(); const ix = tcList.findIndex(t => t.id === tr.id); ix >= 0 ? tcZoom(ix) : (close(), goMonth(tr.y, tr.m), openDay(tr.day)); return; }
     close(); });
 }
@@ -7570,7 +7572,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-146";
+const APP_VERSION = "2026-10-30-147";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
