@@ -2343,8 +2343,11 @@ const num = v => parseFloat(String(v ?? "").replace(/\s/g, "").replace(/[−–�
 const toText = ts => [...ts].sort((a, b) => a.day - b.day).map(t => [t.day, (t.pnl >= 0 ? "+" : "") + t.pnl, t.sym, t.side, t.setup, t.grade, t.note].join(";")).join("\n");
 
 try { Object.keys(localStorage).filter(k => k.startsWith("bilan-td|")).forEach(k => localStorage.removeItem(k)); } catch(e) {}
-const DEFAULT = {greet: "Bonsoir,", name: "Kael", ready: "Ton bilan du mois est prêt", currency: "€", handle: "@kael.hq", year: new Date().getFullYear(), month: new Date().getMonth(), trades: []};
+const DEFAULT = {greet: "Bonsoir,", name: "", ready: "Ton bilan du mois est prêt", currency: "€", handle: "", year: new Date().getFullYear(), month: new Date().getMonth(), trades: []};
 const KEY = "month-review-v3";
+/* mes données d'origine (trades MT5, certificats Alpha) ne concernent que mon compte, jamais celui des autres */
+const LEGACY0 = (() => { try { return !localStorage.getItem("bdm-uid") && !!localStorage.getItem(KEY); } catch(e) { return false; } })();
+const isOwner = () => { try { if (localStorage.getItem("bdm-owner") === "1") return true; return LEGACY0 && !localStorage.getItem("bdm-uid"); } catch(e) { return false; } };
 let state = JSON.parse(JSON.stringify(DEFAULT));
 try {
   const s = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -2390,6 +2393,7 @@ const SEED_CERTS = [
 function applySeed(){
   if (!state.archive || typeof state.archive !== "object") state.archive = {};
   state.archive[state.year + "-" + state.month] = state.trades;
+  if (!isOwner()) { state.certs = Array.isArray(state.certs) ? state.certs : []; state.trades = state.archive[state.year + "-" + state.month] || []; return; }
   /* une seule fois : retirer les trades d'exemple de l'ancienne version */
   if (!state.sampleCleaned) {
     const sig = new Set(parseText(SAMPLE_TEXT).trades.map(t => t.day + "|" + t.pnl + "|" + t.setup + "|" + t.note));
@@ -4583,8 +4587,9 @@ window.BSync = (() => {
   async function enter(u, greet){
     if (inside === u.id) return; inside = u.id; SB.user = u;
     let prev = null; try { prev = localStorage.getItem("bdm-uid"); } catch(e) {}
-    if (prev && prev !== u.id) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; }
-    try { localStorage.setItem("bdm-uid", u.id); } catch(e) {}
+    if (prev && prev !== u.id) { try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem("bdm-owner"); localStorage.setItem("bdm-uid", u.id); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); return; }
+    try { localStorage.setItem("bdm-uid", u.id); if (String(u.email || "").toLowerCase() === "sad7teen@gmail.com") localStorage.setItem("bdm-owner", "1"); } catch(e) {}
+    if (!state.name) { const fn = first(u); if (fn) { state.name = fn; save(); } }
     SB.uid = u.id; BSync.reset(); BSync.soon(0);
     if (returning) try { history.replaceState(null, "", back() + location.hash); } catch(e) {}
     if (!greet || g.hidden) { g.hidden = true; return; }
@@ -4597,7 +4602,7 @@ window.BSync = (() => {
   $("agMail").onsubmit = async e => { e.preventDefault(); const em = $("agEmail").value.trim(); if (!em) return; const b = g.querySelector(".ag-send"); b.disabled = true; msg("Envoi…");
     const r = await SB.cli.auth.signInWithOtp({email: em, options: {emailRedirectTo: back()}}); b.disabled = false;
     msg(r.error ? "Envoi impossible : " + r.error.message : "Lien envoyé. Ouvrez l'e-mail et cliquez sur le lien pour entrer.", !!r.error); };
-  window.sbSignOut = async () => { try { await BSync.run(); } catch(e) {} await SB.cli.auth.signOut(); try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); };
+  window.sbSignOut = async () => { try { await BSync.run(); } catch(e) {} await SB.cli.auth.signOut(); try { localStorage.removeItem(KEY); Object.keys(localStorage).filter(k => k.startsWith("month-review-sync")).forEach(k => localStorage.removeItem(k)); localStorage.removeItem("bdm-owner"); } catch(e) {} try { indexedDB.deleteDatabase("month-review"); } catch(e) {} location.reload(); };
 })();
 
 
@@ -4937,6 +4942,7 @@ function stratSetCfg(C){ const S = strat(); stratEntry().cfg = C; S.at = Date.no
 const stratBlank = () => Object.assign(stratParse({}), {empty: true, desc: {}});
 function stratCfg(){
   const S = {}, E = stratEntry(); if (E.cfg && typeof E.cfg === "object") S.cfg = E.cfg; else { const T = strat(); S.market = T.market; S.risk = T.risk; S.rrMin = T.rrMin; S.rrTarget = T.rrTarget; S.maxTrades = T.maxTrades; S.sessions = T.sessions; }
+  if ((!S.cfg || typeof S.cfg !== "object") && !isOwner()) S.cfg = E.cfg = stratBlank();
   if (!S.cfg || typeof S.cfg !== "object") S.cfg = E.cfg = {
     market: S.market || "XAUUSD", marketOther: "", side: "both",
     tfs: [{tf: "H4", role: "bias"}, {tf: "H1", role: "zone"}, {tf: "M15", role: "exec"}],
@@ -5015,7 +5021,7 @@ function stratReal(C){
     <canvas class="sviz" data-viz="real" data-s='${esc(JSON.stringify(ses))}'></canvas>
     ${gaps.length ? `<div class="sgap">${gaps.map(x => `<p><i></i>${x}</p>`).join("")}</div>` : ""}</section>`;
 }
-function stratKaelRestore(){ try {
+function stratKaelRestore(){ try { if (!isOwner()) return;
   if (!/kael/i.test((state.name || "") + " " + (state.handle || "")) || localStorage.getItem("bdm-s1-kael") === "1") return;
   const D = {mk: "XAUUSD, dans les deux sens selon le biais H4", tf: "H4 pour le biais, H1 pour les zones, M15 pour l'entrée",
     bias: "Biais H4 en structure. Si le M15 se désaligne contre le H4, j'attends le shift.", zones: "Order blocks, Fibo 50 % et liquidités H1",
@@ -7282,7 +7288,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-124";
+const APP_VERSION = "2026-10-30-125";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
