@@ -1630,6 +1630,25 @@ body:not(.light) .ctx,body.instrat .ctx,.inmacro .ctx{background:rgba(20,21,24,.
 .bc-amt{position:absolute;left:7%;right:7%;top:47%;font-size:clamp(24px,8.6cqi,52px);font-weight:650;letter-spacing:-.03em;line-height:1;white-space:nowrap;background:linear-gradient(180deg,#ffffff 20%,#a6aab3 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
 .bc-bot{position:absolute;left:7%;right:7%;bottom:9%;display:flex;gap:9%;align-items:flex-end;font-size:clamp(9px,2.4cqi,13px);letter-spacing:.14em;color:#d3d6dc;font-variant-numeric:tabular-nums}
 .bc-bot>span{display:flex;flex-direction:column;gap:4px}.bc-bot small{font-size:.66em;letter-spacing:.22em;text-transform:uppercase;color:#7c8089}.bc-bot .bc-no{margin-left:auto;text-align:right}
+.bc-pan{position:absolute;left:7%;top:68%;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(9px,3cqi,16px);letter-spacing:.2em;color:#c9ccd3;text-shadow:0 1px 0 rgba(0,0,0,.8),0 -1px 0 rgba(255,255,255,.12)}
+.bc-holo2{position:absolute;right:7%;top:31%;width:13%;aspect-ratio:1.3;border-radius:6px;background:conic-gradient(from var(--hg,0deg),#9fd8ff,#e5a9ff,#ffb0cf,#ffe7a3,#a9ffd9,#9fd8ff);opacity:.55;mix-blend-mode:screen;filter:saturate(.8);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);animation:bcHolo 6s linear infinite}
+.bc.hov .bc-holo2{opacity:.8}
+@property --hg{syntax:"<angle>";inherits:false;initial-value:0deg}@keyframes bcHolo{to{--hg:360deg}}
+.cpf-b{display:block!important;color:#d3d6dc}
+.cpf-b .bb-tex{position:absolute;inset:0;opacity:.5;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 4px)}
+.bb-stripe{position:absolute;left:0;right:0;top:12%;height:16%;background:linear-gradient(180deg,#050505,#1a1a1c 45%,#050505);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.bb-l{position:absolute;left:6%;top:34%;bottom:7%;width:44%;display:flex;flex-direction:column;gap:3.2%}
+.bb-sig{display:flex;align-items:center;height:16%;min-height:22px;border-radius:4px;overflow:hidden;background:repeating-linear-gradient(-45deg,#ecebe6 0 4px,#dcdad3 4px 8px)}
+.bb-sig i{flex:1;padding:0 10px;font-family:"Brush Script MT","Segoe Script","Snell Roundhand",cursive;font-size:clamp(14px,2.6vw,22px);color:#1b2a55;white-space:nowrap;overflow:hidden}
+.bb-sig b{padding:0 10px;height:100%;display:grid;place-items:center;background:#fff;color:#111;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(10px,1.6vw,13px);font-style:italic;letter-spacing:.08em}
+.bb-kv{display:flex;flex-direction:column;gap:2px;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(9px,1.45vw,12.5px);letter-spacing:.12em;color:#d7dae0}.bb-kv small{font-family:inherit;font-size:.72em;letter-spacing:.24em;text-transform:uppercase;color:#7c8089}
+.bb-bar{display:flex;gap:2px;height:9%;min-height:14px;margin-top:auto}.bb-bar i{background:#d6d8dd;border-radius:1px}.bb-bar i:nth-child(3n){background:transparent}
+.bb-fine{font-size:clamp(7px,1vw,9.5px);line-height:1.45;color:#6f737c;letter-spacing:.02em}
+.bb-r{position:absolute;right:5%;top:34%;bottom:9%;width:41%;display:grid;place-items:center}
+.cpf-b .bb-r img{position:static;max-width:100%;max-height:100%;width:auto;height:auto;border-radius:8px;box-shadow:0 14px 30px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.1);opacity:1}
+.bb-none{font-size:12px;color:#7c8089}
+.bb-holo{position:absolute;right:5%;top:2.5%;width:7%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from var(--hg,0deg),#9fd8ff,#e5a9ff,#ffb0cf,#ffe7a3,#a9ffd9,#9fd8ff);opacity:.6;mix-blend-mode:screen;animation:bcHolo 6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.bb-chipno{position:absolute;left:6%;top:5%;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,1.2vw,11px);letter-spacing:.24em;color:#8d9099}
 /* fenêtre : la carte se retourne et montre le certificat */
 .cflip{width:min(760px,92vw,calc((100dvh - 150px) * 1.586));aspect-ratio:1.586;perspective:1800px;cursor:pointer;transform:scale(.9) translateY(14px);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s}
 .cpop.on .cflip{transform:none;opacity:1}.cpop.out .cflip{transform:scale(.95);opacity:0}
@@ -2826,12 +2845,16 @@ function closeCerts(){ setView("tableau"); }
 async function loadCerts(){ await Promise.all((state.certs || []).map(c => idb.get("cert:" + c.id))); certEdit = null; drawCerts(); }
 const certAmt = c => { const v = num(c.amount); return {v: isFinite(v) && /\d/.test(c.amount || "") ? v : null, c: /\$/.test(c.amount || "") ? "$" : /€/.test(c.amount || "") ? "€" : ""}; };
 /* carte black : le certificat devient une carte en métal noir, reflet holographique qui suit la souris */
-function bcardHTML(c, no){ const A = certAmt(c), d = c.date ? new Date(c.date) : null, p2 = x => String(x).padStart(2, "0");
+function bcCodes(c, no){ let h = 2166136261; String(c.id || c.firm || "x").split("").forEach(ch => { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; });
+  const r = () => (h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0, h), hex = n => Array.from({length: n}, () => "0123456789ABCDEF"[r() % 16]).join(""), dig = n => Array.from({length: n}, () => r() % 10).join("");
+  const firm = String(c.firm || "PF").replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 4).padEnd(4, "X"), d = (c.date || "").replace(/-/g, "");
+  return {pan: `${dig(4)} ${dig(4)} ${dig(4)} ${String(no || 1).padStart(4, "0")}`, ref: `${firm}-${d || "00000000"}-${String(no || 1).padStart(4, "0")}`, sec: hex(3), auth: hex(4) + "-" + hex(4) + "-" + hex(4), bars: Array.from({length: 46}, () => 1 + r() % 3)}; }
+function bcardHTML(c, no){ const K = bcCodes(c, no), A = certAmt(c), d = c.date ? new Date(c.date) : null, p2 = x => String(x).padStart(2, "0");
   const amt = A.v != null ? (c.kind === "Payout" ? "+" : "") + frN(A.v, A.v % 1 ? 2 : 0) + "\u00a0" + (A.c || cur()) : esc(c.amount || "—");
   return `<span class="bc"><span class="bc-tex"></span><span class="bc-holo"></span><span class="bc-glow"></span>
     <span class="bc-top"><b>${esc((c.firm || "Prop firm").toUpperCase())}</b><em>${esc({"Payout": "PAYOUT", "Compte financé": "FUNDED", "Évaluation réussie": "PASSED"}[c.kind] || (c.kind || "").toUpperCase())}</em></span>
     <span class="bc-chip"><i></i><i></i><i></i></span>
-    <span class="bc-amt mv">${amt}</span>
+    <span class="bc-amt mv">${amt}</span><span class="bc-pan">${K.pan}</span><span class="bc-holo2"></span>
     <span class="bc-bot"><span><small>Date</small>${d ? p2(d.getDate()) + "." + p2(d.getMonth() + 1) + "." + d.getFullYear() : "—"}</span><span><small>Titulaire</small>${esc((state.name || "Trader").toUpperCase())}</span><span class="bc-no"><small>N°</small>${String(no || 1).padStart(4, "0")}</span></span></span>`; }
 function bcardHover(host, sel){ if (!host || host._bch) return; host._bch = 1;
   host.addEventListener("pointermove", e => { const b = host.querySelector(sel); if (!b) return; const r = b.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
@@ -2925,9 +2948,17 @@ function frostCard(c){ if (matchMedia("(prefers-reduced-motion: reduce)").matche
     r.animate([{transform: "translate(-50%,-50%) scale(1)", opacity: .7}, {transform: "translate(-50%,-50%) scale(1.22)", opacity: 0}], {duration: 1000, delay: k * 130, easing: "cubic-bezier(.2,.7,.3,1)", fill: "backwards"}).onfinish = () => r.remove(); } }
 function openDeckCard(){ const c = deckList[deckSel]; if (c) certPop(c); }
 /* certificat ouvert en grand : une simple fenêtre, sur le fond normal */
+function bcBack(c, no, hasIm){ const K = bcCodes(c, no), A = certAmt(c);
+  return `<span class="bb-tex"></span><span class="bb-stripe"></span>
+    <span class="bb-l"><span class="bb-sig"><i>${esc(state.name || "Trader")}</i><b>${K.sec}</b></span>
+      <span class="bb-kv"><small>Référence</small>${K.ref}</span><span class="bb-kv"><small>Code d'authenticité</small>${K.auth}</span>
+      <span class="bb-bar">${K.bars.map(w => `<i style="flex:${w}"></i>`).join("")}</span>
+      <span class="bb-fine">Carte émise par KaelJournal. Elle atteste ${c.kind === "Payout" ? "d'un payout" : c.kind === "Compte financé" ? "d'un compte financé" : "d'une évaluation réussie"} chez ${esc(c.firm || "la prop firm")}${A.v != null ? " · " + frN(A.v, A.v % 1 ? 2 : 0) + " " + (A.c || cur()) : ""}. Document non contractuel, sans valeur de paiement.</span></span>
+    <span class="bb-r">${hasIm ? `<img alt="">` : `<span class="bb-none">Pas encore d'image</span>`}</span>
+    <span class="bb-holo"></span><span class="bb-chipno">N° ${String(no || 1).padStart(4, "0")}</span>`; }
 function certPop(c){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; const no = deckList.length - deckList.indexOf(c);
   const ov = document.createElement("div"); ov.className = "cpop";
-  ov.innerHTML = `<div class="cflip"><div class="cflip-in"><div class="cpf-f">${bcardHTML(c, no)}</div><div class="cpf-b">${im ? `<img alt="">` : `<span>Pas encore d'image pour ce certificat</span>`}</div></div></div>
+  ov.innerHTML = `<div class="cflip"><div class="cflip-in"><div class="cpf-f">${bcardHTML(c, no)}</div><div class="cpf-b">${bcBack(c, no, !!im)}</div></div></div>
     <div class="cpop-a"><button type="button" data-cp="flip">↻ Retourner</button><button type="button" data-cp="edit">Modifier</button>${im ? `<button type="button" data-cp="dl" class="pri">Télécharger</button>` : ""}</div>`;
   if (im) ov.querySelector("img").src = im; document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
   const fl = ov.querySelector(".cflip"), flip = () => fl.classList.toggle("back"); bcardHover(ov, ".cflip:not(.back) .bc");
@@ -7765,7 +7796,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-157";
+const APP_VERSION = "2026-10-30-158";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
