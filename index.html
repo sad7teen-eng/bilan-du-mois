@@ -1649,6 +1649,10 @@ body:not(.light) .ctx,body.instrat .ctx,.inmacro .ctx{background:rgba(20,21,24,.
 .bb-none{font-size:12px;color:#7c8089}
 .bb-holo{position:absolute;right:5%;top:2.5%;width:7%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from var(--hg,0deg),#9fd8ff,#e5a9ff,#ffb0cf,#ffe7a3,#a9ffd9,#9fd8ff);opacity:.6;mix-blend-mode:screen;animation:bcHolo 6s linear infinite;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
 .bb-chipno{position:absolute;left:6%;top:5%;font-family:var(--mono,ui-monospace,monospace);font-size:clamp(8px,1.2vw,11px);letter-spacing:.24em;color:#8d9099}
+.cflip.zoom{transition:transform 1s cubic-bezier(.22,.9,.24,1)!important;cursor:zoom-out}.cflip:not(.zoom){transition:transform 1s cubic-bezier(.22,.9,.24,1),opacity .35s}
+.cflip.back [data-zz]{cursor:zoom-in;transition:filter .25s,box-shadow .25s}.cflip.back:not(.zoom) [data-zz]:hover{filter:brightness(1.18)}
+.cpop.zoomed{background:rgba(6,6,8,.72)!important}.cpop.zoomed .cpop-a{opacity:0;pointer-events:none}
+.bb-codes{display:flex;flex-direction:column;gap:6px}
 /* fenêtre : la carte se retourne et montre le certificat */
 .cflip{width:min(760px,92vw,calc((100dvh - 150px) * 1.586));aspect-ratio:1.586;perspective:1800px;cursor:pointer;transform:scale(.9) translateY(14px);opacity:0;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s}
 .cpop.on .cflip{transform:none;opacity:1}.cpop.out .cflip{transform:scale(.95);opacity:0}
@@ -2950,21 +2954,24 @@ function openDeckCard(){ const c = deckList[deckSel]; if (c) certPop(c); }
 /* certificat ouvert en grand : une simple fenêtre, sur le fond normal */
 function bcBack(c, no, hasIm){ const K = bcCodes(c, no), A = certAmt(c);
   return `<span class="bb-tex"></span><span class="bb-stripe"></span>
-    <span class="bb-l"><span class="bb-sig"><i>${esc(state.name || "Trader")}</i><b>${K.sec}</b></span>
-      <span class="bb-kv"><small>Référence</small>${K.ref}</span><span class="bb-kv"><small>Code d'authenticité</small>${K.auth}</span>
-      <span class="bb-bar">${K.bars.map(w => `<i style="flex:${w}"></i>`).join("")}</span>
-      <span class="bb-fine">Carte émise par KaelJournal. Elle atteste ${c.kind === "Payout" ? "d'un payout" : c.kind === "Compte financé" ? "d'un compte financé" : "d'une évaluation réussie"} chez ${esc(c.firm || "la prop firm")}${A.v != null ? " · " + frN(A.v, A.v % 1 ? 2 : 0) + " " + (A.c || cur()) : ""}. Document non contractuel, sans valeur de paiement.</span></span>
-    <span class="bb-r">${hasIm ? `<img alt="">` : `<span class="bb-none">Pas encore d'image</span>`}</span>
-    <span class="bb-holo"></span><span class="bb-chipno">N° ${String(no || 1).padStart(4, "0")}</span>`; }
+    <span class="bb-l"><span class="bb-sig" data-zz="1"><i>${esc(state.name || "Trader")}</i><b>${K.sec}</b></span>
+      <span class="bb-codes" data-zz="1"><span class="bb-kv"><small>Référence</small>${K.ref}</span><span class="bb-kv"><small>Code d'authenticité</small>${K.auth}</span></span>
+      <span class="bb-bar" data-zz="1">${K.bars.map(w => `<i style="flex:${w}"></i>`).join("")}</span>
+      <span class="bb-fine" data-zz="1">Carte émise par KaelJournal. Elle atteste ${c.kind === "Payout" ? "d'un payout" : c.kind === "Compte financé" ? "d'un compte financé" : "d'une évaluation réussie"} chez ${esc(c.firm || "la prop firm")}${A.v != null ? " · " + frN(A.v, A.v % 1 ? 2 : 0) + " " + (A.c || cur()) : ""}. Document non contractuel, sans valeur de paiement.</span></span>
+    <span class="bb-r" data-zz="1">${hasIm ? `<img alt="">` : `<span class="bb-none">Pas encore d'image</span>`}</span>
+    <span class="bb-holo" data-zz="1"></span><span class="bb-chipno">N° ${String(no || 1).padStart(4, "0")}</span>`; }
 function certPop(c){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; const no = deckList.length - deckList.indexOf(c);
   const ov = document.createElement("div"); ov.className = "cpop";
   ov.innerHTML = `<div class="cflip"><div class="cflip-in"><div class="cpf-f">${bcardHTML(c, no)}</div><div class="cpf-b">${bcBack(c, no, !!im)}</div></div></div>
     <div class="cpop-a"><button type="button" data-cp="flip">↻ Retourner</button><button type="button" data-cp="edit">Modifier</button>${im ? `<button type="button" data-cp="dl" class="pri">Télécharger</button>` : ""}</div>`;
   if (im) ov.querySelector("img").src = im; document.body.appendChild(ov); requestAnimationFrame(() => ov.classList.add("on"));
-  const fl = ov.querySelector(".cflip"), flip = () => fl.classList.toggle("back"); bcardHover(ov, ".cflip:not(.back) .bc");
+  const fl = ov.querySelector(".cflip"), unz = () => { fl.classList.remove("zoom"); fl.style.transform = ""; ov.classList.remove("zoomed"); }, flip = () => { unz(); fl.classList.toggle("back"); };
+  const zoomTo = el => { const fr = fl.getBoundingClientRect(), zr = el.getBoundingClientRect(), dx = zr.left + zr.width / 2 - (fr.left + fr.width / 2), dy = zr.top + zr.height / 2 - (fr.top + fr.height / 2);
+    const S = Math.max(1.3, Math.min(3.2, innerWidth * .78 / zr.width, innerHeight * .72 / zr.height)), ry = Math.max(-14, Math.min(14, -dx / fr.width * 30)), rx = Math.max(-8, Math.min(8, dy / fr.height * 18));
+    fl.classList.add("zoom"); ov.classList.add("zoomed"); fl.style.transform = `perspective(1700px) rotateY(${ry.toFixed(2)}deg) rotateX(${rx.toFixed(2)}deg) translate(${(-dx * S).toFixed(1)}px,${(-dy * S).toFixed(1)}px) scale(${S.toFixed(3)})`; }; bcardHover(ov, ".cflip:not(.back) .bc");
   const tf = setTimeout(() => { if (im && ov.isConnected) flip(); }, 1100);
-  const close = () => { clearTimeout(tf); ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 350); removeEventListener("keydown", key); }, key = e => { if (e.key === "Escape") close(); }; addEventListener("keydown", key);
-  ov.addEventListener("click", e => { clearTimeout(tf); if (e.target.closest(".cflip")) { flip(); return; } const b = e.target.closest("[data-cp]"); if (!b) { close(); return; }
+  const close = () => { clearTimeout(tf); ov.classList.remove("on"); ov.classList.add("out"); setTimeout(() => ov.remove(), 350); removeEventListener("keydown", key); }, key = e => { if (e.key === "Escape") { if (ov.classList.contains("zoomed")) unz(); else close(); } }; addEventListener("keydown", key);
+  ov.addEventListener("click", e => { clearTimeout(tf); if (ov.classList.contains("zoomed")) { unz(); return; } if (e.target.closest(".cflip")) { const z = fl.classList.contains("back") && e.target.closest("[data-zz]"); if (z) zoomTo(z); else flip(); return; } const b = e.target.closest("[data-cp]"); if (!b) { close(); return; }
     if (b.dataset.cp === "flip") { flip(); return; }
     if (b.dataset.cp === "edit") { close(); setTimeout(() => { certEdit = {...c}; drawCerts(); }, 250); return; }
     const a = document.createElement("a"), nm = ("certificat-" + (c.firm || "") + "-" + (c.date || "")).replace(/[^\w-]+/g, "-").replace(/-+$/, ""); a.href = im; a.download = nm + (/^data:image\/png/.test(im) ? ".png" : ".jpg"); document.body.appendChild(a); a.click(); a.remove(); }); }
@@ -7796,7 +7803,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-158";
+const APP_VERSION = "2026-10-30-159";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
