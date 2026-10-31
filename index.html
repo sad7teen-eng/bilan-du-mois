@@ -2314,7 +2314,7 @@ body.incerts #certEggs,body.incerts #certBg{display:none!important}
 @media (max-width:560px){.cu-bar{flex-direction:column;align-items:stretch;gap:8px;width:calc(100vw - 32px);padding:10px 12px}.cu-acts{flex-wrap:nowrap}.cu-acts button{flex:1;padding:8px 4px!important;font-size:12px!important}.cu-hint{white-space:normal;width:calc(100vw - 40px);text-align:center}}
 .cu.zoomed .cu-hint{display:none}@keyframes cuHint{to{opacity:0}}
 body.incerts #certModal .vhead{position:relative;z-index:3;pointer-events:none}body.incerts #certModal .vhead *{pointer-events:auto}
-body.incerts .topnav{background:rgba(246,246,248,.78)!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}body.incerts .topnav .tn,body.incerts .topnav .brand{color:#2a2c31!important;text-shadow:none!important}body.incerts .topnav .tn.on{background:#fff!important;color:#111!important}
+body.incerts .topnav{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;border:0!important}body.incerts .topnav::before,body.incerts .topnav::after{display:none!important}body.incerts .tn-tabs{gap:6px}body.incerts .topnav .tn,body.incerts .topnav .tn-brand{background:rgba(255,255,255,.92)!important;box-shadow:0 2px 10px rgba(0,0,0,.18)!important;padding-left:12px;padding-right:12px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:10px}body.incerts .topnav .tn,body.incerts .topnav .tn-brand{color:#2a2c31!important;text-shadow:none!important;opacity:1!important}body.incerts .topnav .tn.on{background:#fff!important;color:#111!important}
 body.incerts #certModal .vhead h1{color:#111;text-shadow:0 1px 12px rgba(255,255,255,.9)}
 /* badge membre holographique (Mon compte) */
 .pc-badge{display:inline-flex;align-items:center;gap:clamp(5px,1.6cqi,9px);min-width:clamp(110px,34cqi,190px);padding:clamp(3px,.9cqi,5px) clamp(12px,3.6cqi,18px) clamp(3px,.9cqi,5px) clamp(7px,2cqi,11px);border-radius:clamp(6px,1.8cqi,9px);position:relative;overflow:hidden;isolation:isolate;
@@ -7997,7 +7997,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-165";
+const APP_VERSION = "2026-10-31-166";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
