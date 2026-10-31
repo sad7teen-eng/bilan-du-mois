@@ -2999,7 +2999,9 @@ function cuMount(cs){
     const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.warn(gl.getShaderInfoLog(o)); return o; }, pr = gl.createProgram();
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, "attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }"));
     gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, `precision highp float;
-      uniform vec2 R, C, HV, FC; uniform float Z, D, N, K, F; uniform sampler2D S;
+      uniform vec2 R, C, HV, FC, MS; uniform float Z, D, N, K, F, T; uniform sampler2D S;
+      float orb(vec2 u, vec2 c, float r, float s){ return 1. - smoothstep(r * (1. - s), r, length(u - c)); }
+      float hs(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
       void main(){
         vec2 uv = (gl_FragCoord.xy - .5 * R) / R.y; uv.y = -uv.y; float r2 = dot(uv, uv), k = 1. + D * 1.6 * r2;
         vec2 w = C + uv * k * Z, cs = vec2(${(CU_A + CU_G).toFixed(4)}, ${(1 + CU_G).toFixed(4)}), sz = vec2(${CU_A.toFixed(4)}, 1.);
@@ -3008,16 +3010,25 @@ function cuMount(cs){
         float px = Z * k / R.y * 1.4, m = 1. - smoothstep(-px, px, sd);
         float idx = mod(cell.x + cell.y * K, N); idx = mod(idx + N, N);
         vec2 t = (vec2(mod(idx, ${CU_COLS}.), floor(idx / ${CU_COLS}.)) + clamp(l / sz, 0., 1.)) * vec2(${(CU_SW / 2048).toFixed(5)}, ${(CU_SH / 2048).toFixed(5)});
-        vec3 col = texture2D(S, t).rgb;
+        float ax = R.x / R.y * .5; vec2 sp = gl_FragCoord.xy / R;
+        float ed = min(min(sp.x, 1. - sp.x) * R.x / R.y, min(sp.y, 1. - sp.y));
+        float fe = 1. - smoothstep(.0, .32, ed), fm = smoothstep(.14, .62, length(uv - MS));
+        float fb = clamp(max(fm * .9, fe) * (1. - F), 0., 1.);
+        /* fond blanc + effet glace : grosses taches sombres floues qui dérivent, fin grain */
+        float o1 = orb(uv, vec2(ax * .42 + .06 * sin(T * .11), .30 + .05 * cos(T * .09)), .52, .62) * .62;
+        float o2 = orb(uv, vec2(-ax * .95 + .05 * cos(T * .07), .62), .55, .9) * .32;
+        float o3 = orb(uv, vec2(-ax * .25 + .07 * sin(T * .05 + 2.), -.62), .34, .85) * .22;
+        vec3 bgc = mix(vec3(.972, .974, .978), vec3(.03, .03, .035), clamp(o1 + o2 + o3, 0., .8));
+        bgc += (hs(floor(gl_FragCoord.xy)) - .5) * .018;
+        vec3 col = texture2D(S, t, fb * 4.5).rgb;
         float hv = (cell == HV) ? 1. : 0., fc = (cell == FC) ? 1. : 0.;
         col *= mix(1., 1.07, hv); col = mix(col, vec3(.955, .955, .962), .7 * F * (1. - fc));
-        col = mix(col, vec3(.955, .955, .962), .55 * D * smoothstep(.1, .8, r2));
-        vec3 bg = vec3(.955, .955, .962);
-        gl_FragColor = vec4(mix(bg, col, m), 1.);
+        col = mix(col, bgc, fb * .82);
+        gl_FragColor = vec4(mix(bgc, col, m * (1. - fe * .35)), 1.);
       }`));
     gl.linkProgram(pr); gl.useProgram(pr); CU.pr = pr;
     const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); const lp = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 2, gl.FLOAT, false, 0, 0);
-    ["R", "C", "HV", "FC", "Z", "D", "N", "K", "F", "S"].forEach(n => CU.U[n] = gl.getUniformLocation(pr, n));
+    ["R", "C", "HV", "FC", "MS", "Z", "D", "N", "K", "F", "T", "S"].forEach(n => CU.U[n] = gl.getUniformLocation(pr, n));
     CU.tex = gl.createTexture(); CU.atlas = document.createElement("canvas"); CU.atlas.width = CU.atlas.height = 2048; }
   /* l'atlas : chaque certificat dans sa case (texte de secours tant que l'image charge) */
   const g = CU.atlas.getContext("2d"); g.fillStyle = "#f3f3f5"; g.fillRect(0, 0, 2048, 2048);
@@ -3038,7 +3049,8 @@ function cuTick(now){ const u = $("cuniv"); if (!u || !CU.gl) { CU.run = false; 
   if (CU.foc) { const cs = cuCS(), tx = (CU.foc.cx + .5) * cs[0], ty = (CU.foc.cy + .5) * cs[1]; CU.cam[0] += (tx - CU.cam[0]) * e; CU.cam[1] += (ty - CU.cam[1]) * e; CU.v = [0, 0]; }
   else if (!CU.drag) { CU.cam[0] += CU.v[0] * dt; CU.cam[1] += CU.v[1] * dt; const dmp = Math.exp(-dt * 1.8); CU.v[0] *= dmp; CU.v[1] *= dmp; }
   CU.z += (CU.zT - CU.z) * e; CU.d += (CU.dT - CU.d) * e; CU.f += (CU.fT - CU.f) * e;
-  gl.viewport(0, 0, W, H); const U = CU.U; gl.uniform2f(U.R, W, H); gl.uniform2f(U.C, CU.cam[0], CU.cam[1]); gl.uniform1f(U.Z, CU.z); gl.uniform1f(U.D, CU.d); gl.uniform1f(U.N, CU.n); gl.uniform1f(U.K, CU.n > 2 ? Math.floor(CU.n / 2) + 1 : 1); gl.uniform1f(U.F, CU.f);
+  gl.viewport(0, 0, W, H); const U = CU.U; gl.uniform2f(U.R, W, H); gl.uniform2f(U.C, CU.cam[0], CU.cam[1]); gl.uniform1f(U.Z, CU.z); gl.uniform1f(U.D, CU.d); gl.uniform1f(U.N, CU.n); gl.uniform1f(U.K, CU.n > 2 ? Math.floor(CU.n / 2) + 1 : 1); gl.uniform1f(U.F, CU.f); gl.uniform1f(U.T, now / 1000);
+  const ms = CU.ms || [cv.clientWidth / 2, cv.clientHeight / 2]; CU.msS = CU.msS || ms.slice(); CU.msS[0] += (ms[0] - CU.msS[0]) * (1 - Math.exp(-dt * 9)); CU.msS[1] += (ms[1] - CU.msS[1]) * (1 - Math.exp(-dt * 9)); gl.uniform2f(U.MS, (CU.msS[0] - cv.clientWidth / 2) / cv.clientHeight, (CU.msS[1] - cv.clientHeight / 2) / cv.clientHeight);
   gl.uniform2f(U.HV, CU.foc ? 1e9 : CU.hov[0], CU.foc ? 1e9 : CU.hov[1]); gl.uniform2f(U.FC, CU.foc ? CU.foc.cx : 1e9, CU.foc ? CU.foc.cy : 1e9); gl.uniform1i(U.S, 0); gl.drawArrays(gl.TRIANGLES, 0, 3);
   /* certificat net par-dessus quand le zoom est posé */
   const img = u.querySelector(".cu-img"), settled = CU.foc && Math.abs(CU.z - CU.zT) < .03 * CU.zT && Math.hypot((CU.foc.cx + .5) * cuCS()[0] - CU.cam[0], (CU.foc.cy + .5) * cuCS()[1] - CU.cam[1]) < .01;
@@ -3055,7 +3067,7 @@ function cuBind(u){
   u.addEventListener("pointerdown", e => { if (e.target.closest(".cu-bar")) return; u.setPointerCapture(e.pointerId); CU.ptr.set(e.pointerId, [e.clientX, e.clientY]);
     if (CU.ptr.size === 2) { const [a, b] = [...CU.ptr.values()]; CU.pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); CU.drag = null; return; }
     CU.drag = {x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now(), t: performance.now(), vel: [0, 0], moved: 0}; CU.v = [0, 0]; });
-  u.addEventListener("pointermove", e => {
+  u.addEventListener("pointermove", e => { const rc = u.getBoundingClientRect(); CU.ms = [e.clientX - rc.left, e.clientY - rc.top];
     if (CU.ptr.has(e.pointerId)) CU.ptr.set(e.pointerId, [e.clientX, e.clientY]);
     if (CU.ptr.size === 2 && CU.pinch) { const [a, b] = [...CU.ptr.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = d / CU.pinch;
       if (CU.foc && r < .8) { cuUnfocus(); CU.pinch = d; } else if (!CU.foc && r > 1.25) { const h = cuCellAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); cuFocus(h.cx, h.cy); CU.pinch = d; } return; }
@@ -7997,7 +8009,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-167";
+const APP_VERSION = "2026-10-31-168";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
