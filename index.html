@@ -1530,7 +1530,7 @@ body.light .scene{display:block;position:fixed;inset:0;z-index:0;pointer-events:
 .floor{position:absolute;left:50%;bottom:-30vh;width:140vw;height:60vh;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(0,0,0,.08),transparent);filter:blur(20px)}
 body.light .dash,body.light .topnav,body.light .dock{position:relative;z-index:1}
 body.light .topnav{position:sticky;z-index:30}
-body.light .dock{position:fixed;z-index:60}
+body.light .dock{position:fixed;z-index:30}
 
 /* Cartes en verre */
 body.light .tile,body.light .cal,body.light .plan,body.light .chcard,body.light .chside,body.light .ready,body.light .crow,body.light .jc,body.light .jsheet,body.light .sheet,body.light .ckread,body.light .kvs > div,body.light .rk > div,body.light .tf,body.light .ch-kpis > div{
@@ -8021,7 +8021,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-170";
+const APP_VERSION = "2026-10-31-171";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
