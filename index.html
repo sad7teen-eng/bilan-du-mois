@@ -2290,6 +2290,12 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pc-help{font-size:11px!important;opacity:.45!important;margin:2px 0 4px!important}
 .sheet.acc{max-width:520px}
 @media (max-width:600px){
+section.view[data-view="resultats"] .cal{padding:12px!important;gap:7px!important}
+section.view[data-view="resultats"] .cal .cell{min-height:42px!important;border-radius:8px!important}
+section.view[data-view="resultats"] .cal .wk div{font-size:10.5px}
+section.view[data-view="resultats"] .cal .wk div:last-child{font-size:0}section.view[data-view="resultats"] .cal .wk div:last-child::after{content:"Sem.";font-size:10.5px}
+}
+@media (max-width:600px){
 .sheet.acc .pcard{border-radius:16px;margin:4px 0 8px}
 .sheet.acc .pc-chip.acc-av{width:15%;top:25%}
 .sheet.acc .pc-help{font-size:0!important;margin:0 0 6px!important}.sheet.acc .pc-help::after{content:"Touchez deux fois votre nom pour le modifier · touchez la photo pour la changer";font-size:11px}
@@ -8021,7 +8027,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-171";
+const APP_VERSION = "2026-10-31-172";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
