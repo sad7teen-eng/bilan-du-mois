@@ -2251,7 +2251,7 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pcard{--c1:#2b2c31;--c2:#060607;--ink:#eef0f3;--sub:rgba(255,255,255,.55);--mx:30%;--my:20%;position:relative;width:100%;aspect-ratio:1.586;border-radius:20px;overflow:hidden;color:var(--ink);container-type:inline-size;margin:6px 0 10px;
   background:radial-gradient(130% 150% at 0% 0%,var(--c1) 0%,color-mix(in srgb,var(--c1) 35%,var(--c2)) 48%,var(--c2) 100%);box-shadow:0 26px 50px rgba(16,18,24,.3),0 6px 14px rgba(16,18,24,.15),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(255,255,255,.08);
   transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.8,.2,1),background .5s}
-.pcard.hov{transition:transform .12s linear,background .5s}
+.pcard.hov{transition:transform .9s cubic-bezier(.2,.7,.2,1),background .5s}
 .pcard.in{animation:pcIn .8s cubic-bezier(.2,.8,.2,1) both}@keyframes pcIn{from{opacity:0;transform:perspective(1000px) rotateX(18deg) translateY(16px) scale(.94)}}
 .pcard.lt{--ink:#14161a;--sub:rgba(0,0,0,.5)}
 .pc-tex{position:absolute;inset:0;opacity:.5;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px),repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 4px)}
@@ -2298,6 +2298,35 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .ag-prof{width:100%;display:flex;flex-direction:column;gap:14px;text-align:left}.ag-prof label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:#9a9a9a}
 #authGate .ag-prof input{padding:12px 14px;border-radius:12px;border:1px solid #2a2a2a!important;background:#0e0e10!important;color:#fff!important;font:inherit;font-size:14px}#authGate .acc-at{background:#0e0e10;border:1px solid #2a2a2a;border-radius:12px;padding-left:14px}#authGate .acc-at input{border:0!important;padding-left:0}
 #authGate .ag-g{background:#fff!important;color:#111!important;border:0!important;box-shadow:none;border-radius:12px!important;padding:13px 16px!important;min-height:0!important}#authGate .ag-send{background:#151517!important;color:#eee!important;border:1px solid #333!important;border-radius:12px!important;padding:12px 14px!important;min-height:0!important}#authGate .ag-send:hover{border-color:#666!important}#authGate .ag-mail input{background:#0e0e10!important;color:#fff!important;border:1px solid #2a2a2a!important;border-radius:12px!important}
+/* ===== Certificats : univers infini ===== */
+body.incerts #certEggs,body.incerts #certBg{display:none!important}
+.cu{position:fixed;inset:0;z-index:0;background:#09090a;touch-action:none;cursor:grab;outline:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+.cu.over{cursor:zoom-in}.cu.drag{cursor:grabbing}.cu.zoomed{cursor:zoom-out}
+.cu canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cu-img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:min(2.4vw,14px);opacity:0;transition:opacity .35s;pointer-events:none;box-shadow:0 30px 90px rgba(0,0,0,.6);object-fit:cover}
+.cu-img.on{opacity:1}
+.cu-bar{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px);padding:9px 10px 9px 16px;border-radius:16px;background:rgba(20,20,22,.72);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);color:#f2f2f4;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;cursor:default}
+.cu-bar.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.cu-meta{display:flex;flex-direction:column;gap:1px;min-width:0}.cu-meta b{font-size:14px}.cu-meta span{font-size:12px;color:rgba(255,255,255,.6)}
+.cu-acts{display:flex;gap:6px;flex-wrap:wrap}.cu-acts button{border:1px solid rgba(255,255,255,.16)!important;background:rgba(255,255,255,.08)!important;color:#fff!important;border-radius:10px!important;padding:7px 11px!important;font-size:12.5px!important;cursor:pointer}
+.cu-acts button:hover{background:rgba(255,255,255,.16)!important}.cu-acts button.busy{opacity:.5}
+.cu-hint{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);margin:0;font-size:12px;color:rgba(255,255,255,.45);pointer-events:none;white-space:nowrap;animation:cuHint 6s 2.5s forwards}
+@media (max-width:560px){.cu-bar{flex-direction:column;align-items:stretch;gap:8px;width:calc(100vw - 32px);padding:10px 12px}.cu-acts{flex-wrap:nowrap}.cu-acts button{flex:1;padding:8px 4px!important;font-size:12px!important}.cu-hint{white-space:normal;width:calc(100vw - 40px);text-align:center}}
+.cu.zoomed .cu-hint{display:none}@keyframes cuHint{to{opacity:0}}
+body.incerts #certModal .vhead{position:relative;z-index:3;pointer-events:none}body.incerts #certModal .vhead *{pointer-events:auto}
+body.incerts .topnav{background:linear-gradient(180deg,rgba(6,6,8,.82),rgba(6,6,8,.35))!important;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}body.incerts .topnav .tn,body.incerts .topnav .brand{color:rgba(255,255,255,.82)!important}
+body.incerts #certModal .vhead h1{color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.6)}
+/* badge membre holographique (Mon compte) */
+.pc-badge{display:inline-flex;align-items:center;gap:clamp(5px,1.6cqi,9px);padding:clamp(4px,1.3cqi,7px) clamp(8px,2.6cqi,13px) clamp(4px,1.3cqi,7px) clamp(6px,1.8cqi,10px);border-radius:clamp(7px,2.2cqi,11px);position:relative;overflow:hidden;isolation:isolate;
+  background:linear-gradient(115deg,#f7e9e6 0%,#f3dfe4 30%,#ece9f1 55%,#f6efe2 100%);border:1px solid rgba(255,255,255,.75);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 6px 18px rgba(0,0,0,.28),0 0 0 .5px rgba(150,120,110,.35)}
+.pc-badge::before{content:"";position:absolute;inset:-40%;z-index:-1;opacity:.75;mix-blend-mode:multiply;background:linear-gradient(105deg,transparent 22%,rgba(255,236,150,.9) 32%,rgba(170,240,190,.8) 38%,rgba(150,200,255,.85) 44%,rgba(210,170,255,.8) 50%,rgba(255,170,200,.7) 56%,transparent 66%);background-size:250% 250%;background-position:var(--mx,30%) var(--my,20%);animation:pcBadge 14s ease-in-out infinite alternate}
+.pc-badge::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(255,255,255,.55),transparent 55%)}
+@keyframes pcBadge{from{background-position:0% 30%}to{background-position:100% 70%}}
+.pc-badge svg{width:clamp(14px,4.4cqi,24px);height:auto;flex:none;color:#9a4a32}
+.pc-badge span{display:flex;flex-direction:column;line-height:1.05;text-align:left}
+.pc-badge small{font-family:var(--mono,ui-monospace,monospace);font-size:clamp(6px,1.75cqi,9px);letter-spacing:.14em;font-weight:600;background:linear-gradient(90deg,#b0873a,#8c9a4a 45%,#7d6d9a 80%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pc-badge b{font-size:clamp(10px,3.4cqi,16px);font-weight:700;color:#7a5560;letter-spacing:-.01em;margin-top:1px}
+.pc-mem.bdg{letter-spacing:0;text-shadow:none!important;color:inherit;padding:0;background:none}
 </style>
 
 <aside class="side" aria-label="Menu">
@@ -2937,16 +2966,7 @@ function drawCerts(){
       ${curve}</section>` : "";
   /* Jeu de cartes : on fait glisser les certificats */
   deckList = cs; deckSel = Math.max(0, Math.min(cs.length - 1, deckSel));
-  $("certGrid").innerHTML = cs.length ? `<div class="deck" id="deck" tabindex="0" aria-label="Certificats, glissez pour parcourir">
-      <div class="deck-stage">${cs.map((c, i) => { const im = (imgCache["cert:" + c.id] || [])[0] || c.src, A = certAmt(c);
-        return `<button type="button" class="dcard" data-ci="${i}" aria-label="${esc(c.firm)} ${esc(c.amount || "")}">
-          ${bcardHTML(c, cs.length - i)}</button>`; }).join("")}</div>
-      <div class="deck-bar"><button type="button" data-dkstep="-1" aria-label="Carte précédente">‹</button>
-        <div class="deck-dots">${cs.map((_, i) => `<i data-dkgo="${i}"></i>`).join("")}</div>
-        <button type="button" data-dkstep="1" aria-label="Carte suivante">›</button></div>
-      <div class="deck-info" id="deckInfo"></div></div>`
-    : `<button type="button" class="slot wide" data-newcert="1">+ Ajouter votre premier certificat</button>`;
-  layoutDeck(); bcardHover($("certGrid"), ".dcard.on .bc");
+  if (cs.length) cuMount(cs); else { cuStop(); $("certGrid").innerHTML = `<button type="button" class="slot wide" data-newcert="1">+ Ajouter votre premier certificat</button>`; }
   $("certEditModal").hidden = !certEdit;
   if (!certEdit) { $("certEdit").innerHTML = ""; return; }
   const c = certEdit, im = (imgCache["cert:" + c.id] || [])[0] || c.src;
@@ -2960,6 +2980,107 @@ function drawCerts(){
     <div class="e-acts"><span class="grow"></span>${(state.certs || []).some(x => x.id === c.id) ? `<button type="button" class="mini del" id="cfDel">Supprimer</button>` : ""}
       <button type="button" class="mini ghost" id="cfCancel">Annuler</button><button type="submit" class="go save">Enregistrer</button></div></form>`;
 }
+/* ===== Certificats : univers infini — grille bombée qui se répète à l'infini, déplacement libre mais lent, clic = l'écran zoome sur le certificat ===== */
+const CU = {cv: null, gl: null, pr: null, tex: null, U: {}, list: [], n: 0, cam: [0, 0], v: [0, 0], z: 3, zT: 3, d: .3, dT: .3, f: 0, fT: 0, foc: null, hov: [1e9, 1e9], run: false, last: 0, ptr: new Map(), drag: null, pinch: 0, atlas: null, dirty: false, sig: ""};
+const CU_A = 1400 / 1055, CU_G = .1, CU_SW = 512, CU_SH = 386, CU_COLS = 4, CU_ROWS = 5, CU_MAX = 20, CU_VMAX = 1.6;
+const cuCS = () => [CU_A + CU_G, 1 + CU_G];
+function cuBaseZ(){ const r = CU.cv.clientWidth / Math.max(1, CU.cv.clientHeight); return Math.max(3.1, 2.5 / r); }
+function cuFitZ(){ const r = CU.cv.clientWidth / Math.max(1, CU.cv.clientHeight); return Math.max(1 / .7, CU_A / (.86 * r)); }
+function cuStop(){ CU.run = false; const u = $("cuniv"); if (u) u.remove(); }
+function cuWorld(x, y){ const r = CU.cv.getBoundingClientRect(), H = r.height; let ux = (x - r.left - r.width / 2) / H, uy = (y - r.top - r.height / 2) / H; const k = 1 + CU.d * 1.6 * (ux * ux + uy * uy); return [CU.cam[0] + ux * k * CU.z, CU.cam[1] + uy * k * CU.z]; }
+function cuCellAt(x, y){ const w = cuWorld(x, y), cs = cuCS(), cx = Math.floor(w[0] / cs[0]), cy = Math.floor(w[1] / cs[1]), lx = w[0] - cx * cs[0] - CU_G / 2, ly = w[1] - cy * cs[1] - CU_G / 2; return {cx, cy, inside: lx >= 0 && ly >= 0 && lx <= CU_A && ly <= 1}; }
+function cuIdx(cx, cy){ const n = CU.n, k = n > 2 ? Math.floor(n / 2) + 1 : 1; return ((cx + cy * k) % n + n) % n; }
+function cuMount(cs){
+  const sig = cs.map(c => c.id + ((imgCache["cert:" + c.id] || [])[0] || c.src || "").length).join("|"); CU.list = cs.slice(0, CU_MAX); CU.n = CU.list.length;
+  let u = $("cuniv"); if (u && CU.gl && CU.sig === sig) { cuGo(); return; } CU.sig = sig;
+  if (!u) { $("certGrid").innerHTML = `<div class="cu" id="cuniv" tabindex="0" aria-label="Vos certificats : glissez pour vous déplacer, cliquez pour zoomer"><canvas></canvas><img class="cu-img" alt="" hidden><div class="cu-bar" hidden></div><p class="cu-hint">Glissez pour vous déplacer · cliquez sur un certificat pour zoomer</p></div>`; u = $("cuniv"); CU.gl = null; cuBind(u); }
+  CU.cv = u.querySelector("canvas");
+  if (!CU.gl) { const gl = CU.cv.getContext("webgl", {antialias: false, alpha: false, powerPreference: "high-performance"}); if (!gl) { u.innerHTML = `<p class="cu-hint">Votre navigateur ne permet pas d'afficher l'univers des certificats.</p>`; return; } CU.gl = gl;
+    const sh = (t, src) => { const o = gl.createShader(t); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.warn(gl.getShaderInfoLog(o)); return o; }, pr = gl.createProgram();
+    gl.attachShader(pr, sh(gl.VERTEX_SHADER, "attribute vec2 p; void main(){ gl_Position = vec4(p, 0., 1.); }"));
+    gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, `precision highp float;
+      uniform vec2 R, C, HV, FC; uniform float Z, D, N, K, F; uniform sampler2D S;
+      void main(){
+        vec2 uv = (gl_FragCoord.xy - .5 * R) / R.y; uv.y = -uv.y; float r2 = dot(uv, uv), k = 1. + D * 1.6 * r2;
+        vec2 w = C + uv * k * Z, cs = vec2(${(CU_A + CU_G).toFixed(4)}, ${(1 + CU_G).toFixed(4)}), sz = vec2(${CU_A.toFixed(4)}, 1.);
+        vec2 cell = floor(w / cs), l = w - cell * cs - vec2(${(CU_G / 2).toFixed(4)});
+        vec2 q = abs(l - sz * .5) - sz * .5 + .035; float sd = length(max(q, 0.)) + min(max(q.x, q.y), 0.) - .035;
+        float px = Z * k / R.y * 1.4, m = 1. - smoothstep(-px, px, sd);
+        float idx = mod(cell.x + cell.y * K, N); idx = mod(idx + N, N);
+        vec2 t = (vec2(mod(idx, ${CU_COLS}.), floor(idx / ${CU_COLS}.)) + clamp(l / sz, 0., 1.)) * vec2(${(CU_SW / 2048).toFixed(5)}, ${(CU_SH / 2048).toFixed(5)});
+        vec3 col = texture2D(S, t).rgb;
+        float hv = (cell == HV) ? 1. : 0., fc = (cell == FC) ? 1. : 0.;
+        col *= mix(1., 1.07, hv) * (1. - .62 * F * (1. - fc));
+        col *= 1. - .5 * D * smoothstep(.05, .7, r2);
+        vec3 bg = vec3(.035, .035, .04);
+        gl_FragColor = vec4(mix(bg, col, m), 1.);
+      }`));
+    gl.linkProgram(pr); gl.useProgram(pr); CU.pr = pr;
+    const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW); const lp = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(lp); gl.vertexAttribPointer(lp, 2, gl.FLOAT, false, 0, 0);
+    ["R", "C", "HV", "FC", "Z", "D", "N", "K", "F", "S"].forEach(n => CU.U[n] = gl.getUniformLocation(pr, n));
+    CU.tex = gl.createTexture(); CU.atlas = document.createElement("canvas"); CU.atlas.width = CU.atlas.height = 2048; }
+  /* l'atlas : chaque certificat dans sa case (texte de secours tant que l'image charge) */
+  const g = CU.atlas.getContext("2d"); g.fillStyle = "#0b0b0c"; g.fillRect(0, 0, 2048, 2048);
+  CU.list.forEach((c, i) => { const x = (i % CU_COLS) * CU_SW, y = Math.floor(i / CU_COLS) * CU_SH;
+    g.fillStyle = "#18181b"; g.fillRect(x, y, CU_SW, CU_SH); g.fillStyle = "#e9e9ec"; g.font = "600 34px system-ui,sans-serif"; g.textAlign = "center"; g.fillText(c.firm || "Certificat", x + CU_SW / 2, y + CU_SH / 2 - 6); g.font = "26px system-ui,sans-serif"; g.fillStyle = "#9a9aa2"; g.fillText([c.kind, c.amount].filter(Boolean).join(" · "), x + CU_SW / 2, y + CU_SH / 2 + 34);
+    const src = (imgCache["cert:" + c.id] || [])[0] || c.src; if (!src) return; const im = new Image(); im.decoding = "async";
+    im.onload = () => { const ir = im.naturalWidth / im.naturalHeight, sr = CU_SW / CU_SH; let sw = im.naturalWidth, sh2 = im.naturalHeight, sx = 0, sy = 0; if (ir > sr) { sw = sh2 * sr; sx = (im.naturalWidth - sw) / 2; } else { sh2 = sw / sr; sy = (im.naturalHeight - sh2) / 2; }
+      g.imageSmoothingQuality = "high"; g.drawImage(im, sx, sy, sw, sh2, x, y, CU_SW, CU_SH); CU.dirty = true; }; im.src = src; });
+  CU.dirty = true; CU.foc = null; CU.fT = 0; CU.zT = CU.z = cuBaseZ(); CU.dT = CU.d = .42; CU.cam = [cuCS()[0] / 2, cuCS()[1] / 2]; CU.v = [0, 0]; cuBar(); cuGo(); }
+function cuUpload(){ const gl = CU.gl; gl.bindTexture(gl.TEXTURE_2D, CU.tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, CU.atlas); gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); CU.dirty = false; }
+function cuGo(){ if (CU.run) return; CU.run = true; CU.last = performance.now(); requestAnimationFrame(cuTick); }
+function cuTick(now){ const u = $("cuniv"); if (!u || !CU.gl) { CU.run = false; return; } if (!document.body.classList.contains("incerts") || document.hidden) { CU.run = false; setTimeout(() => { if ($("cuniv") && document.body.classList.contains("incerts")) cuGo(); }, 400); return; }
+  requestAnimationFrame(cuTick); const dt = Math.min(.05, (now - CU.last) / 1000); CU.last = now; const gl = CU.gl, cv = CU.cv, dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(cv.clientWidth * dpr), H = Math.round(cv.clientHeight * dpr);
+  if (!W || !H) return; if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; if (!CU.foc) CU.zT = cuBaseZ(); else CU.zT = cuFitZ(); }
+  if (CU.dirty) cuUpload();
+  const e = 1 - Math.exp(-dt * 3.2);
+  if (CU.foc) { const cs = cuCS(), tx = (CU.foc.cx + .5) * cs[0], ty = (CU.foc.cy + .5) * cs[1]; CU.cam[0] += (tx - CU.cam[0]) * e; CU.cam[1] += (ty - CU.cam[1]) * e; CU.v = [0, 0]; }
+  else if (!CU.drag) { CU.cam[0] += CU.v[0] * dt; CU.cam[1] += CU.v[1] * dt; const dmp = Math.exp(-dt * 1.8); CU.v[0] *= dmp; CU.v[1] *= dmp; }
+  CU.z += (CU.zT - CU.z) * e; CU.d += (CU.dT - CU.d) * e; CU.f += (CU.fT - CU.f) * e;
+  gl.viewport(0, 0, W, H); const U = CU.U; gl.uniform2f(U.R, W, H); gl.uniform2f(U.C, CU.cam[0], CU.cam[1]); gl.uniform1f(U.Z, CU.z); gl.uniform1f(U.D, CU.d); gl.uniform1f(U.N, CU.n); gl.uniform1f(U.K, CU.n > 2 ? Math.floor(CU.n / 2) + 1 : 1); gl.uniform1f(U.F, CU.f);
+  gl.uniform2f(U.HV, CU.foc ? 1e9 : CU.hov[0], CU.foc ? 1e9 : CU.hov[1]); gl.uniform2f(U.FC, CU.foc ? CU.foc.cx : 1e9, CU.foc ? CU.foc.cy : 1e9); gl.uniform1i(U.S, 0); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  /* certificat net par-dessus quand le zoom est posé */
+  const img = u.querySelector(".cu-img"), settled = CU.foc && Math.abs(CU.z - CU.zT) < .03 * CU.zT && Math.hypot((CU.foc.cx + .5) * cuCS()[0] - CU.cam[0], (CU.foc.cy + .5) * cuCS()[1] - CU.cam[1]) < .01;
+  if (CU.foc) { const hp = cv.clientHeight / CU.z; img.style.width = (CU_A * hp) + "px"; img.style.height = hp + "px"; }
+  img.classList.toggle("on", !!settled); u.querySelector(".cu-bar").classList.toggle("on", !!CU.foc && Math.abs(CU.z - CU.zT) < .15 * CU.zT); }
+function cuFocus(cx, cy){ const c = CU.list[cuIdx(cx, cy)]; if (!c) return; CU.foc = {cx, cy, c}; CU.zT = cuFitZ(); CU.dT = 0; CU.fT = 1; CU.v = [0, 0];
+  const u = $("cuniv"), img = u.querySelector(".cu-img"), src = (imgCache["cert:" + c.id] || [])[0] || c.src; img.classList.remove("on"); if (src) { img.src = src; img.hidden = false; } else img.hidden = true; u.classList.add("zoomed"); cuBar(); }
+function cuUnfocus(){ if (!CU.foc) return; CU.foc = null; CU.zT = cuBaseZ(); CU.dT = .42; CU.fT = 0; const u = $("cuniv"); u.classList.remove("zoomed"); u.querySelector(".cu-img").classList.remove("on"); cuBar(); }
+function cuBar(){ const u = $("cuniv"); if (!u) return; const b = u.querySelector(".cu-bar"), c = CU.foc && CU.foc.c; b.hidden = !c; if (!c) return; const A = certAmt(c);
+  b.innerHTML = `<div class="cu-meta"><b>${esc(c.firm || "Certificat")}</b><span>${esc([c.kind, A.v != null ? frN(A.v, A.v % 1 ? 2 : 0) + " " + (A.c || cur()) : c.amount, c.date ? new Date(c.date).toLocaleDateString("fr-FR", {day: "numeric", month: "long", year: "numeric"}) : ""].filter(Boolean).join(" · "))}</span></div>
+    <div class="cu-acts"><button type="button" data-cu="dl">Télécharger</button><button type="button" data-cu="anim">Animation</button><button type="button" data-cu="edit">Modifier</button><button type="button" data-cu="back" aria-label="Dézoomer">Dézoomer</button></div>`; }
+function cuBind(u){
+  const clampV = v => { const m = Math.hypot(v[0], v[1]); return m > CU_VMAX ? [v[0] / m * CU_VMAX, v[1] / m * CU_VMAX] : v; };
+  u.addEventListener("pointerdown", e => { if (e.target.closest(".cu-bar")) return; u.setPointerCapture(e.pointerId); CU.ptr.set(e.pointerId, [e.clientX, e.clientY]);
+    if (CU.ptr.size === 2) { const [a, b] = [...CU.ptr.values()]; CU.pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); CU.drag = null; return; }
+    CU.drag = {x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now(), t: performance.now(), vel: [0, 0], moved: 0}; CU.v = [0, 0]; });
+  u.addEventListener("pointermove", e => {
+    if (CU.ptr.has(e.pointerId)) CU.ptr.set(e.pointerId, [e.clientX, e.clientY]);
+    if (CU.ptr.size === 2 && CU.pinch) { const [a, b] = [...CU.ptr.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]), r = d / CU.pinch;
+      if (CU.foc && r < .8) { cuUnfocus(); CU.pinch = d; } else if (!CU.foc && r > 1.25) { const h = cuCellAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); cuFocus(h.cx, h.cy); CU.pinch = d; } return; }
+    const D = CU.drag; if (!D) { if (e.pointerType === "mouse" && !CU.foc) { const h = cuCellAt(e.clientX, e.clientY); CU.hov = h.inside ? [h.cx, h.cy] : [1e9, 1e9]; u.classList.toggle("over", h.inside); } return; }
+    const dx = e.clientX - D.x, dy = e.clientY - D.y, now = performance.now(), dtm = Math.max(1, now - D.t) / 1000; D.x = e.clientX; D.y = e.clientY; D.t = now;
+    if (!D.moved && Math.hypot(e.clientX - D.x0, e.clientY - D.y0) > 8) { D.moved = 1; u.classList.add("drag"); if (CU.foc) cuUnfocus(); }
+    if (!D.moved) return; const k = CU.z / CU.cv.clientHeight * .7, wx = -dx * k, wy = -dy * k; CU.cam[0] += wx; CU.cam[1] += wy; D.vel = [D.vel[0] * .6 + wx / dtm * .4, D.vel[1] * .6 + wy / dtm * .4]; });
+  const up = e => { CU.ptr.delete(e.pointerId); if (CU.ptr.size < 2) CU.pinch = 0; const D = CU.drag; CU.drag = null; u.classList.remove("drag"); if (!D) return;
+    if (D.moved) { CU.v = performance.now() - D.t > 90 ? [0, 0] : clampV(D.vel); return; }
+    if (performance.now() - D.t0 > 600) return; const h = cuCellAt(e.clientX, e.clientY);
+    if (CU.foc) { if (!(h.inside && h.cx === CU.foc.cx && h.cy === CU.foc.cy)) cuUnfocus(); } else if (h.inside) cuFocus(h.cx, h.cy); };
+  u.addEventListener("pointerup", up); u.addEventListener("pointercancel", up);
+  u.addEventListener("pointerleave", () => { CU.hov = [1e9, 1e9]; u.classList.remove("over"); });
+  u.addEventListener("wheel", e => { if (e.target.closest(".cu-bar")) return; e.preventDefault(); const dy = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY, dx = e.deltaMode === 1 ? e.deltaX * 30 : e.deltaX;
+    if (CU.foc) { if (e.ctrlKey ? dy > 2 : Math.abs(dy) + Math.abs(dx) > 6 && dy > 0) cuUnfocus(); return; }
+    if (e.ctrlKey) { if (dy < -4) { const h = cuCellAt(e.clientX, e.clientY); if (h.inside) cuFocus(h.cx, h.cy); } return; }
+    const k = CU.z / CU.cv.clientHeight * .35, m = Math.min(60, Math.hypot(dx, dy)) / Math.max(1, Math.hypot(dx, dy)); CU.cam[0] += dx * m * k; CU.cam[1] += dy * m * k; CU.v = [0, 0]; }, {passive: false});
+  u.addEventListener("click", e => { const b = e.target.closest("[data-cu]"); if (!b || !CU.foc) return; const c = CU.foc.c, a = b.dataset.cu;
+    if (a === "back") cuUnfocus(); else if (a === "edit") { certEdit = {...c}; drawCerts(); } else if (a === "anim") openGlass(c); else if (a === "dl") cuDownload(c, b); });
+  u.addEventListener("keydown", e => { if (e.key === "Escape" && CU.foc) { e.preventDefault(); cuUnfocus(); return; } const st = {ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1]}[e.key]; if (st) { e.preventDefault(); cuUnfocus(); CU.v = [st[0] * 1.2, st[1] * 1.2]; } });
+  addEventListener("keydown", e => { if (e.key === "Escape" && CU.foc && document.body.classList.contains("incerts") && !document.querySelector(".modal:not([hidden]),.cz,.ig")) cuUnfocus(); }); }
+async function cuDownload(c, b){ const im = (imgCache["cert:" + c.id] || [])[0] || c.src; if (!im) return; b.classList.add("busy"); const src = await makeCertShare(im);
+  const nm = ("certificat-" + (c.firm || "") + "-" + (c.date || "")).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "");
+  try { const blob = await (await fetch(src)).blob(), ext = (blob.type.split("/")[1] || "png").replace("jpeg", "jpg"), url = URL.createObjectURL(blob), a = document.createElement("a"); a.href = url; a.download = nm + "." + ext; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); }
+  catch (er) { window.open(src, "_blank"); } b.classList.remove("busy"); }
 let deckSel = 0, deckList = [], deckIntro = false, deckMouse = null, deckTiltRun = false; const deckT = {x: 0, y: 0, gx: 50, gy: 30};
 /* inclinaison douce : calculée sur la place fixe du certificat (pas sur sa forme tournée), lissée à chaque image */
 function deckTiltLoop(){ deckTiltRun = false; return; const st = document.querySelector("#certGrid .deck-stage"), c = st && st.querySelector(".dcard.on"); if (!c || !document.body.classList.contains("incerts")) { deckTiltRun = false; return; }
@@ -4484,6 +4605,9 @@ async function checkHandle(){ const h = cleanHandle($("fHandle").value), cur = c
   hint.textContent = "Vérification…"; hint.className = "acc-hint";
   const free = await window.SBP?.isFree(h); if (cleanHandle($("fHandle").value) !== h) return;
   handleOk = free !== false; hint.textContent = free === false ? "@" + h + " est déjà pris." : "@" + h + " est disponible ✓"; hint.className = "acc-hint " + (free === false ? "err" : "ok"); }
+const PC_FOUNDERS = ["kael", "kai"];
+const PC_LAUREL = `<svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><ellipse cx="12.5" cy="24.6" rx="1.9" ry="4" transform="rotate(225 12.5 24.6)"/><ellipse cx="7.9" cy="21.2" rx="1.9" ry="4" transform="rotate(258 7.9 21.2)"/><ellipse cx="5.8" cy="15.9" rx="1.9" ry="4" transform="rotate(290 5.8 15.9)"/><ellipse cx="7.0" cy="10.3" rx="1.9" ry="4" transform="rotate(322 7.0 10.3)"/><ellipse cx="10.9" cy="6.2" rx="1.9" ry="4" transform="rotate(355 10.9 6.2)"/><ellipse cx="19.5" cy="24.6" rx="1.9" ry="4" transform="rotate(135 19.5 24.6)"/><ellipse cx="24.1" cy="21.2" rx="1.9" ry="4" transform="rotate(102 24.1 21.2)"/><ellipse cx="26.2" cy="15.9" rx="1.9" ry="4" transform="rotate(70 26.2 15.9)"/><ellipse cx="25.0" cy="10.3" rx="1.9" ry="4" transform="rotate(38 25.0 10.3)"/><ellipse cx="21.1" cy="6.2" rx="1.9" ry="4" transform="rotate(5 21.1 6.2)"/><path d="M12.2 26.6C7.6 24.4 5.2 19.8 5.9 14.6M19.8 26.6c4.6-2.2 7-6.8 6.3-12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12 27.4l4-1.6 4 1.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`;
+function pcBadge(top, name){ const m = $("pcMem"); m.classList.add("bdg"); m.innerHTML = `<span class="pc-badge">${top === "FOUNDER" ? PC_LAUREL : ""}<span><small>${top}</small><b>${esc(name)}</b></span></span>`; }
 const PC_THEMES = [["Noir", "#2b2c31", "#060607"], ["Graphite", "#646a74", "#1b1d21"], ["Or", "#d8b56c", "#4a3713"], ["Nuit", "#2a4c96", "#060a1a"], ["Émeraude", "#22886a", "#03140e"], ["Bordeaux", "#8a2440", "#16040a"], ["Perle", "#ffffff", "#c9ccd4"]];
 const pcLum = h => { const n = parseInt(String(h).slice(1), 16); return ((n >> 16 & 255) * .299 + (n >> 8 & 255) * .587 + (n & 255) * .114) / 255; };
 let pcDraft = null;
@@ -4493,13 +4617,13 @@ function pcPaint(){ const c = $("pcard"); if (!c) return; const d = pcDraft || s
 function openSettings(){
   $("fName").value = state.name || ""; $("fHandle").value = cleanHandle(state.handle); $("fBio").value = state.bio || ""; $("fCur").value = state.currency;
   $("handleHint").textContent = ""; handleOk = true; $("setErr").hidden = true; pcDraft = state.card ? {...state.card} : null;
-  $("pcMem").textContent = cleanHandle(state.handle) === "kael" ? "FONDATEUR" : "MEMBRE"; $("pcMem").classList.toggle("fd", cleanHandle(state.handle) === "kael");
+  const fdr = PC_FOUNDERS.includes(cleanHandle(state.handle)); pcBadge(fdr ? "FOUNDER" : "MEMBER", fdr ? cleanHandle(state.handle).replace(/^./, m => m.toUpperCase()) : "—"); $("pcMem").classList.toggle("fd", fdr);
   $("pcSw").innerHTML = PC_THEMES.map(([n, a, b]) => `<button type="button" title="${n}" data-c1="${a}" data-c2="${b}" style="background:linear-gradient(135deg,${a},${b})"></button>`).join("");
   const all = allTrades(), syms = [...new Set(all.map(t => (t.sym || "").toUpperCase()).filter(Boolean))].slice(0, 3);
   $("pcBot").innerHTML = `<span><small>Actifs</small>${esc(syms.join(" · ") || (stratCfg().market || "—"))}</span><span><small>Trades</small>${all.length}</span><span class="pc-since"><small>Depuis</small><em id="pcSince">—</em></span>`;
   paintAvatar(); pcPaint(); $("setModal").hidden = false; const pc = $("pcard"); pc.classList.remove("in"); void pc.offsetWidth; pc.classList.add("in");
   (async () => { try { const me = await window.SBP?.load(); if (!me || !me.created_at) return; const d = new Date(me.created_at); $("pcSince").textContent = d.toLocaleDateString("fr-FR", {month: "short", year: "numeric"});
-    const r = await SB.cli.from("profiles").select("id", {count: "exact", head: true}).lte("created_at", me.created_at); if (!r.error && r.count && !$("pcMem").classList.contains("fd")) $("pcMem").textContent = "MEMBRE N° " + String(r.count).padStart(4, "0"); } catch (e) {} })();
+    const r = await SB.cli.from("profiles").select("id", {count: "exact", head: true}).lte("created_at", me.created_at); if (!r.error && r.count && !$("pcMem").classList.contains("fd")) pcBadge("MEMBER", String(r.count).padStart(3, "0")); } catch (e) {} })();
 }
 /* double-clic sur le nom ou le pseudo : on l'édite directement sur la carte */
 ["pcName", "pcHandle"].forEach(id => $(id).addEventListener("dblclick", () => { const el = $(id), isH = id === "pcHandle", src = $(isH ? "fHandle" : "fName");
@@ -4511,7 +4635,7 @@ $("pcSw").addEventListener("click", e => { const b = e.target.closest("button");
 $("pcOwn").onclick = () => { const cc = $("pcCC"); cc.hidden = !cc.hidden; if (!cc.hidden) cc.animate([{opacity: 0, transform: "translateX(-6px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: "ease-out"}); };
 { const bn = () => { $("bioN").textContent = $("fBio").value.length + "/200"; }; $("fBio").addEventListener("input", bn); $("setModal").addEventListener("transitionstart", bn); new MutationObserver(bn).observe($("setModal"), {attributes: true, attributeFilter: ["hidden"]}); }
 ["pcC1", "pcC2"].forEach(id => $(id).addEventListener("input", () => { pcDraft = {c1: $("pcC1").value, c2: $("pcC2").value}; pcPaint(); }));
-$("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); c.style.setProperty("--rx", ((.5 - y) * 10).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 14).toFixed(2) + "deg"); });
+$("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); c.style.setProperty("--rx", ((.5 - y) * 4).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 6).toFixed(2) + "deg"); });
 $("pcard").addEventListener("pointerleave", () => { const c = $("pcard"); c.classList.remove("hov"); c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); });
 $("btnSettings").onclick = openSettings;
 $("setCancel").onclick = () => { $("setModal").hidden = true; };
@@ -7874,7 +7998,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-30-163";
+const APP_VERSION = "2026-10-31-164";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
