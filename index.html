@@ -2289,6 +2289,7 @@ body.incerts .deck-stage{height:clamp(380px,calc(100vh - 230px),820px)!important
 .pc-out{background:none!important;border:0!important;padding:8px 4px!important;font-size:13px!important;color:#e5484d!important;opacity:.8}.pc-out:hover{opacity:1}
 .pc-help{font-size:11px!important;opacity:.45!important;margin:2px 0 4px!important}
 .sheet.acc{max-width:520px}
+.pc-out.pc-sw2{color:inherit!important;opacity:.75}.sheet.acc .actions > div:first-child{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 @media (max-width:600px){
 section.view[data-view="resultats"] .cal{padding:12px!important;gap:7px!important}
 section.view[data-view="resultats"] .cal .cell{min-height:42px!important;border-radius:8px!important}
@@ -2508,7 +2509,7 @@ body.incerts #certModal .vhead h1{color:#111;text-shadow:0 1px 12px rgba(255,255
     <div class="pc-sec pc-bio"><span class="pc-lab">Bio</span><div class="pc-ta"><textarea id="fBio" maxlength="200" rows="2" placeholder="Une phrase sur vous, votre marché, vos prop firms…"></textarea><small id="bioN">0/200</small></div></div>
     <p class="err" id="setErr" hidden></p>
     <div class="actions">
-      <div><button type="button" id="btnOut" class="pc-out" onclick="window.sbSignOut && sbSignOut()">Se déconnecter</button></div>
+      <div><button type="button" id="btnSwitch" class="pc-out pc-sw2" onclick="window.sbSignOut && sbSignOut()">Changer de compte</button><button type="button" id="btnOut" class="pc-out" onclick="window.sbSignOut && sbSignOut()">Se déconnecter</button></div>
       <div><button type="button" class="ghost" id="setCancel">Fermer</button><button type="submit" class="go">Enregistrer</button></div>
     </div>
   </form>
@@ -5122,7 +5123,7 @@ const mkSBP = () => ({
   SB.cli.auth.onAuthStateChange((ev, ses) => { if (ses && ses.user) setTimeout(() => enter(ses.user, ev === "SIGNED_IN"), 0);
     if (ev === "SIGNED_OUT") { inside = null; SB.uid = SB.user = null; $("agHi").textContent = hello(); $("agSub").textContent = "Connectez-vous pour retrouver votre journal."; $("agBox").style.opacity = ""; $("agBox").hidden = false; $("agProf").hidden = true; g.hidden = false; } });
   SB.cli.auth.getSession().then(({data}) => { const ses = data && data.session; if (ses && ses.user) enter(ses.user, returning); else if (!returning) g.hidden = false; }).catch(() => { g.hidden = false; });
-  $("agGoogle").onclick = async () => { msg(""); const r = await SB.cli.auth.signInWithOAuth({provider: "google", options: {redirectTo: back()}}); if (r.error) msg("Connexion Google impossible : " + r.error.message, true); };
+  $("agGoogle").onclick = async () => { msg(""); const r = await SB.cli.auth.signInWithOAuth({provider: "google", options: {redirectTo: back(), queryParams: {prompt: "select_account"}}}); if (r.error) msg("Connexion Google impossible : " + r.error.message, true); };
   $("agMail").onsubmit = async e => { e.preventDefault(); const em = $("agEmail").value.trim(); if (!em) return; const b = g.querySelector(".ag-send"); b.disabled = true; msg("Envoi…");
     const r = await SB.cli.auth.signInWithOtp({email: em, options: {emailRedirectTo: back()}}); b.disabled = false;
     msg(r.error ? "Envoi impossible : " + r.error.message : "Lien envoyé. Ouvrez l'e-mail et cliquez sur le lien pour entrer.", !!r.error); };
@@ -8029,7 +8030,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-173";
+const APP_VERSION = "2026-10-31-174";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
