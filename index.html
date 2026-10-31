@@ -2306,6 +2306,7 @@ section.view[data-view="resultats"] .cal .wk div:last-child{font-size:0}section.
 .sheet.acc .pc-sw button{width:100%;height:24px}.sheet.acc .pc-own{width:30px;height:24px}
 .sheet.acc .pc-cc{grid-column:1/-1}
 .sheet.acc .actions{gap:10px}
+.sheet.acc .pcard{touch-action:none}
 }
 .acc-top{display:flex;align-items:center;gap:16px;margin:4px 0 18px}.acc-top b{display:block;font-size:17px}.acc-top small{opacity:.6}
 .acc-av{position:relative;width:84px;height:84px;border-radius:50%;overflow:hidden;cursor:pointer;flex:none;background:rgba(127,127,127,.15);display:grid;place-items:center}.acc-av b{font-size:30px}
@@ -4664,7 +4665,8 @@ $("pcSw").addEventListener("click", e => { const b = e.target.closest("button");
 $("pcOwn").onclick = () => { const cc = $("pcCC"); cc.hidden = !cc.hidden; if (!cc.hidden) cc.animate([{opacity: 0, transform: "translateX(-6px)"}, {opacity: 1, transform: "none"}], {duration: 260, easing: "ease-out"}); };
 { const bn = () => { $("bioN").textContent = $("fBio").value.length + "/200"; }; $("fBio").addEventListener("input", bn); $("setModal").addEventListener("transitionstart", bn); new MutationObserver(bn).observe($("setModal"), {attributes: true, attributeFilter: ["hidden"]}); }
 ["pcC1", "pcC2"].forEach(id => $(id).addEventListener("input", () => { pcDraft = {c1: $("pcC1").value, c2: $("pcC2").value}; pcPaint(); }));
-$("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); c.style.setProperty("--rx", ((.5 - y) * 4).toFixed(2) + "deg"); c.style.setProperty("--ry", ((x - .5) * 6).toFixed(2) + "deg"); });
+$("pcard").addEventListener("pointermove", e => { const c = $("pcard"), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; c.classList.add("hov"); c.style.setProperty("--mx", x * 100 + "%"); c.style.setProperty("--my", y * 100 + "%"); const tk = e.pointerType === "touch" ? 4 : 1, cx = Math.max(0, Math.min(1, x)), cy = Math.max(0, Math.min(1, y)); c.style.setProperty("--rx", ((.5 - cy) * 4 * tk).toFixed(2) + "deg"); c.style.setProperty("--ry", ((cx - .5) * 6 * tk).toFixed(2) + "deg"); });
+["pointerup", "pointercancel"].forEach(n => $("pcard").addEventListener(n, e => { if (e.pointerType !== "touch") return; const c = $("pcard"); c.classList.remove("hov"); c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); }));
 $("pcard").addEventListener("pointerleave", () => { const c = $("pcard"); c.classList.remove("hov"); c.style.removeProperty("--rx"); c.style.removeProperty("--ry"); });
 $("btnSettings").onclick = openSettings;
 $("setCancel").onclick = () => { $("setModal").hidden = true; };
@@ -8027,7 +8029,7 @@ setView(view);
 })();
 
 /* Mise à jour automatique : si une nouvelle version est en ligne, la page se recharge toute seule */
-const APP_VERSION = "2026-10-31-172";
+const APP_VERSION = "2026-10-31-173";
 async function checkUpdate(){
   try{
     const r = await fetch(location.pathname + "?check=" + Date.now(), {cache:"no-store"});
